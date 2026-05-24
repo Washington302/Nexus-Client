@@ -1,6 +1,6 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
-  import type { Characteristics } from '$lib/types/character';
+  import type { Characteristics } from '$lib/types';
 
   let { characteristics } = $props<{ characteristics: Characteristics }>();
 

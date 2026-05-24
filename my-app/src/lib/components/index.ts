@@ -21,3 +21,5 @@ export { default as LongevityRitual } from './LongevityRitual.svelte';
 export { default as CharacterSheet } from './CharacterSheet.svelte';
 export { default as RawVis } from './RawVis.svelte';
 export { default as SpellList } from './SpellList.svelte';
+export { default as WoundTracker } from './WoundTracker.svelte';
+export { default as FatigueTracker } from './FatigueTracker.svelte';

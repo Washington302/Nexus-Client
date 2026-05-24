@@ -17,13 +17,19 @@
     RawVis,
     LongevityRitual,
     SpellList,
+    WoundTracker,
+    FatigueTracker,
   } from "$lib/components";
   import type { Character } from "$lib/types/character";
 
   let { character } = $props<{ character: Character }>();
 
   let activeTab = $state("Abilities");
-  const tabs = ["Abilities", "Arts & Lab", "Spells"];
+  const tabs = ["Abilities", "Arts & Lab", "Spells", "Combat"];
+
+  let personalVis = $derived(character.hermeticData.rawVis);
+
+  let labVis = $derived(character.hermeticData.laboratory.visStore);
 
   const artsList = $derived(Object.values(character.hermeticData.arts));
 </script>
@@ -124,19 +130,16 @@
 
     <!-- RIGHT COLUMN -->
     <div style="display: flex; flex-direction: column; gap: 16px;">
-      <!-- ALWAYS VISIBLE: Character meta -->
       <div
         style="
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 16px;
-        align-items: start;
-      "
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    align-items: start;
+  "
       >
-        <!-- Virtues & Flaws -->
         <ChipList virtues={character.virtues} flaws={character.flaws} />
 
-        <!-- Personality & Reputations -->
         <div style="display: flex; flex-direction: column; gap: 16px;">
           <PersonalityTraits traits={character.personalityTraits} />
           <Reputations reputations={character.reputations} />
@@ -145,60 +148,101 @@
 
       <div class="ink-divider" />
 
-      <!-- TABBED SECTION -->
-      <Tabs {tabs} bind:activeTab />
-
       <div
-        style="overflow: auto; max-height: calc(100vh - 200px); scrollbar-width: none;"
+        style="
+      display: flex;
+      flex-direction: column;
+      height: 800px; /* Adjust this fixed pixel height to align exactly with your left column */
+      border: 1px solid {COLORS.outlineVar};
+      border-radius: 8px;
+      overflow: hidden; /* Prevents contents from spilling outside the rounded corners */
+      background-color: transparent;
+    "
       >
-        {#if activeTab === "Abilities"}
-          <div
-            style="
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    align-items: start;
-  "
-          >
-            <AbilityList abilities={character.abilities} />
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-              <WeaponTable weapons={character.weapons} />
-              <ArmorDisplay
-                armor={character.armor}
-                encumbrance={character.encumbrance}
-                totalLoad={character.totalLoad}
-                totalArmorProtection={character.totalArmorProtection}
-              />
-            </div>
-          </div>
-        {:else if activeTab === "Arts & Lab"}
-          <div
-            style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start;"
-          >
-            <div
-              style="position: sticky; top: 0; align-self: start; height: fit-content;"
-            >
-              <ArtsGrid {artsList} />
-            </div>
+        <div style="padding: 12px 12px 0 12px;">
+          <Tabs {tabs} bind:activeTab />
+        </div>
 
+        <div
+          style="
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 12px 12px 12px;
+        scrollbar-width: none;
+      "
+        >
+          {#if activeTab === "Abilities"}
             <div
-              style="display: flex; flex-direction: column; gap: 16px; min-width: 0;"
+              style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            align-items: start;
+          "
             >
-              <CastingTotals {character} />
-              <LabTotal {character} />
-              <div
-                style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
-              >
-                <LongevityRitual warpingPoints={character.warpingPoints} />
-                <RawVis entries={[]} />
+              <AbilityList abilities={character.abilities} />
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <WeaponTable weapons={character.weapons} />
+                <ArmorDisplay
+                  armor={character.armor}
+                  encumbrance={character.encumbrance}
+                  totalLoad={character.totalLoad}
+                  totalArmorProtection={character.totalArmorProtection}
+                />
               </div>
             </div>
-          </div>
-        {:else if activeTab === "Spells"}
-          <div style="overflow: visible;">
-            <SpellList spells={character.hermeticData.spells} />
-          </div>
-        {/if}
+          {:else if activeTab === "Arts & Lab"}
+            <div
+              style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start;"
+            >
+              <div
+                style="position: sticky; top: 0; align-self: start; height: fit-content;"
+              >
+                <ArtsGrid {artsList} />
+              </div>
+
+              <div
+                style="display: flex; flex-direction: column; gap: 16px; min-width: 0;"
+              >
+                <CastingTotals {character} />
+                <LabTotal {character} />
+                <div
+                  style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                >
+                  <LongevityRitual warpingPoints={character.warpingPoints} />
+                  <RawVis
+                    personalVis={personalVis}
+                    labVis={labVis}
+                  />
+                </div>
+              </div>
+            </div>
+          {:else if activeTab === "Spells"}
+            <div style="overflow: visible;">
+              <SpellList spells={character.hermeticData.spells} />
+            </div>
+          {:else if activeTab === "Combat"}
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start;"
+            >
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <FatigueTracker
+                  currentFatigueLevel={character.currentFatigueLevel}
+                />
+                <WoundTracker track={character.track} size={character.size} />
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <WeaponTable weapons={character.weapons} />
+                <ArmorDisplay
+                  armor={character.armor}
+                  encumbrance={character.encumbrance}
+                  totalLoad={character.totalLoad}
+                  totalArmorProtection={character.totalArmorProtection}
+                />
+              </div>
+            </div>
+          {/if}
+        </div>
       </div>
     </div>
   </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { COLORS, S } from "$lib/constants";
-  import type { Character, Art, Ability } from "$lib/types/character";
+  import type { Character, MagicalArt, Ability } from "$lib/types";
 
   let { character } = $props<{ character: Character }>();
 
@@ -11,12 +11,12 @@
   const magicTheory = $derived(ability("Magic Theory"));
 
   const techniques = $derived(
-    (Object.values(character.hermeticData.arts) as Art[]).filter(
+    (Object.values(character.hermeticData.arts) as MagicalArt[]).filter(
       (a) => a.type === "TECHNIQUE",
     ),
   );
   const forms = $derived(
-    (Object.values(character.hermeticData.arts) as Art[]).filter(
+    (Object.values(character.hermeticData.arts) as MagicalArt[]).filter(
       (a) => a.type === "FORM",
     ),
   );

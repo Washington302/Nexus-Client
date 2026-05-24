@@ -1,8 +1,8 @@
 <script lang="ts">
   import { COLORS, S } from "$lib/constants";
-  import type { VirtueFlaw } from "$lib/types/character";
+  import type { Trait } from "$lib/types";
 
-  let { item } = $props<{ item: VirtueFlaw }>();
+  let { item } = $props<{ item: Trait }>();
 
   let hovered = $state(false);
   let tooltipHovered = $state(false);

@@ -1,44 +1,29 @@
-export type ArtType = 'TECHNIQUE' | 'FORM';
-export type CharacterType = 'MAGUS' | 'COMPANION' | 'GROG';
-export type AbilityCategory = 'ARCANE' | 'ACADEMIC' | 'GENERAL' | 'MARTIAL' | 'SUPERNATURAL';
-export type WoundType = 'LIGHT' | 'MEDIUM' | 'HEAVY' | 'INCAPACITATED' | 'DEAD';
-export type FatigueLevel = 'Fresh' | 'Winded' | 'Weary' | 'Tired' | 'Dazed' | 'Unconscious';
-export type ReputationType = 'HERMETIC' | 'LOCAL' | 'NOBLE' | 'CHURCH';
-export type Complexion = 'SANGUINE' | 'PHLEGMATIC' | 'CHOLERIC' | 'MELANCHOLIC';
-export type Coverage = 'FULL' | 'PARTIAL' | 'NONE';
-export type ArmorQuality = 'STANDARD' | 'FINE' | 'POOR';
-export type CostTier = 'INEXPENSIVE' | 'STANDARD' | 'EXPENSIVE' | 'RICH';
-export type EffectMagnitude = 'FREE' | 'MINOR' | 'MAJOR';
+// src/types/ars-magica/character.ts
 
-export interface Effect {
-  tag: string;
-  scope: string;
-  flatValue: number;
-  multiplier: number;
-}
+import type {
+  Trait,
+  RawVisStore,
+  PersonalityTrait,
+  Reputation,
+  Characteristics,
+} from "./shared"; // ◄ Added imports
+import type { Wound, Weapon, Armor, FatigueLevel } from "./combat";
+import type { Laboratory } from "./laboratory";
+import type { HumanCharacteristics } from "./shared";
 
-export interface VirtueFlaw {
-  title: string;
-  type: string;
-  magnitude: EffectMagnitude;
-  description: string;
-  transitionStage: string;
-  effects: Effect[];
-  flaw: boolean;
-  replaceable: boolean;
-}
-
-export interface Art {
-  name: string;
-  exp: number;
-  score: number;
-  type: ArtType;
-}
+export type CharacterType = "MAGUS" | "COMPANION" | "GROG";
+export type AbilityCategory =
+  | "ARCANE"
+  | "ACADEMIC"
+  | "GENERAL"
+  | "MARTIAL"
+  | "SUPERNATURAL";
 
 export interface Spell {
   name: string;
   technique: string;
   form: string;
+  level: number;
   magnitude: number;
   range: string;
   duration: string;
@@ -48,30 +33,11 @@ export interface Spell {
   notes: string;
 }
 
-export interface LabVirtueFlaw extends VirtueFlaw {}
-
-export interface Laboratory {
-  id: string;
+export interface MagicalArt {
   name: string;
-  building: string;
-  floor: number;
-  ownerName: string;
-  size: number;
-  refinement: number;
-  generalQuality: number;
-  upkeep: number;
-  safety: number;
-  warping: number;
-  health: number;
-  aesthetics: number;
-  virtues: LabVirtueFlaw[];
-  flaws: LabVirtueFlaw[];
-  activitySpecializations: Record<string, number>;
-  artSpecializations: Record<string, number>;
-  personalityTraits: Record<string, number>;
-  features: string[];
-  baseSafety: number;
-  upkeepPoints: number;
+  exp: number;
+  score: number;
+  type: "TECHNIQUE" | "FORM";
 }
 
 export interface HermeticData {
@@ -83,8 +49,9 @@ export interface HermeticData {
   covenantOfApprenticeship: string;
   twilightPending: boolean;
   laboratory: Laboratory;
-  spells: Spell[];
-  arts: Record<string, Art>;
+  spells: Record<string, Spell>;
+  arts: Record<string, MagicalArt>;
+  rawVis: RawVisStore; // Personal inventory store tracking standard/extraordinary vis items
 }
 
 export interface Ability {
@@ -95,130 +62,28 @@ export interface Ability {
   category: AbilityCategory;
 }
 
-export interface Characteristics {
-  intelligence: number;
-  perception: number;
-  strength: number;
-  stamina: number;
-  presence: number;
-  communication: number;
-  dexterity: number;
-  quickness: number;
-}
-
-export interface WoundTrack {
-  type: WoundType;
-  penalty: number;
-  maxWounds: number;
-  currentWounds: number;
-}
-
-export interface PersonalityTrait {
-  name: string;
-  score: number;
-  complexion: Complexion;
-  essential: boolean;
-  temporary: boolean;
-}
-
-export interface Reputation {
-  name: string;
-  type: ReputationType;
-  score: number;
-  xp: number;
-  scope: string;
-}
-
-export interface Weapon {
-  name: string;
-  ability: string;
-  baseInitiativeMod: number;
-  baseAttackMod: number;
-  baseDefenseMod: number;
-  baseDamageMod: number;
-  minimumStrength: number;
-  load: number;
-  cost: string;
-  range: number;
-  equipped: boolean;
-  shield: boolean;
-  missile: boolean;
-  requiresTwoHands: boolean;
-}
-
-export interface Armor {
-  id: string;
-  materialName: string;
-  coverage: Coverage;
-  protection: number;
-  load: number;
-  quality: ArmorQuality;
-  perceptionPenalty: number;
-  costTier: CostTier;
-  purchasePoints: number;
-  damageLevels: number;
-  targetSize: number;
-  worn: boolean;
-  magical: boolean;
-}
-
-export interface AgingPoints {
-  Intelligence: number;
-  Stamina: number;
-  Quickness: number;
-}
-
 export interface Character {
+  id: string;
   userId: string;
-  gameSystem: string;
-  createdAt: string;
-  updatedAt: string;
+  campaignId: string;
   name: string;
-  player: string;
-  description: string;
-  portraitUrl: string;
-  type: CharacterType;
-  hermeticData: HermeticData;
-  birthName: string;
-  yearBorn: number;
-  gender: string;
-  raceNationality: string;
-  placeOfOrigin: string;
-  religion: string;
-  titleProfession: string;
-  height: number;
-  weight: number;
-  hair: string;
-  eyes: string;
-  handedness: string;
-  saga: string;
-  setting: string;
-  currentYear: number;
-  covenantId: string;
-  covenant: string;
-  track: WoundTrack[];
+  type: "MAGUS" | "COMPANION" | "GROG";
+  
+  // Matches backend tracking block for physical/mental capabilities
+  characteristics: HumanCharacteristics; // ◄ Added characteristics to character
+  
+  hermeticData?: HermeticData;
+  track: Wound[];
   currentFatigueLevel: FatigueLevel;
   fatiguePenalty: number;
-  characteristics: Characteristics;
   weapons: Weapon[];
   armor: Armor[];
-  age: number;
-  size: number;
-  confidence: number;
-  equipment: string;
-  abilities: Ability[];
-  virtues: VirtueFlaw[];
-  flaws: VirtueFlaw[];
+  abilities: Record<string, Ability>;
+  virtues: Record<string, Trait>;
+  flaws: Record<string, Trait>;
+  agingPoints: Record<string, number>;
   personalityTraits: PersonalityTrait[];
   reputations: Reputation[];
   warpingPoints: number;
   decrepitudePoints: number;
-  agingPoints: AgingPoints;
-  magus: boolean;
-  totalWoundPenalty: number;
-  totalLoad: number;
-  encumbrance: number;
-  totalArmorProtection: number;
-  equippedDefenseModifier: number;
-  labUpkeepPoints: number;
 }

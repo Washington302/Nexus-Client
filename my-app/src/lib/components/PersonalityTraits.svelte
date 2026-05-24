@@ -1,6 +1,6 @@
 <script lang="ts">
   import { COLORS, S } from "$lib/constants";
-  import type { PersonalityTrait } from "$lib/types/character";
+  import type { PersonalityTrait } from "$lib/types";
 
   let { traits = [] } = $props<{ traits: PersonalityTrait[] }>();
 </script>

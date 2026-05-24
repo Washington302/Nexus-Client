@@ -12,7 +12,7 @@
 		"strict": true,
 		"moduleResolution": "bundler",
 		"allowImportingTsExtensions": true,
-		"types": ["svelte"]
+		
 	},
 	"include": ["src/**/*", "src/**/*.svelte"],
 	"exclude": ["node_modules", ".svelte-kit"]

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
   import AbilityRow from './AbilityRow.svelte';
-  import type { Ability } from '$lib/types/character';
+  import type { Ability } from '$lib/types/character.old';
 
   let { abilities = [] } = $props<{ abilities: Ability[] }>();
 

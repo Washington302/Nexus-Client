@@ -1,11 +1,11 @@
 <script lang="ts">
   import { COLORS, S } from "$lib/constants";
   import VirtueFlawChip from "./VirtueFlawChip.svelte";
-  import type { VirtueFlaw } from "$lib/types/character";
+  import type { Trait } from "$lib/types";
 
   let { virtues = [], flaws = [] } = $props<{
-    virtues: VirtueFlaw[];
-    flaws: VirtueFlaw[];
+    virtues: Trait[];
+    flaws: Trait[];
   }>();
 
   const sectionLabel = (flaw: boolean) => `

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
-  import type { Weapon } from '$lib/types/character';
+  import type { Weapon } from '$lib/types';
 
   let { weapons = [] } = $props<{ weapons: Weapon[] }>();
 

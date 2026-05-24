@@ -1,6 +1,6 @@
 <script lang="ts">
   import { COLORS, S } from "$lib/constants";
-  import type { Reputation } from "$lib/types/character";
+  import type { Reputation } from "$lib/types";
 
   let { reputations = [] } = $props<{ reputations: Reputation[] }>();
 </script>
