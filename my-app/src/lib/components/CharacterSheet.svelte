@@ -25,7 +25,12 @@
   let { character } = $props<{ character: Character }>();
 
   let activeTab = $state("Abilities");
-  const tabs = ["Abilities", "Arts & Lab", "Spells", "Combat"];
+
+  const tabs = $derived(
+    character?.type === "MAGUS" 
+      ? ["Abilities", "Arts & Lab", "Spells", "Combat"] 
+      : ["Abilities", "Combat"]
+  );
 
   let personalVis = $derived(character.hermeticData.rawVis);
 
@@ -210,10 +215,7 @@
                   style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
                 >
                   <LongevityRitual warpingPoints={character.warpingPoints} />
-                  <RawVis
-                    personalVis={personalVis}
-                    labVis={labVis}
-                  />
+                  <RawVis {personalVis} {labVis} />
                 </div>
               </div>
             </div>

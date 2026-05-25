@@ -1,9 +1,11 @@
 <script lang="ts">
   import { COLORS, S } from "$lib/constants";
-  // Assuming the character types file is updated to store level instead of magnitude
   import type { Spell } from "$lib/types";
 
-  let { spells = [] } = $props<{ spells: Spell[] }>();
+  let { spells = {} } = $props<{ spells: Record<string, Spell> }>();
+  
+
+  const spellsList = $derived(Object.values(spells) as Spell[]);
 
   let hoveredSpell = $state<string | null>(null);
   let tooltipHovered = $state(false);
@@ -12,14 +14,11 @@
   function checkFlip(e: MouseEvent | FocusEvent) {
     const card = e.currentTarget as HTMLElement;
     const rect = card.getBoundingClientRect();
-    
     const scrollContainer = card.closest('[style*="overflow-y: auto"]') ||
                             card.closest('[style*="overflow: auto"]');
-    
     if (scrollContainer) {
       const containerRect = scrollContainer.getBoundingClientRect();
-      const spaceBelowCardInsideTab = containerRect.bottom - rect.bottom;
-      flipUp = spaceBelowCardInsideTab < 220;
+      flipUp = containerRect.bottom - rect.bottom < 220;
     } else {
       flipUp = rect.bottom > (window.innerHeight - 250);
     }
@@ -35,20 +34,22 @@
     hoveredSpell = spell.name;
   }
 
-  // Hermetic Rule helper function to calculate Magnitude from the true level
   function getMagnitude(level: number): number {
     if (level <= 5) return 1;
     return level / 5;
   }
 
-  const grouped = $derived(
-    spells.reduce((acc: Record<string, Spell[]>, spell: Spell) => {
+const grouped = $derived(
+    spellsList.reduce((acc, spell) => {
       const key = `${spell.technique} ${spell.form}`;
-      if (!acc[key]) acc[key] = [];
+      if (!acc[key]) {
+        acc[key] = [];
+      }
       acc[key].push(spell);
       return acc;
-    }, {}),
+    }, {} as Record<string, Spell[]>)
   );
+
   const groups = $derived(Object.keys(grouped));
 </script>
 

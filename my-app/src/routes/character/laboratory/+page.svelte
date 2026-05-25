@@ -13,15 +13,17 @@
   import LabHeader from '$lib/components/LabHeader.svelte';
   import LabSpecializations from '$lib/components/LabSpecializations.svelte';
 
-  const lab = character.hermeticData.laboratory;
-  const artsList = Object.values(character.hermeticData.arts);
 
-  const personalVis = character.hermeticData.rawVis;
+  const lab = $derived(character?.hermeticData?.laboratory ?? {} as any);
+  
+  const artsList = $derived(Object.values(character?.hermeticData?.arts ?? {}));
+
+  const personalVis = $derived(character?.hermeticData?.rawVis ?? { standard: [], extraordinary: [] });
+
   const labVis = lab.visStore;
 </script>
 
 <div style="
-  max-width: 1440px;
   margin: 0 auto;
   padding: 32px;
   box-sizing: border-box;
@@ -50,13 +52,7 @@
         <ChipList virtues={lab.virtues} flaws={lab.flaws} />
         <div style="display: flex; flex-direction: column; gap: 16px;">
           <LabSpecializations {lab} />
-          <PersonalityTraits traits={Object.entries(lab.personalityTraits).map(([name, score]) => ({
-            name,
-            score: score as number,
-            complexion: 'MELANCHOLIC' as const,
-            essential: false,
-            temporary: false
-          }))} />
+          <PersonalityTraits traits={lab.personalityTraits} />
         </div>
       </div>
 

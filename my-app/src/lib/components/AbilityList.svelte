@@ -1,20 +1,35 @@
 <script lang="ts">
-  import { COLORS, S } from '$lib/constants';
-  import AbilityRow from './AbilityRow.svelte';
-  import type { Ability } from '$lib/types/character.old';
+  import { COLORS, S } from "$lib/constants";
+  import AbilityRow from "./AbilityRow.svelte";
+  import type { Ability, AbilityCategory } from "$lib/types/character";
 
-  let { abilities = [] } = $props<{ abilities: Ability[] }>();
+  let { abilities = {} }: { abilities: Record<string, Ability> } = $props();
 
-const byCategory = $derived(
-  abilities.reduce((acc: Record<string, Ability[]>, ability: Ability) => {
-    if (!acc[ability.category]) acc[ability.category] = [];
-    acc[ability.category].push(ability);
-    return acc;
-  }, {})
-);
+  const byCategory = $derived(
+    Object.values(abilities).reduce(
+      (acc, ability) => {
+        const cat = ability.category;
+        if (!acc[cat]) {
+          acc[cat] = [];
+        }
+        acc[cat].push(ability);
+        return acc;
+      },
+      {} as Record<AbilityCategory, Ability[]>,
+    ),
+  );
 
-  const categories = $derived(Object.keys(byCategory));
-  
+  const categories: AbilityCategory[] = [
+    "ARCANE",
+    "ACADEMIC",
+    "SUPERNATURAL",
+    "MARTIAL",
+    "GENERAL",
+  ];
+
+  function getAbilitiesForCategory(cat: AbilityCategory): Ability[] {
+    return byCategory[cat] ?? [];
+  }
 
   const sectionLabel = `
     font-family: ${S.fontBody};
@@ -27,7 +42,8 @@ const byCategory = $derived(
   `;
 </script>
 
-<div style="
+<div
+  style="
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -36,24 +52,32 @@ const byCategory = $derived(
   padding: 24px;
   border-radius: 8px;
   gap: 24px;
-">
+"
+>
   {#each categories as category, ci}
-    <div>
-      <p style={sectionLabel}>{category}</p>
-      {#each byCategory[category] as ability, i}
-        <AbilityRow
-          name={ability.name}
-          exp={ability.exp}
-          score={ability.score}
-          specialty={ability.specialty}
-          category={ability.category}
-          isLast={i === byCategory[category].length - 1}
-        />
-      {/each}
-    </div>
+    {@const list = getAbilitiesForCategory(category)}
 
-    {#if ci < categories.length - 1}
-      <div style="height: 1px; background-color: {COLORS.outlineVar};" ></div>
+    {#if list.length > 0}
+      <div>
+        <p style={sectionLabel}>{category} ABILITIES</p>
+
+        {#each list as ability, i}
+          <AbilityRow
+            name={ability.name}
+            exp={ability.exp}
+            score={ability.score}
+            specialty={ability.specialty}
+            category={ability.category}
+            isLast={i === list.length - 1}
+          />
+        {/each}
+      </div>
+
+      {#if ci < categories.length - 1}
+        <div
+          style="height: 1px; background-color: {COLORS.outlineVar}; margin: 1rem 0;"
+        ></div>
+      {/if}
     {/if}
   {/each}
 </div>

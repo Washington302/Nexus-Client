@@ -1,9 +1,9 @@
 <!-- Tabs.svelte -->
 <script lang="ts">
-  let { 
-    tabs = [],
-    activeTab = $bindable(tabs[0])
-  } = $props();
+let { 
+  tabs = [],
+  activeTab = $bindable()
+} = $props();
 </script>
 
 <div class="tabs-container" style="overflow:hidden; overflow: auto;">

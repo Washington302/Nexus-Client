@@ -1,53 +1,50 @@
 <script lang="ts">
   import { COLORS, S } from "$lib/constants";
+  import { longevityRitualAgeRollModifier, longevityRitualBonus, longevityRitualVisCost } from '$lib/utils/arsmagica';
 
   let { warpingPoints = 0 } = $props<{ warpingPoints: number }>();
 
   let labTotal = $state(0);
   let age = $state(35);
-  const ageRollModifier = $derived(-Math.floor(age / 10));
+
+  const ageRollModifier = $derived(longevityRitualAgeRollModifier(age));
+  const ritualBonus = $derived(longevityRitualBonus(labTotal));
+  const visCost = $derived(longevityRitualVisCost(age));
 </script>
 
-<div
-  style="
+<div style="
   width: 100%;
   box-sizing: border-box;
   background-color: {COLORS.bgLow};
   border: 1px solid {COLORS.outlineVar};
   border-radius: 6px;
   overflow: hidden;
-"
->
-  <div
-    style="
+">
+  <div style="
     background-color: {COLORS.bgLow};
     border-bottom: 1px solid {COLORS.outlineVar};
     padding: 6px 12px;
-  "
-  >
-    <span
-      style="
+  ">
+    <span style="
       font-family: {S.fontBody};
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: {COLORS.red};
-    ">Longevity Ritual</span
-    >
+    ">Longevity Ritual</span>
   </div>
 
-  <div
-    style="
+  <!-- Inputs -->
+  <div style="
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
     padding: 12px;
-  "
-  >
+    border-bottom: 1px solid {COLORS.outlineVar};
+  ">
     <div>
-      <label
-        style="
+      <label style="
         font-family: {S.fontBody};
         font-size: 10px;
         text-transform: uppercase;
@@ -55,8 +52,7 @@
         color: {COLORS.inkMuted};
         display: block;
         margin-bottom: 4px;
-      ">Lab Total</label
-      >
+      ">Lab Total</label>
       <input
         type="number"
         bind:value={labTotal}
@@ -74,8 +70,7 @@
     </div>
 
     <div>
-      <label
-        style="
+      <label style="
         font-family: {S.fontBody};
         font-size: 10px;
         text-transform: uppercase;
@@ -83,8 +78,7 @@
         color: {COLORS.inkMuted};
         display: block;
         margin-bottom: 4px;
-      ">Age</label
-      >
+      ">Age</label>
       <input
         type="number"
         bind:value={age}
@@ -100,60 +94,57 @@
         "
       />
     </div>
-
-    <div style="text-align: center;">
-      <div
-        style="
-        font-family: {S.fontBody};
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: {COLORS.inkMuted};
-        margin-bottom: 4px;
-      "
-      >
-        Age Roll Modifier
-      </div>
-      <div
-        style="
-        font-family: {S.fontHeadline};
-        font-size: 24px;
-        font-weight: 800;
-        color: {ageRollModifier < 0 ? COLORS.red : COLORS.ink};
-      "
-      >
-        {ageRollModifier}
-      </div>
-    </div>
   </div>
 
-  <div
-    style="
-    padding: 10px 12px;
-    border-top: 1px solid {COLORS.outlineVar};
-  "
-  >
-    <div
-      style="
+  <!-- Computed values -->
+  <div style="
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid {COLORS.outlineVar};
+  ">
+    {#each [
+      ['Age Roll Modifier', ageRollModifier, ageRollModifier < 0],
+      ['Ritual Bonus', `+${ritualBonus}`, ritualBonus > 0],
+      ['Vis Cost', `${visCost} pawns`, false],
+    ] as [label, value, highlight]}
+      <div style="
+        padding: 10px 12px;
+        text-align: center;
+        border-right: 1px solid {COLORS.outlineVar};
+      ">
+        <div style="
+          font-family: {S.fontBody};
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: {COLORS.inkMuted};
+          margin-bottom: 4px;
+        ">{label}</div>
+        <div style="
+          font-family: {S.fontHeadline};
+          font-size: 22px;
+          font-weight: 800;
+          color: {highlight ? COLORS.red : COLORS.ink};
+        ">{value}</div>
+      </div>
+    {/each}
+  </div>
+
+  <!-- Twilight Scars -->
+  <div style="padding: 10px 12px;">
+    <div style="
       font-family: {S.fontBody};
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: {COLORS.inkMuted};
       margin-bottom: 6px;
-    "
-    >
-      Twilight Scars
-    </div>
-    <p
-      style="
+    ">Twilight Scars</div>
+    <p style="
       font-family: {S.fontBody};
       font-size: 13px;
       font-style: italic;
       color: {COLORS.inkMuted};
-    "
-    >
-      None yet.
-    </p>
+    ">None yet.</p>
   </div>
 </div>

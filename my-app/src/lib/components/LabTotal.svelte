@@ -4,37 +4,45 @@
 
   let { character } = $props<{ character: Character }>();
 
-  const intelligence = $derived(character.characteristics.intelligence);
+  const intelligence = $derived(character.characteristics.scores.INTELLIGENCE);
   const ability = (name: string): number =>
-    (character.abilities as Ability[]).find((a) => a.name === name)?.score ?? 0;
+  character?.abilities?.[name]?.score ?? 0;
 
-  const magicTheory = $derived(ability("Magic Theory"));
+  const magicTheory    = $derived(ability('Magic Theory'));
+  
+  const arts = $derived(character?.hermeticData?.arts || {});
 
   const techniques = $derived(
-    (Object.values(character.hermeticData.arts) as MagicalArt[]).filter(
-      (a) => a.type === "TECHNIQUE",
-    ),
+    (Object.values(arts) as MagicalArt[]).filter(a => a.type === 'TECHNIQUE')
   );
+  
   const forms = $derived(
-    (Object.values(character.hermeticData.arts) as MagicalArt[]).filter(
-      (a) => a.type === "FORM",
-    ),
+    (Object.values(arts) as MagicalArt[]).filter(a => a.type === 'FORM')
   );
 
-  let selectedTechnique = $state(techniques[0]?.name ?? "Creo");
-  let selectedForm = $state(forms[0]?.name ?? "Animal");
+let selectedTechnique = $state('Creo');
+  let selectedForm = $state('Animal');
   let aura = $state(0);
+  
 
-  const techScore = $derived(
-    character.hermeticData.arts[selectedTechnique]?.score ?? 0,
-  );
-  const formScore = $derived(
-    character.hermeticData.arts[selectedForm]?.score ?? 0,
-  );
+  // Dynamic score resolution
+  const techScore = $derived(arts[selectedTechnique]?.score ?? 0);
+  const formScore = $derived(arts[selectedForm]?.score ?? 0);
   const labTotalBase = $derived(intelligence + magicTheory + aura);
   const labTotalFull = $derived(labTotalBase + techScore + formScore);
 
-  const lab = character.hermeticData.laboratory;
+  const lab = $derived(character.hermeticData?.laboratory ?? null);
+  
+const labStats = $derived(lab ? [
+  ['Size',        lab.characteristics.SIZE          ?? 0],
+  ['Refinement',  lab.characteristics.scores.REFINEMENT  ?? 0],
+  ['Safety',      lab.characteristics.scores.SAFETY      ?? 0],
+  ['Quality',     lab.characteristics.scores.GENERAL_QUALITY ?? 0],
+  ['Health',      lab.characteristics.scores.HEALTH      ?? 0],
+  ['Aesthetics',  lab.characteristics.scores.AESTHETICS  ?? 0],
+  ['Warping',     lab.characteristics.scores.WARPING     ?? 0],
+  ['Upkeep',      lab.characteristics.scores.UPKEEP      ?? 0],
+] : []);
 </script>
 
 <div
@@ -55,57 +63,31 @@
     padding: 6px 12px;
   "
   >
-    <span
-      style="
-      font-family: {S.fontBody};
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: {COLORS.red};
-    ">Laboratory — {lab.name}</span
-    >
+
   </div>
 
   <!-- Lab stats -->
-  <div
-    style="
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    border-bottom: 1px solid {COLORS.outlineVar};
-    background-color: {COLORS.bgHigh};
-  "
-  >
-    {#each [["Size", lab.size], ["Refinement", lab.refinement], ["Safety", lab.safety], ["Quality", lab.generalQuality], ["Health", lab.health], ["Aesthetics", lab.aesthetics], ["Warping", lab.warping], ["Upkeep", lab.upkeep]] as [label, value]}
-      <div
-        style="
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr);">
+    {#each labStats as [label, value]}
+      <div style="
         padding: 6px 8px;
         text-align: center;
         border-right: 1px solid {COLORS.outlineVar};
         border-bottom: 1px solid {COLORS.outlineVar};
-      "
-      >
-        <div
-          style="
+      ">
+        <div style="
           font-family: {S.fontBody};
           font-size: 10px;
           text-transform: uppercase;
           letter-spacing: 0.06em;
           color: {COLORS.inkMuted};
-        "
-        >
-          {label}
-        </div>
-        <div
-          style="
+        ">{label}</div>
+        <div style="
           font-family: {S.fontHeadline};
           font-size: 16px;
           font-weight: 700;
           color: {COLORS.ink};
-        "
-        >
-          {value}
-        </div>
+        ">{value}</div>
       </div>
     {/each}
   </div>

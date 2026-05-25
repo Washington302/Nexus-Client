@@ -5,11 +5,11 @@ import type {
   RawVisStore,
   PersonalityTrait,
   Reputation,
-  Characteristics,
-} from "./shared"; // ◄ Added imports
+  HumanCharacteristics,
+} from "./shared";
 import type { Wound, Weapon, Armor, FatigueLevel } from "./combat";
 import type { Laboratory } from "./laboratory";
-import type { HumanCharacteristics } from "./shared";
+
 
 export type CharacterType = "MAGUS" | "COMPANION" | "GROG";
 export type AbilityCategory =
@@ -67,11 +67,37 @@ export interface Character {
   userId: string;
   campaignId: string;
   name: string;
+  player: string;               // ← removed
+  description: string;          // ← removed
+  portraitUrl: string;          // ← removed
   type: "MAGUS" | "COMPANION" | "GROG";
-  
-  // Matches backend tracking block for physical/mental capabilities
-  characteristics: HumanCharacteristics; // ◄ Added characteristics to character
-  
+
+  // Physical description
+  birthName: string;            // ← removed
+  yearBorn: number;             // ← removed
+  gender: string;               // ← removed
+  raceNationality: string;      // ← removed
+  placeOfOrigin: string;        // ← removed
+  religion: string;             // ← removed
+  titleProfession: string;      // ← removed
+  height: number;               // ← removed
+  weight: number;               // ← removed
+  hair: string;                 // ← removed
+  eyes: string;                 // ← removed
+  handedness: string;           // ← removed
+
+  // Campaign context
+  saga: string;                 // ← removed
+  setting: string;              // ← removed
+  currentYear: number;          // ← removed
+  covenantId: string;           // ← removed
+  covenant: string;             // ← removed
+  age: number;                  // ← removed
+  size: number;                 // ← removed
+  confidence: number;           // ← removed
+  equipment: string;            // ← removed
+
+  characteristics: HumanCharacteristics;
   hermeticData?: HermeticData;
   track: Wound[];
   currentFatigueLevel: FatigueLevel;
@@ -86,4 +112,13 @@ export interface Character {
   reputations: Reputation[];
   warpingPoints: number;
   decrepitudePoints: number;
+
+  // Derived combat values
+  totalWoundPenalty: number;    // ← removed
+  totalLoad: number;            // ← removed
+  encumbrance: number;          // ← removed
+  totalArmorProtection: number; // ← removed
+  equippedDefenseModifier: number; // ← removed
+  labUpkeepPoints: number;      // ← removed
+  magus: boolean;               // ← removed
 }

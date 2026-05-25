@@ -1,59 +1,79 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
+  import {
+    castingScore,
+    formulaicBase,
+    ritualBase,
+    spontFatigueBase,
+    spontNoFatigueBase,
+    ceremonialBaseTrunk,
+    magicResistance,
+    fastCastingBase,
+    multiCastingBase,
+    baseTargetingBase,
+    concentrationBase,
+  } from '$lib/utils/arsmagica';
 
-import type { Character, Art, Ability } from '$lib/types/character.old';
+  // 1. Target your updated type infrastructure
+  import type { Character, MagicalArt } from '$lib/types';
 
   let { character } = $props<{ character: Character }>();
 
-  const stamina = $derived(character.characteristics.stamina);
-const techniques = $derived(
-  (Object.values(character.hermeticData.arts) as Art[]).filter(a => a.type === 'TECHNIQUE')
-);
-const forms = $derived(
-  (Object.values(character.hermeticData.arts) as Art[]).filter(a => a.type === 'FORM')
-);
+  // 2. Safe-navigation check on hermeticData to prevent grog/companion or unhydrated page crashes
+  const arts = $derived(character?.hermeticData?.arts || {});
 
+  // 3. Extract uppercase nested scores to align perfectly with your backend models
+  const stamina      = $derived(character?.characteristics?.scores?.STAMINA ?? 0);
+  const intelligence = $derived(character?.characteristics?.scores?.INTELLIGENCE ?? 0);
+  const perception   = $derived(character?.characteristics?.scores?.PERCEPTION ?? 0);
+  const quickness    = $derived(character?.characteristics?.scores?.QUICKNESS ?? 0);
+
+  // 4. Transform dynamic dictionary maps to categorized array structures safely
+// Explicitly cast the array values as MagicalArt[] so TypeScript knows what 'a' is!
+  const techniques = $derived(
+    (Object.values(arts) as MagicalArt[]).filter(a => a.type === 'TECHNIQUE')
+  );
+  
+  const forms = $derived(
+    (Object.values(arts) as MagicalArt[]).filter(a => a.type === 'FORM')
+  );
+
+  // Safe dictionary method to look up abilities from the Record structure
 const ability = (name: string): number =>
-  (character.abilities as Ability[]).find(a => a.name === name)?.score ?? 0;
+  character?.abilities?.[name]?.score ?? 0;
 
-const magicTheory    = $derived(ability('Magic Theory'));
-const artesLiberales = $derived(ability('Artes Liberales'));
-const philosophiae   = $derived(ability('Philosophiae'));
-const finesse        = $derived(ability('Finesse'));
-const concentration  = $derived(ability('Concentration'));
-const penetration    = $derived(ability('Penetration'));
-const parma          = $derived(ability('Parma Magica'));
+  const magicTheory    = $derived(ability('Magic Theory'));
+  const artesLiberales = $derived(ability('Artes Liberales'));
+  const philosophiae   = $derived(ability('Philosophiae'));
+  const finesse        = $derived(ability('Finesse'));
+  const concentration  = $derived(ability('Concentration'));
+  const penetration    = $derived(ability('Penetration'));
+  const parma          = $derived(ability('Parma Magica'));
 
-
-  const perception = $derived(character.characteristics.perception);
-  const intelligence = $derived(character.characteristics.intelligence);
-  const quickness = $derived(character.characteristics.quickness);
-
-  // Selected technique and form for total calculation
-  let selectedTechnique = $state(techniques[0]?.name ?? 'Creo');
-  let selectedForm = $state(forms[0]?.name ?? 'Animal');
-
+  // 5. Reactive selection state variables initialized to safe defaults
+  let selectedTechnique = $state('Creo');
+  let selectedForm = $state('Animal');
   let aura = $state(0);
+  
+  // Dynamic score resolution
+  const techScore = $derived(arts[selectedTechnique]?.score ?? 0);
+  const formScore = $derived(arts[selectedForm]?.score ?? 0);
 
-  const techScore = $derived(character.hermeticData.arts[selectedTechnique]?.score ?? 0);
-  const formScore = $derived(character.hermeticData.arts[selectedForm]?.score ?? 0);
+  // 6. Rules formulas calculations
+  const castingScoreBase = $derived(castingScore(techScore, formScore, stamina, aura));
+  const formulaic        = $derived(formulaicBase(techScore, formScore, stamina, aura));
+  const ritual           = $derived(ritualBase(techScore, formScore, stamina, aura, artesLiberales, philosophiae));
+  const spontFatigue     = $derived(spontFatigueBase(techScore, formScore, stamina, aura));
+  const spontNoFatigue   = $derived(spontNoFatigueBase(techScore, formScore, stamina, aura));
 
-  // Core casting score — everything derives from this
-  const castingScore = $derived(techScore + formScore + stamina + aura);
+  const fastCasting           = $derived(fastCastingBase(quickness, finesse));
+  const multiCasting          = $derived(multiCastingBase(intelligence, finesse));
+  const baseTargeting         = $derived(baseTargetingBase(perception, finesse));
+  const concentrationTotal    = $derived(concentrationBase(stamina, concentration));
+  const magicResistanceTotal  = $derived(magicResistance(parma, formScore));
+  const ceremonialCasting     = $derived(ceremonialBaseTrunk(castingScoreBase, artesLiberales, philosophiae));
 
-  // Casting totals per rulebook
-  const formulaic = $derived(castingScore); // + stress/simple die at table
-  const ritual = $derived(castingScore + artesLiberales + philosophiae); // + stress die
-  const spontFatigue = $derived(Math.floor((castingScore) / 2)); // + stress die then /2
-  const spontNoFatigue = $derived(Math.floor(castingScore / 5));
-
-  // Other totals
-  const fastCasting = $derived(quickness + finesse);
-  const multiCasting = $derived(intelligence + finesse);
-  const baseTargeting = $derived(perception + finesse);
-  const concentrationTotal = $derived(stamina + concentration);
-  const magicResistance = $derived((parma * 5) + formScore);
-
+  // Shared Styles
   const selectStyle = `
     width: 100%;
     font-family: ${S.fontBody};
@@ -112,7 +132,6 @@ const parma          = $derived(ability('Parma Magica'));
   border-radius: 6px;
   overflow: hidden;
 ">
-  <!-- Header -->
   <div style="
     background-color: {COLORS.bgLow};
     border-bottom: 1px solid {COLORS.outlineVar};
@@ -128,7 +147,6 @@ const parma          = $derived(ability('Parma Magica'));
     ">Base Casting Totals</span>
   </div>
 
-  <!-- Selectors -->
   <div style="
     display: grid;
     grid-template-columns: 1fr 1fr 80px;
@@ -138,7 +156,7 @@ const parma          = $derived(ability('Parma Magica'));
     background-color: {COLORS.bgHigh};
   ">
     <div>
-      <label style={labelStyle}>Technique</label>
+      <label style={labelStyle} for="technique-select">Technique</label>
       <select bind:value={selectedTechnique} style={selectStyle}>
         {#each techniques as tech}
           <option value={tech.name}>{tech.name} ({tech.score})</option>
@@ -147,7 +165,7 @@ const parma          = $derived(ability('Parma Magica'));
     </div>
 
     <div>
-      <label style={labelStyle}>Form</label>
+      <label style={labelStyle} for="form-select">Form</label>
       <select bind:value={selectedForm} style={selectStyle}>
         {#each forms as form}
           <option value={form.name}>{form.name} ({form.score})</option>
@@ -156,16 +174,11 @@ const parma          = $derived(ability('Parma Magica'));
     </div>
 
     <div>
-      <label style={labelStyle}>Aura</label>
-      <input
-        type="number"
-        bind:value={aura}
-        style={selectStyle}
-      />
+      <label style={labelStyle} for="aura-input">Aura</label>
+      <input type="number" id="aura-input" bind:value={aura} style={selectStyle} />
     </div>
   </div>
 
-  <!-- Casting Score Banner -->
   <div style="
     background-color: {COLORS.bgHigh};
     border-bottom: 1px solid {COLORS.outlineVar};
@@ -196,10 +209,9 @@ const parma          = $derived(ability('Parma Magica'));
       font-size: 22px;
       font-weight: 800;
       color: {COLORS.ink};
-    ">{castingScore}</span>
+    ">{castingScoreBase}</span>
   </div>
 
-  <!-- Main Casting Totals -->
   <table style="width: 100%; border-collapse: collapse;">
     <tbody>
       <tr>
@@ -233,7 +245,6 @@ const parma          = $derived(ability('Parma Magica'));
     </tbody>
   </table>
 
-  <!-- Secondary Totals -->
   <div style="
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -242,10 +253,10 @@ const parma          = $derived(ability('Parma Magica'));
     {#each [
       ['Fast Casting Speed', fastCasting, 'Qik + Finesse + die'],
       ['Concentration', concentrationTotal, 'Sta + Concentration + die'],
-      ['Magic Resistance', magicResistance, 'Parma × 5 + Form'],
+      ['Magic Resistance', magicResistanceTotal, 'Parma × 5 + Form'],
       ['Multiple Casting', multiCasting, 'Int + Finesse + die'],
       ['Base Targeting', baseTargeting, 'Per + Finesse + die'],
-      ['Ceremonial Casting', castingScore + artesLiberales + philosophiae, 'Casting Score + AL + Phil'],
+      ['Ceremonial Casting', ceremonialCasting, 'Casting Score + AL + Phil'],
     ] as [label, value, formula]}
       <div style="
         padding: 8px 12px;

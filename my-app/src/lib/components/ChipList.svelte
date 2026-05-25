@@ -3,10 +3,13 @@
   import VirtueFlawChip from "./VirtueFlawChip.svelte";
   import type { Trait } from "$lib/types";
 
-  let { virtues = [], flaws = [] } = $props<{
-    virtues: Trait[];
-    flaws: Trait[];
+  let { virtues = {}, flaws = {} } = $props<{
+    virtues: Record<string, Trait>;
+    flaws: Record<string, Trait>;
   }>();
+
+  const virtuesList = $derived(Object.values(virtues) as Trait[]);
+  const flawsList = $derived(Object.values(flaws) as Trait[]);
 
   const sectionLabel = (flaw: boolean) => `
     font-family: ${S.fontBody};
@@ -24,7 +27,7 @@
   <div>
     <p style={sectionLabel(false)}>Virtues</p>
     <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-      {#each virtues as item}
+      {#each virtuesList as item}
         <VirtueFlawChip {item} />
       {/each}
     </div>
@@ -35,7 +38,7 @@
   <div>
     <p style={sectionLabel(true)}>Flaws</p>
     <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-      {#each flaws as item}
+      {#each flawsList as item}
         <VirtueFlawChip {item} />
       {/each}
     </div>

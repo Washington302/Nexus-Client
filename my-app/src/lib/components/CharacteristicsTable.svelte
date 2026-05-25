@@ -5,14 +5,14 @@
   let { characteristics } = $props<{ characteristics: Characteristics }>();
 
   const rows = $derived([
-    ['Int', 'Intelligence',  characteristics.intelligence],
-    ['Per', 'Perception',    characteristics.perception],
-    ['Str', 'Strength',      characteristics.strength],
-    ['Sta', 'Stamina',       characteristics.stamina],
-    ['Pre', 'Presence',      characteristics.presence],
-    ['Com', 'Communication', characteristics.communication],
-    ['Dex', 'Dexterity',     characteristics.dexterity],
-    ['Qik', 'Quickness',     characteristics.quickness],
+    ['Int', 'Intelligence',  characteristics.scores.INTELLIGENCE],
+    ['Per', 'Perception',    characteristics.scores.PERCEPTION],
+    ['Str', 'Strength',      characteristics.scores.STRENGTH],
+    ['Sta', 'Stamina',       characteristics.scores.STAMINA],
+    ['Pre', 'Presence',      characteristics.scores.PRESENCE],
+    ['Com', 'Communication', characteristics.scores.COMMUNICATION],
+    ['Dex', 'Dexterity',     characteristics.scores.DEXTERITY],
+    ['Qik', 'Quickness',     characteristics.scores.QUICKNESS],
   ]);
 
   function scoreColor(score: number) {
