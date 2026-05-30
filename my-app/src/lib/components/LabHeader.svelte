@@ -1,15 +1,16 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
-  import type { Laboratory, LabFeature } from '$lib/types';
+  import type { Laboratory, LabFeature, Character } from '$lib/types';
+  import LabTotal from './LabTotal.svelte';
 
-  let { lab } = $props<{ lab: Laboratory }>();
+  let { lab, character } = $props<{ lab: Laboratory, character: Character }>();
 
   // Safe navigation wrapper converting your feature record map into an array cleanly
   const featuresList = $derived(Object.values(lab?.features || {}) as LabFeature[]);
 
   // Keep stats matrix mapping strictly synchronized with uppercase database keys
   const statsRows = $derived([
-    ['Size',            lab?.characteristics?.SIZE ?? 0],
+    ['Size',            lab?.characteristics?.scores?.SIZE ?? 0],
     ['Refinement',      lab?.characteristics?.scores?.REFINEMENT ?? 0],
     ['General Quality', lab?.characteristics?.scores?.GENERAL_QUALITY ?? 0],
     ['Safety',          lab?.characteristics?.scores?.SAFETY ?? 0],
@@ -54,31 +55,8 @@
 
   <div style="
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
   ">
-    {#each statsRows as [label, value], i}
-      <div style="
-        padding: 8px 12px;
-        border-right: { (i + 1) % 4 === 0 ? 'none' : `1px solid ${COLORS.outlineVar}` };
-        border-bottom: { i < 4 ? `1px solid ${COLORS.outlineVar}` : 'none' };
-        text-align: center;
-      ">
-        <div style="
-          font-family: {S.fontBody};
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          color: {COLORS.inkMuted};
-          margin-bottom: 2px;
-        ">{label}</div>
-        <div style="
-          font-family: {S.fontHeadline};
-          font-size: 18px;
-          font-weight: 800;
-          color: {value < 0 ? COLORS.red : COLORS.ink};
-        ">{value > 0 ? `+${value}` : value}</div>
-      </div>
-    {/each}
+<LabTotal {character} />
   </div>
 
   {#if featuresList.length > 0}

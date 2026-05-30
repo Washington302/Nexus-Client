@@ -23,11 +23,13 @@ export interface Spell {
   name: string;
   technique: string;
   form: string;
+  base: number;
   level: number;
   magnitude: number;
   range: string;
   duration: string;
   target: string;
+  requisites: Record<string, MagicalArt>;
   masteryXp: number;
   mastery: number;
   notes: string;

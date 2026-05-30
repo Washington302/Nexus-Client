@@ -1,22 +1,30 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
-  import type { SagaInfo, UserInfo } from '$lib/types/character.old';
+  import type { ArsMagicaSaga, CampaignRole } from '$lib/types/campaign';
+  import { logout } from '$lib/stores/session.svelte';
 
+  // Interface for the logged-in user viewing the navbar
+  interface NavUser {
+    id: string;
+    displayName: string;
+    role: CampaignRole;
+  }
 
-
-  let { saga, user } = $props<{ saga: SagaInfo | null; user: UserInfo | null }>();
+  // Svelte 5 Snippet Props
+  let { saga, user } = $props<{ 
+    saga: ArsMagicaSaga | null; 
+    user: NavUser | null; 
+  }>();
 
   let menuOpen = $state(false);
 
-  const roleColor: Record<string, string> = {
+  // Typed explicitly to CampaignRole to catch typos
+  const roleColor: Record<CampaignRole, string> = {
     OWNER:       COLORS.red,
     STORYTELLER: '#b8860b',
     PLAYER:      COLORS.inkMuted,
     SPECTATOR:   COLORS.outlineVar,
   };
-  
-  import { logout } from '$lib/stores/session.svelte';
-   
 </script>
 
 <nav style="
@@ -38,9 +46,7 @@
     height: 48px;
   ">
 
-    <!-- Left: Brand + Saga -->
     <div style="display: flex; align-items: center; gap: 24px;">
-      <!-- Brand -->
       <a href="/" style="
         font-family: {S.fontHeadline};
         font-size: 18px;
@@ -57,7 +63,6 @@
           background-color: {COLORS.inkMuted};
         " />
 
-        <!-- Saga -->
         <a href="/saga/{saga.id}" style="
           display: flex;
           flex-direction: column;
@@ -81,15 +86,13 @@
       {/if}
     </div>
 
-    <!-- Center: Page links -->
     {#if saga}
       <div style="display: flex; align-items: center; gap: 4px;">
         {#each [
           ['Characters', `/saga/${saga.id}`],
           ['Covenant', `/saga/${saga.id}/covenant`],
         ] as [label, href]}
-          
-        <a {href}
+          <a {href}
             style="
               font-family: {S.fontBody};
               font-size: 12px;
@@ -109,7 +112,6 @@
       </div>
     {/if}
 
-    <!-- Right: User -->
     {#if user}
       <div style="position: relative;">
         <button
@@ -132,7 +134,7 @@
             width: 24px;
             height: 24px;
             border-radius: 50%;
-            background-color: {roleColor[user.role]};
+            background-color: {roleColor [user.role as CampaignRole]};
             display: flex;
             align-items: center;
             justify-content: center;
@@ -140,7 +142,10 @@
             font-size: 11px;
             font-weight: 800;
             color: {COLORS.white};
-          ">{user.displayName.charAt(0).toUpperCase()}</div>
+          ">
+            {user.displayName.charAt(0).toUpperCase()}
+          </div>
+          
           <div style="display: flex; flex-direction: column; text-align: left;">
             <span style="
               font-family: {S.fontBody};
@@ -154,9 +159,10 @@
               font-size: 10px;
               text-transform: uppercase;
               letter-spacing: 0.08em;
-              color: {roleColor[user.role]};
+              color: {roleColor [user.role as CampaignRole]};
             ">{user.role}</span>
           </div>
+          
           <span style="
             font-size: 10px;
             color: {COLORS.inkMuted};
@@ -164,7 +170,6 @@
           ">{menuOpen ? '▲' : '▼'}</span>
         </button>
 
-        <!-- Dropdown -->
         {#if menuOpen}
           <div style="
             position: absolute;
@@ -183,8 +188,7 @@
               ['Profile', '/profile'],
               ['Settings', '/settings'],
             ] as [label, href]}
-              
-              <a  {href}
+              <a {href}
                 onclick={() => menuOpen = false}
                 style="
                   display: block;

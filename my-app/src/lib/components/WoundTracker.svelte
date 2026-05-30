@@ -1,10 +1,10 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
-  import type { WoundTrack } from '$lib/types/character.old';
+  import type { Wound } from '$lib/types';
 
-  let { track, size = 0 } = $props<{ track: WoundTrack[]; size: number }>();
+  let { track, size = 0 } = $props<{ track: Wound[]; size: number }>();
 
-  let localTrack = $state<WoundTrack[]>(track.map((w: WoundTrack) => ({ ...w })));
+  let localTrack = $state<Wound[]>(track.map((w: Wound) => ({ ...w })));
 
   function toggleWound(wi: number, bi: number) {
     const current = localTrack[wi].currentWounds;
@@ -22,7 +22,7 @@
     DEAD:          `${21 + size}+`,
   };
 
-  function penaltyDisplay(wound: WoundTrack) {
+  function penaltyDisplay(wound: Wound) {
     if (wound.penalty === 0) return '—';
     return `${wound.penalty}`;
   }

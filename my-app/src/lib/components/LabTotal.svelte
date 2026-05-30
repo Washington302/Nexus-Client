@@ -2,6 +2,8 @@
   import { COLORS, S } from "$lib/constants";
   import type { Character, MagicalArt, Ability } from "$lib/types";
 
+  import { labTotalFull, labTotalBase } from '$lib/utils/arsmagica';
+
   let { character } = $props<{ character: Character }>();
 
   const intelligence = $derived(character.characteristics.scores.INTELLIGENCE);
@@ -28,8 +30,8 @@ let selectedTechnique = $state('Creo');
   // Dynamic score resolution
   const techScore = $derived(arts[selectedTechnique]?.score ?? 0);
   const formScore = $derived(arts[selectedForm]?.score ?? 0);
-  const labTotalBase = $derived(intelligence + magicTheory + aura);
-  const labTotalFull = $derived(labTotalBase + techScore + formScore);
+  const base = $derived(labTotalBase(intelligence, magicTheory, aura));
+  const full = $derived(labTotalFull(intelligence, magicTheory, aura, techScore, formScore));
 
   const lab = $derived(character.hermeticData?.laboratory ?? null);
   
@@ -238,7 +240,7 @@ const labStats = $derived(lab ? [
         color: {COLORS.red};
       "
       >
-        {labTotalBase}
+        {base}
       </div>
     </div>
 
@@ -274,7 +276,7 @@ const labStats = $derived(lab ? [
         color: {COLORS.red};
       "
       >
-        {labTotalFull}
+        {full}
       </div>
     </div>
   </div>

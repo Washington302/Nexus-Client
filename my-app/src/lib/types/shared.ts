@@ -1,6 +1,13 @@
-export type BookType = "SUMMA" | "TRACTATUS";
+export type BookType = "SUMMA" | "TRACTATUS" | "LAB_TEXTS" | "MUNDANE";
 export type SourceStatus = "REGISTERED" | "CONTESTED" | "UNCLAIMED";
 export type TraitMagnitude = "MINOR" | "MAJOR" | "FREE";
+export interface CurrencyConfig {
+  label: string;
+  abbreviation: string;
+  rateToBase: number;
+}
+
+
 export type VisSourceType =
   | "STANDARD"
   | "DEDICATED"
@@ -19,7 +26,6 @@ export type ReputationCategory =
 
 // src/types/ars-magica/shared.ts
 
-// String literal lists exactly mirroring the backend CharacteristicType.java enum segments
 export type CoreCharacteristicName = 
   | "INTELLIGENCE" 
   | "PERCEPTION" 
@@ -39,20 +45,22 @@ export type LabCharacteristicName =
   | "SAFETY"
   | "WARPING"
   | "HEALTH"
-  | "AESTHETICS";
+  | "AESTHETICS"
+  | "SIZE"; // ◄ Moved SIZE here to live inside the map block like the backend
 
 /**
- * Universal Shared Key present across all classifications.
- * Every entity (Magus, Dragon, or Lab Room) has a Size score.
+ * Base abstract mapping alignment mirroring 'Characteristics.java'
  */
-export interface BaseEntityCharacteristics {
-  SIZE: number;
+export interface BaseCharacteristics {
+  scores: Record<string, number>;
 }
 
 /**
  * For Humans/Magi (Companions, Grogs, Magus types)
+ * Matches: CharacterCharacteristics.java
  */
-export interface HumanCharacteristics extends BaseEntityCharacteristics {
+export interface HumanCharacteristics extends BaseCharacteristics {
+  // We explicitly override the record typing for compile-time frontend protection
   scores: Record<CoreCharacteristicName, number>;
 }
 
@@ -60,27 +68,16 @@ export interface HumanCharacteristics extends BaseEntityCharacteristics {
  * For Beasts (Animals, Monsters, Spirits)
  * Swaps Intelligence out for Cunning tracking rules
  */
-export interface BestialCharacteristics extends BaseEntityCharacteristics {
+export interface BestialCharacteristics extends BaseCharacteristics {
   scores: Record<Exclude<CoreCharacteristicName, "INTELLIGENCE"> | BestialCharacteristicName, number>;
 }
 
 /**
  * For Workspace Environments (Laboratories)
+ * Matches: LabCharacteristics.java
  */
-export interface LabCharacteristics extends BaseEntityCharacteristics {
+export interface LabCharacteristics extends BaseCharacteristics {
   scores: Record<LabCharacteristicName, number>;
-}
-
-export type AllCharacteristicNames =
-  | CoreCharacteristicName
-  | LabCharacteristicName;
-
-/**
- * Aligns with nexus.api.nexuscore.ArsMagica.Models.Characteristics composition pattern.
- */
-export interface Characteristics {
-  // Maps directly to the backend's internal dictionary mapping scores
-  scores: Record<AllCharacteristicNames, number>;
 }
 
 /**

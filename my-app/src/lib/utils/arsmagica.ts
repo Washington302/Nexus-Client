@@ -285,8 +285,46 @@ export function ritualCastingTime(magnitude: number): string {
 
 // ─── Upkeep & Covenant Finances ───────────────────────────────────────────────
 
-export function labUpkeepCost(upkeepPoints: number): number {
-  return Math.ceil(upkeepPoints / 10);
+export function calculateLabPoints(upkeepScore: number): number {
+  const baseTable: Record<number, number> = {
+    "-5": 1, "-4": 2, "-3": 3, "-2": 5, "-1": 7,
+    "0": 10, "1": 15, "2": 30
+  };
+
+  if (upkeepScore <= 2) {
+    return baseTable[upkeepScore] || 1; // Floor at 1 pt
+  }
+
+  // Recursive or iterative scaling for Upkeep > 2
+  let points = 30; // Points at Upkeep +2
+  for (let u = 3; u <= upkeepScore; u++) {
+    points += (u * 10);
+  }
+  return points;
+}
+
+export function labMaintenanceCost(
+  upkeepScore: number, 
+  usage: 'LIGHT' | 'TYPICAL' | 'HEAVY'
+): number {
+  const basePoints = calculateLabPoints(upkeepScore);
+  
+  const multipliers = {
+    LIGHT: 0.5,
+    TYPICAL: 1.0,
+    HEAVY: 1.5
+  };
+
+  const finalPoints = basePoints * multipliers[usage];
+  
+  // 1 pound per 10 points
+  return Math.round(finalPoints / 10); 
+}
+
+export function labConstructionCost(upkeepScore: number): number {
+  const basePoints = calculateLabPoints(upkeepScore);
+  // 1 pound per 2 points to outfit from scratch
+  return Math.round(basePoints / 2);
 }
 
 export function buildingsCost(inhabitantPoints: number): number {
@@ -315,15 +353,27 @@ export function inflationCost(
   return Math.floor((buildings + consumables + provisions + labUpkeep + wages) / 100);
 }
 
-export function totalExpenditure(
-  buildings: number,
-  consumables: number,
-  provisions: number,
-  labUpkeep: number,
-  wages: number
+// Refined Expenditure Model
+export function calculateYearlyExpenditure(
+  points: { inhabitants: number; labs: number; weapons: number },
+  counts: { magi: number; scribes: number; soldiers: number },
+  boons: { buildingMinor: number; buildingMajor: number },
+  previousInflation: number
 ): number {
-  const inflation = inflationCost(buildings, consumables, provisions, labUpkeep, wages);
-  return buildings + consumables + provisions + labUpkeep + wages + inflation + 1; // +1 pound of Denarius
+  const buildings = Math.round(points.inhabitants / 10) + (boons.buildingMinor * 2) + (boons.buildingMajor * 5);
+  const consumables = Math.round(points.inhabitants / 10) * 2;
+  const provisions = Math.round(points.inhabitants / 10) * 5;
+  const wages = (Math.round(points.inhabitants / 10) * 2) + counts.soldiers; // Soldiers paid 1d/day
+  const labUpkeep = Math.round(points.labs / 10);
+  const writing = (counts.magi + counts.scribes); // 1 per specialist
+  const weaponsArmor = Math.round(points.weapons / 320); // 1 pound per 320 points
+
+  const baseTotal = buildings + consumables + provisions + wages + labUpkeep + writing + weaponsArmor;
+  
+  // Pound of Enumerus (undocumented sundry costs)
+  const sundry = 1; 
+
+  return baseTotal + sundry + previousInflation;
 }
 
 export function netIncome(totalIncome: number, totalExp: number, costSavings: number): number {
@@ -338,4 +388,7 @@ export function agingRollBase(age: number): number {
 
 export function longevityRitualAgeRollModifier(age: number): number {
   return -Math.floor(age / 10);
+}
+export function esotericScoreFromPoints(points: number): number {
+  return abilityScoreFromXp(points);
 }

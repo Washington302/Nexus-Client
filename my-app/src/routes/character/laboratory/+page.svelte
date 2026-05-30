@@ -8,11 +8,12 @@
     LongevityRitual,
     RawVis,
     ChipList,
+    MagicItems,
     PersonalityTraits,
+    LabHeader,
+    LabSpecializations
   } from '$lib/components';
-  import LabHeader from '$lib/components/LabHeader.svelte';
-  import LabSpecializations from '$lib/components/LabSpecializations.svelte';
-
+  import SanctumChambers from '$lib/components/SanctumChambers.svelte';
 
   const lab = $derived(character?.hermeticData?.laboratory ?? {} as any);
   
@@ -33,7 +34,7 @@
 
   <!-- Lab Header -->
   <div style="margin-bottom: 24px;">
-    <LabHeader {lab} />
+    <LabHeader lab={lab} character={character} />
   </div>
 
   <!-- Main Grid -->
@@ -53,22 +54,26 @@
         <div style="display: flex; flex-direction: column; gap: 16px;">
           <LabSpecializations {lab} />
           <PersonalityTraits traits={lab.personalityTraits} />
+          
         </div>
       </div>
 
       <div class="ink-divider" />
-
+            <MagicItems items={lab.magicItems} />
+            <SanctumChambers chambers={lab.sanctumChambers} />
       <!-- Casting Totals -->
       <CastingTotals {character} />
+      <LongevityRitual warpingPoints={character.warpingPoints} />
+      <RawVis {personalVis} {labVis} />
+       
 
       <!-- Lab Total + Longevity side by side -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start;">
-        <LabTotal {character} />
-        <LongevityRitual warpingPoints={character.warpingPoints} />
+      
       </div>
 
       <!-- Vis -->
-      <RawVis {personalVis} {labVis} />
+      
 
     </div>
   </div>

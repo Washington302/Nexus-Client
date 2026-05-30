@@ -2,6 +2,12 @@
 
 export type CampaignRole = "OWNER" | "STORYTELLER" | "PLAYER" | "SPECTATOR";
 
+const defaultCurrencies = [
+  { label: 'Pounds', abbreviation: '£', rateToBase: 1 },
+  { label: 'Shillings', abbreviation: 's', rateToBase: 20 },
+  { label: 'Pence', abbreviation: 'd', rateToBase: 240 },
+]
+
 export type GovernanceType = 
   | "PRIVATE_VIEW" 
   | "SHARED_READ_ONLY" 

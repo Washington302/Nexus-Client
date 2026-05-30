@@ -6,7 +6,8 @@ export const character: Character = {
   campaignId: "saga_rhine_01",
   name: "Aldric of Bonisagus",
   player: "Kaleb",
-  description: "A methodical Bonisagus researcher whose love of Corpus magic borders on obsession. Quiet in council, relentless in the laboratory.",
+  description:
+    "A methodical Bonisagus researcher whose love of Corpus magic borders on obsession. Quiet in council, relentless in the laboratory.",
   portraitUrl: "",
   type: "MAGUS",
   birthName: "Aldric Brenner",
@@ -29,10 +30,10 @@ export const character: Character = {
   age: 40,
   size: 0,
   confidence: 3,
-  equipment: "Writing kit, anatomy texts (4), specimen jars, laboratory notebook",
+  equipment:
+    "Writing kit, anatomy texts (4), specimen jars, laboratory notebook",
   magus: true,
-characteristics: {
-    SIZE: 0,
+  characteristics: {
     scores: {
       INTELLIGENCE: 3,
       PERCEPTION: 1,
@@ -41,8 +42,8 @@ characteristics: {
       PRESENCE: 0,
       COMMUNICATION: 1,
       DEXTERITY: -1,
-      QUICKNESS: -1
-    }
+      QUICKNESS: -1,
+    },
   },
   hermeticData: {
     house: "Bonisagus",
@@ -96,7 +97,8 @@ characteristics: {
           arts: ["Creo", "Herbam"],
           pawns: 1,
           effect: {
-            description: "When pressed into bare earth, it instantly grows into a massive, fully mature oak tree over the course of 6 seconds, exactly mimicking a level 45 ritual.",
+            description:
+              "When pressed into bare earth, it instantly grows into a massive, fully mature oak tree over the course of 6 seconds, exactly mimicking a level 45 ritual.",
             level: 45,
           },
         },
@@ -107,7 +109,8 @@ characteristics: {
           arts: ["Intellego", "Imaginem"],
           pawns: 2,
           effect: {
-            description: "When held up to the eye and peered through, it allows the user to see through up to 3 feet of solid stone or wood for 1 minute. Consumed upon use.",
+            description:
+              "When held up to the eye and peered through, it allows the user to see through up to 3 feet of solid stone or wood for 1 minute. Consumed upon use.",
             level: 30,
           },
         },
@@ -124,19 +127,20 @@ characteristics: {
           score: 3,
           essential: false,
           temporary: false,
-        }
+        },
       ],
       characteristics: {
-        SIZE: 1, // Every laboratory has a structural size scale
+         // Every laboratory has a structural size scale
         scores: {
+          SIZE: 1,
           REFINEMENT: 1,
           GENERAL_QUALITY: 0,
           UPKEEP: 1,
           SAFETY: 2,
           WARPING: 0,
           HEALTH: 1,
-          AESTHETICS: -1
-        }
+          AESTHETICS: -1,
+        },
       },
       visStore: {
         standard: [
@@ -182,7 +186,8 @@ characteristics: {
             arts: ["Creo", "Herbam"],
             pawns: 1,
             effect: {
-              description: "When pressed into bare earth, it instantly grows into a massive, fully mature oak tree over the course of 6 seconds, exactly mimicking a level 45 ritual.",
+              description:
+                "When pressed into bare earth, it instantly grows into a massive, fully mature oak tree over the course of 6 seconds, exactly mimicking a level 45 ritual.",
               level: 45,
             },
           },
@@ -193,7 +198,8 @@ characteristics: {
             arts: ["Intellego", "Imaginem"],
             pawns: 2,
             effect: {
-              description: "When held up to the eye and peered through, it allows the user to see through up to 3 feet of solid stone or wood for 1 minute. Consumed upon use.",
+              description:
+                "When held up to the eye and peered through, it allows the user to see through up to 3 feet of solid stone or wood for 1 minute. Consumed upon use.",
               level: 30,
             },
           },
@@ -202,7 +208,7 @@ characteristics: {
       magicItems: [],
       sanctumChambers: [],
       virtues: {
-        "Spotless": {
+        Spotless: {
           title: "Spotless",
           type: "Supernatural",
           magnitude: "FREE",
@@ -210,10 +216,12 @@ characteristics: {
           flaw: false,
           active: true,
           replaceable: true,
-          effects: [{ tag: "LAB_HEALTH_BONUS", scope: "", flatValue: 1, multiplier: 1 }],
+          effects: [
+            { tag: "LAB_HEALTH_BONUS", scope: "", flatValue: 1, multiplier: 1 },
+          ],
         },
       },
-      flaws:{ },
+      flaws: {},
       activitySpecializations: { Corpus: 2, Creo: 1 },
       artSpecializations: { Corpus: 2 },
       sanctumPermittedNames: ["Aldric of Bonisagus"],
@@ -237,84 +245,112 @@ characteristics: {
         technique: "Creo",
         form: "Animal",
         level: 100,
+        base: 3,
+        requisites: {
+        },
         magnitude: 20,
         range: "Voice",
         duration: "Momentary",
         target: "Group",
         masteryXp: 0,
         mastery: 0,
-        notes: "Ritual spell. Resurrects and fully restores up to 10 animals within Voice range. Includes +1 size modification.",
+        notes:
+          "Ritual spell. Resurrects and fully restores up to 10 animals within Voice range. Includes +1 size modification.",
       },
       ear_of_the_beasts: {
         name: "Ear of the Beasts",
         technique: "Intellego",
         form: "Animal",
         level: 25,
+        base: 3,
+        requisites: {
+        },
         magnitude: 6,
         range: "Personal",
         duration: "Concentration",
         target: "Hearing",
         masteryXp: 0,
         mastery: 0,
-        notes: "Allows the caster to understand and speak back in the specific language of the animal being heard.",
+        notes:
+          "Allows the caster to understand and speak back in the specific language of the animal being heard.",
       },
       guardian_of_the_forest: {
         name: "Guardian of the Forest",
         technique: "Intellego",
         form: "Animal",
         level: 100,
+        base: 3,
+        requisites: {
+        },
         magnitude: 20,
         range: "Arcane Connection",
         duration: "Year",
         target: "Boundary",
         masteryXp: 0,
         mastery: 0,
-        notes: "Ritual spell. Grants complete insight into the thoughts, emotions, and sensations of every animal within a 3-mile diameter boundary.",
+        notes:
+          "Ritual spell. Grants complete insight into the thoughts, emotions, and sensations of every animal within a 3-mile diameter boundary.",
       },
       a_wing_of_pegasi: {
         name: "A Wing of Pegasi",
         technique: "Muto",
         form: "Animal",
         level: 70,
+        base: 3,
+        requisites: {
+        },
         magnitude: 14,
         range: "Voice",
         duration: "Moon",
         target: "Group",
         masteryXp: 0,
         mastery: 0,
-        notes: "Ritual spell. Transforms up to 10 horses into Pegasi by sprouting wings.",
+        notes:
+          "Ritual spell. Transforms up to 10 horses into Pegasi by sprouting wings.",
       },
       the_silent_forest: {
         name: "The Silent Forest",
         technique: "Perdo",
         form: "Animal",
         level: 85,
+        base: 3,
+        requisites: {
+        },
         magnitude: 17,
         range: "Sight",
         duration: "Momentary",
         target: "Boundary",
         masteryXp: 0,
         mastery: 0,
-        notes: "Ritual spell. Kills every animal within a targeted boundary up to 3 miles in diameter.",
+        notes:
+          "Ritual spell. Kills every animal within a targeted boundary up to 3 miles in diameter.",
       },
       free_the_army_of_beasts: {
         name: "Free the Army of Beasts",
         technique: "Rego",
         form: "Animal",
         level: 70,
+        base: 3,
+        requisites: {
+        },
         magnitude: 14,
         range: "Sight",
         duration: "Moon",
         target: "Group",
         masteryXp: 0,
         mastery: 0,
-        notes: "Ritual spell. Grants complete mental control over a huge group of horses (up to 1,000).",
+        notes:
+          "Ritual spell. Grants complete mental control over a huge group of horses (up to 1,000).",
       },
       chirurgeons_healing_touch: {
         name: "The Chirurgeon's Healing Touch",
         technique: "Creo",
         form: "Corpus",
         level: 20,
+        base: 5,
+        requisites: {
+          MagicalArt: { name: "Aquam", exp: 1, score: 1, type: "FORM" },
+        },
         magnitude: 4,
         range: "Touch",
         duration: "Momentary",
@@ -328,6 +364,9 @@ characteristics: {
         technique: "Intellego",
         form: "Corpus",
         level: 5,
+        base: 3,
+        requisites: {
+        },
         magnitude: 3,
         range: "Per",
         duration: "Momentary",
@@ -338,29 +377,29 @@ characteristics: {
       },
     },
     arts: {
-      Creo:      { name: "Creo",      exp: 55, score: 10, type: "TECHNIQUE" },
-      Intellego: { name: "Intellego", exp: 21, score: 6,  type: "TECHNIQUE" },
-      Muto:      { name: "Muto",      exp: 6,  score: 3,  type: "TECHNIQUE" },
-      Perdo:     { name: "Perdo",     exp: 1,  score: 1,  type: "TECHNIQUE" },
-      Rego:      { name: "Rego",      exp: 10, score: 4,  type: "TECHNIQUE" },
-      Animal:    { name: "Animal",    exp: 1,  score: 1,  type: "FORM" },
-      Aquam:     { name: "Aquam",     exp: 1,  score: 1,  type: "FORM" },
-      Auram:     { name: "Auram",     exp: 1,  score: 1,  type: "FORM" },
-      Corpus:    { name: "Corpus",    exp: 91, score: 13, type: "FORM" },
-      Herbam:    { name: "Herbam",    exp: 1,  score: 1,  type: "FORM" },
-      Ignem:     { name: "Ignem",     exp: 6,  score: 3,  type: "FORM" },
-      Imaginem:  { name: "Imaginem",  exp: 1,  score: 1,  type: "FORM" },
-      Mentem:    { name: "Mentem",    exp: 6,  score: 3,  type: "FORM" },
-      Terram:    { name: "Terram",    exp: 1,  score: 1,  type: "FORM" },
-      Vim:       { name: "Vim",       exp: 10, score: 4,  type: "FORM" },
+      Creo: { name: "Creo", exp: 55, score: 10, type: "TECHNIQUE" },
+      Intellego: { name: "Intellego", exp: 21, score: 6, type: "TECHNIQUE" },
+      Muto: { name: "Muto", exp: 6, score: 3, type: "TECHNIQUE" },
+      Perdo: { name: "Perdo", exp: 1, score: 1, type: "TECHNIQUE" },
+      Rego: { name: "Rego", exp: 10, score: 4, type: "TECHNIQUE" },
+      Animal: { name: "Animal", exp: 1, score: 1, type: "FORM" },
+      Aquam: { name: "Aquam", exp: 1, score: 1, type: "FORM" },
+      Auram: { name: "Auram", exp: 1, score: 1, type: "FORM" },
+      Corpus: { name: "Corpus", exp: 91, score: 13, type: "FORM" },
+      Herbam: { name: "Herbam", exp: 1, score: 1, type: "FORM" },
+      Ignem: { name: "Ignem", exp: 6, score: 3, type: "FORM" },
+      Imaginem: { name: "Imaginem", exp: 1, score: 1, type: "FORM" },
+      Mentem: { name: "Mentem", exp: 6, score: 3, type: "FORM" },
+      Terram: { name: "Terram", exp: 1, score: 1, type: "FORM" },
+      Vim: { name: "Vim", exp: 10, score: 4, type: "FORM" },
     },
   },
   track: [
-    { type: "LIGHT",         penalty: -1,  maxWounds: 5, currentWounds: 0 },
-    { type: "MEDIUM",        penalty: -3,  maxWounds: 5, currentWounds: 0 },
-    { type: "HEAVY",         penalty: -5,  maxWounds: 5, currentWounds: 0 },
+    { type: "LIGHT", penalty: -1, maxWounds: 5, currentWounds: 0 },
+    { type: "MEDIUM", penalty: -3, maxWounds: 5, currentWounds: 0 },
+    { type: "HEAVY", penalty: -5, maxWounds: 5, currentWounds: 0 },
     { type: "INCAPACITATED", penalty: -10, maxWounds: 1, currentWounds: 0 },
-    { type: "DEAD",          penalty: 0,   maxWounds: 1, currentWounds: 0 },
+    { type: "DEAD", penalty: 0, maxWounds: 1, currentWounds: 0 },
   ],
   currentFatigueLevel: "Fresh",
   fatiguePenalty: 0,
@@ -407,7 +446,7 @@ characteristics: {
       specialty: "Corpus",
       category: "ARCANE",
     },
-    "Latin": {
+    Latin: {
       name: "Latin",
       exp: 50,
       score: 4,
@@ -421,14 +460,14 @@ characteristics: {
       specialty: "Rhetoric",
       category: "ACADEMIC",
     },
-    "Finesse": {
+    Finesse: {
       name: "Finesse",
       exp: 30,
       score: 3,
       specialty: "Precision",
       category: "ARCANE",
     },
-    "Concentration": {
+    Concentration: {
       name: "Concentration",
       exp: 30,
       score: 3,
@@ -442,14 +481,14 @@ characteristics: {
       specialty: "Corpus",
       category: "ARCANE",
     },
-    "Philosophiae": {
+    Philosophiae: {
       name: "Philosophiae",
       exp: 50,
       score: 4,
       specialty: "Natural philosophy",
       category: "ACADEMIC",
     },
-    "Penetration": {
+    Penetration: {
       name: "Penetration",
       exp: 5,
       score: 2,
@@ -490,7 +529,14 @@ characteristics: {
       flaw: false,
       active: true,
       replaceable: false,
-      effects: [{ tag: "SOCIAL_STATUS", scope: "Hermetic", flatValue: 0, multiplier: 1 }],
+      effects: [
+        {
+          tag: "SOCIAL_STATUS",
+          scope: "Hermetic",
+          flatValue: 0,
+          multiplier: 1,
+        },
+      ],
     },
     "Affinity with Corpus": {
       title: "Affinity with Corpus",
@@ -500,7 +546,14 @@ characteristics: {
       flaw: false,
       active: true,
       replaceable: false,
-      effects: [{ tag: "ART_XP_MULTIPLIER", scope: "Corpus", flatValue: 0, multiplier: 1.5 }],
+      effects: [
+        {
+          tag: "ART_XP_MULTIPLIER",
+          scope: "Corpus",
+          flatValue: 0,
+          multiplier: 1.5,
+        },
+      ],
     },
     "Puissant Magic Theory": {
       title: "Puissant Magic Theory",
@@ -510,13 +563,21 @@ characteristics: {
       flaw: false,
       active: true,
       replaceable: false,
-      effects: [{ tag: "ABILITY_SCORE_FLAT_BONUS", scope: "Magic Theory", flatValue: 2, multiplier: 1 }],
+      effects: [
+        {
+          tag: "ABILITY_SCORE_FLAT_BONUS",
+          scope: "Magic Theory",
+          flatValue: 2,
+          multiplier: 1,
+        },
+      ],
     },
     "Elemental Magic": {
       title: "Elemental Magic",
       type: "Hermetic",
       magnitude: "MAJOR",
-      description: "You have been trained to manipulate the elemental Forms (Aquam, Auram, Ignem, and Terram) as a connected whole rather than four separate Arts.\n\nWhenever you gain experience from a source dedicated to one of these Arts, you gain half the Source Quality (rounded up) in experience points in each of the other three Arts.\n\nFor example, if you studied Ignem from a book with a Source Quality of 13, you would gain 7 experience points in each of Aquam, Auram, and Terram.\n\nDuring character creation, assign all your experience points in Arts. Then assign half the experience points assigned to each of the elemental Forms to each of the other elemental Forms. Do not add these bonus experience points until you have finished calculating all of them.\n\nIf a spell with one of these Forms as its primary Form has another element as a requisite, you use the primary Form to calculate totals, even if the requisite is lower.",
+      description:
+        "You have been trained to manipulate the elemental Forms (Aquam, Auram, Ignem, and Terram) as a connected whole rather than four separate Arts.\n\nWhenever you gain experience from a source dedicated to one of these Arts, you gain half the Source Quality (rounded up) in experience points in each of the other three Arts.\n\nFor example, if you studied Ignem from a book with a Source Quality of 13, you would gain 7 experience points in each of Aquam, Auram, and Terram.\n\nDuring character creation, assign all your experience points in Arts. Then assign half the experience points assigned to each of the elemental Forms to each of the other elemental Forms. Do not add these bonus experience points until you have finished calculating all of them.\n\nIf a spell with one of these Forms as its primary Form has another element as a requisite, you use the primary Form to calculate totals, even if the requisite is lower.",
       flaw: false,
       active: true,
       replaceable: false,
@@ -526,7 +587,8 @@ characteristics: {
       title: "Cyclic Magic (positive)",
       type: "Hermetic",
       magnitude: "MINOR",
-      description: "Your magic is attuned to some cycle of nature (solar, lunar, or seasonal).\n\nAt those times, you receive a +3 bonus to all Casting Scores. The bonus also applies to Lab Totals if the positive part of the cycle covers the whole season.\n\nThe cycle must be regular and approved by the storyguide, and the length of time when the bonus applies must equal the time when it does not.",
+      description:
+        "Your magic is attuned to some cycle of nature (solar, lunar, or seasonal).\n\nAt those times, you receive a +3 bonus to all Casting Scores. The bonus also applies to Lab Totals if the positive part of the cycle covers the whole season.\n\nThe cycle must be regular and approved by the storyguide, and the length of time when the bonus applies must equal the time when it does not.",
       flaw: false,
       active: true,
       replaceable: false,
@@ -538,11 +600,19 @@ characteristics: {
       title: "Blatant Gift",
       type: "Hermetic",
       magnitude: "MAJOR",
-      description: "Animals and people react strongly and negatively to his presence.",
+      description:
+        "Animals and people react strongly and negatively to his presence.",
       flaw: true,
       active: true,
       replaceable: false,
-      effects: [{ tag: "PERSONALITY_TRAIT", scope: "mundane social", flatValue: -6, multiplier: 1 }],
+      effects: [
+        {
+          tag: "PERSONALITY_TRAIT",
+          scope: "mundane social",
+          flatValue: -6,
+          multiplier: 1,
+        },
+      ],
     },
     "Obsessed (Corpus research)": {
       title: "Obsessed (Corpus research)",
@@ -552,13 +622,20 @@ characteristics: {
       flaw: true,
       active: true,
       replaceable: false,
-      effects: [{ tag: "PERSONALITY_TRAIT", scope: "Obsessed", flatValue: 3, multiplier: 1 }],
+      effects: [
+        {
+          tag: "PERSONALITY_TRAIT",
+          scope: "Obsessed",
+          flatValue: 3,
+          multiplier: 1,
+        },
+      ],
     },
   },
   personalityTraits: [
-    { name: "Dedicated",   score: 3, essential: false, temporary: false },
+    { name: "Dedicated", score: 3, essential: false, temporary: false },
     { name: "Introverted", score: 2, essential: false, temporary: false },
-    { name: "Methodical",  score: 3, essential: true,  temporary: false },
+    { name: "Methodical", score: 3, essential: true, temporary: false },
   ],
   reputations: [
     {
@@ -569,7 +646,7 @@ characteristics: {
       scope: "Rhine Tribunal",
     },
   ],
-  warpingPoints: 3,
+  warpingPoints: 54,
   decrepitudePoints: 0,
   agingPoints: { Intelligence: 0, Stamina: 0, Quickness: 0 },
   totalWoundPenalty: 0,

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
-  import type { FatigueLevel } from '$lib/types/character.old';
+  import type { FatigueLevel } from '$lib/types';
 
   let { currentFatigueLevel = 'Fresh' } = $props<{ currentFatigueLevel: FatigueLevel }>();
 

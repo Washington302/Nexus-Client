@@ -1,17 +1,14 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
+  import type {Character} from '$lib/types';
 
-  interface CharacterInfo {
-    name: string;
-    house: string;
-    covenant: string;
-  }
 
-  let { character } = $props<{ character: CharacterInfo }>();
+let { character }: { character: Character } = $props();
 
   const navLinks = [
     { label: 'Character',   href: '/character' },
     { label: 'Laboratory',  href: '/character/laboratory' },
+    { label: 'Covenant',    href: '/covenant' }
   ];
 </script>
 
@@ -53,7 +50,7 @@
         text-transform: uppercase;
         letter-spacing: 0.1em;
         color: {COLORS.inkMuted};
-      ">House {character.house} · {character.covenant}</span>
+      ">House {character.hermeticData?.house ?? ''} · {character.covenant}</span>
     </div>
 
     <!-- Nav links -->

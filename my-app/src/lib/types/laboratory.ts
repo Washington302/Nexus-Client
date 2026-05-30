@@ -1,9 +1,18 @@
 // src/types/ars-magica/laboratory.ts
 
 import type { Trait, RawVisStore, LabCharacteristics, PersonalityTrait } from "./shared";
-
-import type { Spell } from "../types";
+export type LabUsage = 'LIGHT' | 'TYPICAL' | 'HEAVY';
 export type ItemType = 'INVESTED' | 'LESSER' | 'CHARGED';
+import type { Spell } from "../types";
+
+
+
+export interface LabPointCalculations {
+  labUsage: LabUsage;
+  basePoints: number;      // from calculateLabPoints(upkeepScore)
+  adjustedPoints: number;  // basePoints × multiplier
+  costInPounds: number;    // adjustedPoints / 10
+}
 
 export interface EnchantedEffect {
   spell: Spell; 
@@ -11,7 +20,7 @@ export interface EnchantedEffect {
   triggerCondition: string;
   hasLimitedUses: boolean;
   usesPerDay: number;
-  isChargedItemEffect: boolean;
+  chargedItemEffect: boolean;
   remainingCharges: number;
 }
 
@@ -21,20 +30,18 @@ export interface MagicItem {
   shape: string;
   material: string;
   visCapacity: number;
-  effects: EnchantedEffect[]; // Now perfectly nests the spell schema via composition
-  isInstalledInLab: boolean;
+  effects: EnchantedEffect[]; 
+  installedInLab: boolean;
   grantedVirtue?: string;
   labBonus: Record<string, number>; // e.g., {"Safety": 1, "Ignem": 2}
   creatorSigil?: string;
-  isTalisman: boolean;
+  talisman: boolean;
 }
 
 export interface SanctumChamber {
   name: string;
-  purpose: string; // e.g., "Bedchamber", "Library", "Specimen Vault"
-  sizeModifier: number;
+  floorAreaSqFt: number; // e.g., "Bedchamber", "Library", "Specimen Vault"
   description: string;
-  isSecured: boolean;
 }
 export interface LabFeature {
   name: string;
