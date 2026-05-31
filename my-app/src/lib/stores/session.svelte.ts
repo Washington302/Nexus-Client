@@ -1,14 +1,14 @@
-// session.svelte.ts
-
-import type { Character } from '../types/character.old';
+import { api, setToken, clearToken } from '$lib/services/api';
+import { getCookie, setCookie, removeCookie } from '$lib/services/cookies';
+import type { ArsCharacter } from '../types/character';
 
 export const session = $state({
-  activeCharacter: null as Character | null,
+  activeCharacter: null as ArsCharacter | null,
   activeCharacterId: null as string | null,
+  characters: [] as ArsCharacter[],
   userId: null as string | null,
-  displayName: null as string | null,
-  role: null as 'OWNER' | 'STORYTELLER' | 'PLAYER' | 'SPECTATOR' | null,
-  sagaId: null as string | null,
+  username: null as string | null,
+  email: null as string | null,
   loading: false,
   error: null as string | null,
 });
@@ -17,16 +17,15 @@ export async function loadSession() {
   session.loading = true;
   session.error = null;
   try {
-    const res = await fetch('/api/me');
-    if (!res.ok) throw new Error('Not authenticated');
-    const data = await res.json();
-    session.userId = data.userId;
-    session.displayName = data.displayName;
-    session.role = data.role;
-    session.sagaId = data.sagaId;
-    await loadActiveCharacter();
-  } catch (e) {
-    session.error = (e as Error).message;
+    const user = await api.auth.me();
+    session.userId = user.id;
+    session.username = user.username;
+    session.email = user.email;
+  } catch {
+    session.userId = null;
+    session.username = null;
+    session.email = null;
+    clearToken();
   } finally {
     session.loading = false;
   }
@@ -36,10 +35,13 @@ export async function loadActiveCharacter() {
   session.loading = true;
   session.error = null;
   try {
-    const res = await fetch('/api/me/character');
-    if (!res.ok) throw new Error('Failed to load character');
-    session.activeCharacter = await res.json();
-    session.activeCharacterId = session.activeCharacter?.id ?? null;
+    const list = await api.character.myCharacters();
+    session.characters = list;
+    const savedId = getCookie('characterId');
+    const active = list.find((c) => c.id === savedId) ?? list[0] ?? null;
+    session.activeCharacter = active;
+    session.activeCharacterId = active?.id ?? null;
+    syncCookies();
   } catch (e) {
     session.error = (e as Error).message;
   } finally {
@@ -47,52 +49,52 @@ export async function loadActiveCharacter() {
   }
 }
 
-export async function setActiveCharacter(characterId: string) {
+export async function setActiveCharacterById(id: string) {
+  session.activeCharacterId = id;
+  setCookie('characterId', id);
+  try {
+    session.activeCharacter = await api.character.get(id);
+    syncCookies();
+  } catch {
+    session.activeCharacter = null;
+  }
+}
+
+function syncCookies() {
+  if (session.activeCharacterId) {
+    setCookie('characterId', session.activeCharacterId);
+  }
+  if (session.activeCharacter?.covenantId) {
+    setCookie('covenantId', session.activeCharacter.covenantId);
+  } else {
+    removeCookie('covenantId');
+  }
+}
+
+export async function login(email: string, password: string) {
   session.loading = true;
   session.error = null;
   try {
-    const res = await fetch('/api/me/active-character', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ characterId })
-    });
-    if (!res.ok) throw new Error('Failed to set active character');
+    const res = await api.auth.login(email, password);
+    if (!res.token) throw new Error(res.error ?? 'Login failed');
+    setToken(res.token);
+    await loadSession();
     await loadActiveCharacter();
   } catch (e) {
     session.error = (e as Error).message;
-  } finally {
-    session.loading = false;
-  }
-}
-
-export async function login(username: string, password: string) {
-  session.loading = true;
-  session.error = null;
-  try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    if (!res.ok) throw new Error('Login failed');
-    const data = await res.json();
-    session.userId = data.userId;
-    session.displayName = data.displayName;
-    session.role = data.role;
-    session.sagaId = data.sagaId;
-  } catch (e) {
-    session.error = (e as Error).message;
+    clearToken();
   } finally {
     session.loading = false;
   }
 }
 
 export async function logout() {
-  await fetch('/api/auth/logout', { method: 'POST' });
+  clearToken();
+  removeCookie('characterId');
+  removeCookie('covenantId');
   session.activeCharacter = null;
   session.activeCharacterId = null;
   session.userId = null;
-  session.displayName = null;
-  session.role = null;
-  session.sagaId = null;
+  session.username = null;
+  session.email = null;
 }

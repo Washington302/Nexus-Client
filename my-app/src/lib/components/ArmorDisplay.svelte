@@ -1,6 +1,6 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
-  import type { Armor } from '$lib/types/character.old';
+  import type { Armor } from '$lib/types/combat';
 
   let { armor = [], encumbrance = 0, totalLoad = 0, totalArmorProtection = 0 } = $props<{
     armor: Armor[];

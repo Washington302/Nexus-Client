@@ -65,7 +65,6 @@
           <AbilityRow
             name={ability.name}
             exp={ability.exp}
-            score={ability.score}
             specialty={ability.specialty}
             category={ability.category}
             isLast={i === list.length - 1}

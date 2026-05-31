@@ -1,9 +1,9 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
-  import type {Character} from '$lib/types';
+  import type {ArsCharacter} from '$lib/types';
 
 
-let { character }: { character: Character } = $props();
+let { character }: { character: ArsCharacter } = $props();
 
   const navLinks = [
     { label: 'Character',   href: '/character' },

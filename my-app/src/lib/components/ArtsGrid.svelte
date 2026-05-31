@@ -1,6 +1,7 @@
 <script lang="ts">
   import { COLORS, S } from '../constants';
   import ScoreCard from './ScoreCard.svelte';
+  import { artScoreFromXp } from '$lib/utils/arsmagica';
 
 let { artsList = [] } = $props();
 
@@ -40,7 +41,7 @@ let { artsList = [] } = $props();
   <ScoreCard 
     name={art.name} 
     exp={art.exp} 
-    score={art.score}
+    score={artScoreFromXp(art.exp)}
     isLast={i === techniques.length - 1}
   />
 {/each}
@@ -53,7 +54,7 @@ let { artsList = [] } = $props();
         <ScoreCard 
     name={art.name} 
     exp={art.exp} 
-    score={art.score}
+    score={artScoreFromXp(art.exp)}
     isLast={i === forms.length - 1}
   />
       {/each}

@@ -5,6 +5,9 @@
 
   let { covenant }: { covenant: Covenant } = $props();
 
+  const visStocks = $derived(covenant.visStocks ?? { standard: [], extraordinary: [] });
+  const visSources = $derived(covenant.visSources ?? []);
+
   // ── All 15 hermetic arts in canonical order ───────────────────────────────
   const TECHNIQUES = ["Creo", "Intellego", "Muto", "Perdo", "Rego"];
   const FORMS = [
@@ -49,15 +52,15 @@
 
   // ── Vis stock lookups ─────────────────────────────────────────────────────
   function getStockPawns(art: string): number {
-    return covenant.visStocks.standard.find((v) => v.art === art)?.pawns ?? 0;
+    return visStocks.standard.find((v) => v.art === art)?.pawns ?? 0;
   }
 
   const totalStandardPawns = $derived(
-    covenant.visStocks.standard.reduce((sum, v) => sum + v.pawns, 0),
+    visStocks.standard.reduce((sum, v) => sum + v.pawns, 0),
   );
 
   const totalSourcePawns = $derived(
-    covenant.visSources.reduce((sum, s) => sum + s.pawnsPerYear, 0),
+    visSources.reduce((sum, s) => sum + s.pawnsPerYear, 0),
   );
 
   // ── Shared styles ─────────────────────────────────────────────────────────
@@ -116,7 +119,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each covenant.visSources as source, i}
+          {#each visSources as source, i}
             <tr
               style="background-color: {i % 2 === 0
                 ? COLORS.bgLow
@@ -201,7 +204,7 @@
         </tfoot>
       </table>
 
-      {#if covenant.visSources.length === 0}
+      {#if visSources.length === 0}
         <div style="padding: 24px; text-align: center;">
           <p
             style="
@@ -364,7 +367,7 @@
     <div>
       <p style={sectionHeaderStyle}>Extraordinary & Tainted Vis</p>
 
-      {#if covenant.visStocks.extraordinary.length === 0}
+      {#if visStocks.extraordinary.length === 0}
         <div
           style="
           background-color: {COLORS.bgLow};
@@ -387,7 +390,7 @@
         </div>
       {:else}
         <div style="display: flex; flex-direction: column; gap: 8px;">
-          {#each covenant.visStocks.extraordinary as vis}
+          {#each visStocks.extraordinary as vis}
             {@const typeColor =
               sourceTypeColor[vis.sourceType] ?? COLORS.inkMuted}
             <div

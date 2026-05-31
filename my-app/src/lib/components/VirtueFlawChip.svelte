@@ -2,7 +2,7 @@
   import { COLORS, S } from "$lib/constants";
   import type { Trait } from "$lib/types";
 
-  let { item } = $props<{ item: Trait }>();
+  let { item, name } = $props<{ item: Trait; name: string }>();
 
   let hovered = $state(false);
   let tooltipHovered = $state(false);
@@ -37,7 +37,7 @@
     class:chip-label--flaw={item.flaw}
     style="background-color: {visible ? COLORS.bgLow : 'transparent'};"
   >
-    {item.title}
+    {name}
     <span
       class="chip-magnitude"
       class:chip-magnitude--flaw={item.flaw}

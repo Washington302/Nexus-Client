@@ -6,14 +6,18 @@
   let { covenant }: { covenant: Covenant } = $props();
 
   // ── Split books by type ───────────────────────────────────────────────────
+  const books = $derived(covenant.books ?? []);
+  const labTextLevels = $derived(covenant.labTextLevels ?? 0);
+  const castingTabletLevels = $derived(covenant.castingTabletLevels ?? 0);
+
   const magicalBooks = $derived(
-    covenant.books.filter((b) => b.type === "SUMMA" || b.type === "TRACTATUS"),
+    books.filter((b) => b.type === "SUMMA" || b.type === "TRACTATUS"),
   );
   const labTexts = $derived(
-    covenant.books.filter((b) => b.type === "LAB_TEXTS"),
+    books.filter((b) => b.type === "LAB_TEXTS"),
   );
   const mundaneBooks = $derived(
-    covenant.books.filter((b) => b.type === "MUNDANE"),
+    books.filter((b) => b.type === "MUNDANE"),
   );
 
   // ── Condition display ─────────────────────────────────────────────────────
@@ -73,7 +77,7 @@
     gap: 16px;
   "
   >
-    {#each [["Lab Text Levels", covenant.labTextLevels], ["Casting Tablet Levels", covenant.castingTabletLevels]] as [label, value]}
+    {#each [["Lab Text Levels", labTextLevels], ["Casting Tablet Levels", castingTabletLevels]] as [label, value]}
       <div
         style="
         background-color: {COLORS.bgLow};

@@ -1,16 +1,16 @@
 <script lang="ts">
   import { COLORS, S } from "$lib/constants";
-  import type { Character, MagicalArt, Ability } from "$lib/types";
+  import type { ArsCharacter, MagicalArt, Ability } from "$lib/types";
 
-  import { labTotalFull, labTotalBase } from '$lib/utils/arsmagica';
+  import { labTotalFull, labTotalBase, abilityScoreFromXp, artScoreFromXp } from '$lib/utils/arsmagica';
 
-  let { character } = $props<{ character: Character }>();
+  let { character } = $props<{ character: ArsCharacter }>();
 
   const intelligence = $derived(character.characteristics.scores.INTELLIGENCE);
-  const ability = (name: string): number =>
-  character?.abilities?.[name]?.score ?? 0;
+  const abilityExp = (name: string): number =>
+  character?.abilities?.[name]?.exp ?? 0;
 
-  const magicTheory    = $derived(ability('Magic Theory'));
+  const magicTheory    = $derived(abilityScoreFromXp(abilityExp('Magic Theory')));
   
   const arts = $derived(character?.hermeticData?.arts || {});
 
@@ -28,8 +28,8 @@ let selectedTechnique = $state('Creo');
   
 
   // Dynamic score resolution
-  const techScore = $derived(arts[selectedTechnique]?.score ?? 0);
-  const formScore = $derived(arts[selectedForm]?.score ?? 0);
+  const techScore = $derived(artScoreFromXp(arts[selectedTechnique]?.exp ?? 0));
+  const formScore = $derived(artScoreFromXp(arts[selectedForm]?.exp ?? 0));
   const base = $derived(labTotalBase(intelligence, magicTheory, aura));
   const full = $derived(labTotalFull(intelligence, magicTheory, aura, techScore, formScore));
 
@@ -130,7 +130,7 @@ const labStats = $derived(lab ? [
       "
       >
         {#each techniques as tech}
-          <option value={tech.name}>{tech.name} ({tech.score})</option>
+          <option value={tech.name}>{tech.name} ({artScoreFromXp(tech.exp)})</option>
         {/each}
       </select>
     </div>
@@ -161,7 +161,7 @@ const labStats = $derived(lab ? [
       "
       >
         {#each forms as form}
-          <option value={form.name}>{form.name} ({form.score})</option>
+          <option value={form.name}>{form.name} ({artScoreFromXp(form.exp)})</option>
         {/each}
       </select>
     </div>

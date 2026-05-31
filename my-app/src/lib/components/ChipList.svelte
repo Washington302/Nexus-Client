@@ -11,8 +11,8 @@
     flawsLabel?: string;
   }>();
 
-  const virtuesList = $derived(Object.values(virtues) as Trait[]);
-  const flawsList = $derived(Object.values(flaws) as Trait[]);
+  const virtuesList = $derived(Object.entries(virtues) as [string, Trait][]);
+  const flawsList = $derived(Object.entries(flaws) as [string, Trait][]);
 
   
 
@@ -32,8 +32,8 @@
   <div>
     <p style={sectionLabel(false)}>{virtuesLabel}</p>
     <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-      {#each virtuesList as item}
-        <VirtueFlawChip {item} />
+      {#each virtuesList as [name, item]}
+        <VirtueFlawChip {name} {item} />
       {/each}
     </div>
   </div>
@@ -43,8 +43,8 @@
   <div>
     <p style={sectionLabel(true)}>{flawsLabel}</p>
     <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-      {#each flawsList as item}
-        <VirtueFlawChip {item} />
+      {#each flawsList as [name, item]}
+        <VirtueFlawChip {name} {item} />
       {/each}
     </div>
   </div>

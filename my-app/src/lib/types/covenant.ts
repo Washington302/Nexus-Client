@@ -1,7 +1,6 @@
-// src/types/ars-magica/covenant.ts
-
-import type { Book, VisSource, RawVisStore, Trait, Reputation } from "./shared";
+import type { VisSource, RawVisStore, Trait, Reputation } from "./shared";
 import type { Laboratory, MagicItem } from "./laboratory";
+import type { Book } from "./shared";
 
 export type CovenantSeason = "SPRING" | "SUMMER" | "AUTUMN" | "WINTER";
 
@@ -10,7 +9,6 @@ export interface Covenant {
   userId: string;
   campaignId: string;
 
-  // Core identity
   name: string;
   tribunal: string;
   saga: string;
@@ -20,18 +18,15 @@ export interface Covenant {
   governance: string;
   charter: string;
 
-  // ─── Aura & Regios ──────────────────────────────────────────────────────────
-  auraType: string; // e.g. "Magic", "Faerie", "Divine", "Infernal"
+  auraType: string;
   auraLevel: number;
-  regioLevels: number[]; // Ascending aura levels within the regio
-  aegisLevel: number; // Level of the Aegis of the Hearth currently cast
+  regioLevels: number[];
+  aegisLevel: number;
 
-  // ─── Inhabitants ────────────────────────────────────────────────────────────
-  magiIds: string[]; // References to Character documents
+  magiIds: string[];
   companionIds: string[];
   namedGrogIds: string[];
 
-  // Population counts (unnamed covenfolk)
   grogs: number;
   specialists: number;
   craftsmen: number;
@@ -40,28 +35,11 @@ export interface Covenant {
   teamsters: number;
   livingConditionsMagi: number;
   livingConditionsMundane: number;
-  // Loyalty tracking
   baseLoyalty: number;
   prevailingLoyaltyScore: number;
   currentLoyaltyPoints: number;
 
-  // ─── Library ────────────────────────────────────────────────────────────────
-  books: Book[];
-  labTextLevels: number; // Total levels of lab texts held
-  castingTabletLevels: number; // Total levels of casting tablets held
-
-  // ─── Vis ────────────────────────────────────────────────────────────────────
-  visSources: VisSource[]; // Income streams — where vis comes from
-  visStocks: RawVisStore; // Vault inventory — standard & extraordinary
-
-  // ─── Laboratories ───────────────────────────────────────────────────────────
-  laboratories: Laboratory[];
-
-  // ─── Finances ───────────────────────────────────────────────────────────────
-  // Income
   annualIncomeSilver: number;
-
-  // Fixed yearly expenditures (directly from ArM5 sheet categories)
   buildingsExpenditure: number;
   consumablesExpenditure: number;
   provisionsExpenditure: number;
@@ -69,15 +47,47 @@ export interface Covenant {
   laboratoriesExpenditure: number;
   weaponsArmorExpenditure: number;
   writingMaterialsExpenditure: number;
-  miscExpenditure: number; // Catch-all for sundry charges
-  magicItems: MagicItem[];
-  // Cost savings offset against expenditure
+  miscExpenditure: number;
   costSavingsSilver: number;
 
-  // ─── Boons & Hooks ──────────────────────────────────────────────────────────
+  reputations: Reputation[];
+
   boons: Record<string, Trait>;
   hooks: Record<string, Trait>;
 
-  // ─── Reputations ────────────────────────────────────────────────────────────
-  reputations: Reputation[];
+  // Sub-collections (fetched separately from endpoints)
+  books?: Book[];
+  labTextLevels?: number;
+  castingTabletLevels?: number;
+  laboratories?: Laboratory[];
+  visSources?: VisSource[];
+  visStocks?: RawVisStore;
+  magicItems?: MagicItem[];
+}
+
+export interface LibraryInventory {
+  id: string;
+  covenantId: string;
+  books: Book[];
+  labTextLevels: number;
+  castingTabletLevels: number;
+}
+
+export interface CovenantLaboratories {
+  id: string;
+  covenantId: string;
+  laboratories: Laboratory[];
+}
+
+export interface CovenantVisInventory {
+  id: string;
+  covenantId: string;
+  visSources: VisSource[];
+  visStocks: RawVisStore;
+}
+
+export interface CovenantMagicItemInventory {
+  id: string;
+  covenantId: string;
+  magicItems: MagicItem[];
 }

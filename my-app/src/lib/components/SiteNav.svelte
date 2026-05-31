@@ -226,6 +226,24 @@
           </div>
         {/if}
       </div>
+    {:else}
+      <a href="/auth/login"
+        style="
+          font-family: {S.fontBody};
+          font-size: 12px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: {COLORS.white};
+          text-decoration: none;
+          padding: 6px 14px;
+          border: 1px solid {COLORS.inkMuted};
+          border-radius: 3px;
+          transition: border-color 0.15s ease;
+        "
+        onmouseenter={(e) => (e.currentTarget as HTMLElement).style.borderColor = COLORS.white}
+        onmouseleave={(e) => (e.currentTarget as HTMLElement).style.borderColor = COLORS.inkMuted}
+      >Sign In</a>
     {/if}
 
   </div>

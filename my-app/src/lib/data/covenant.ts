@@ -46,7 +46,7 @@ export const covenantData: Covenant = {
   "currentLoyaltyPoints": 62,
   "books": [
     {
-      "title": "The Flight of Birds and Winds",
+      "title": "Boreas's Breath",
       "author": "Boreas of Ex Miscellanea",
       "subject": "Auram",
       "type": "SUMMA",
@@ -56,7 +56,7 @@ export const covenantData: Covenant = {
       "condition": 5
     },
     {
-      "title": "De Natura Elementorum",
+      "title": "The Flame Eternal",
       "author": "Unknown Jerbiton",
       "subject": "Ignem",
       "type": "SUMMA",
@@ -96,7 +96,7 @@ export const covenantData: Covenant = {
       ],
       "virtues": {
         "virtue_mt_view": {
-          "title": "Mountain View",
+          
           "type": "Site",
           "magnitude": "MINOR",
           "description": "An inspiring view over the high Alpine peaks.",
@@ -106,7 +106,9 @@ export const covenantData: Covenant = {
               "tag": "LAB_BONUS_AURA",
               "scope": "Auram",
               "flatValue": 1,
-              "multiplier": 0.0
+              "multiplier": 0.0,
+              "limits": [],
+              "oneTime": false
             }
           ],
           "flaw": false,
@@ -116,7 +118,7 @@ export const covenantData: Covenant = {
       },
       "flaws": {
         "flaw_difficult_access": {
-          "title": "Difficult Access",
+          
           "type": "Structure",
           "magnitude": "MINOR",
           "description": "Requires climbing a steep winding staircase up the spire cliffside.",
@@ -126,7 +128,9 @@ export const covenantData: Covenant = {
               "tag": "SAFETY_PENALTY",
               "scope": "General",
               "flatValue": -1,
-              "multiplier": 0.0
+              "multiplier": 0.0,
+              "limits": [],
+              "oneTime": false
             }
           ],
           "flaw": true,
@@ -157,7 +161,7 @@ export const covenantData: Covenant = {
         "Boreas",
         "Marian"
       ],
-      visStore: {
+      visStock: {
         standard: [
           { art: "Auram", pawns: 5 },
           { art: "Vim", pawns: 3 }
@@ -285,7 +289,7 @@ export const covenantData: Covenant = {
   "charter": "We, the Magi of Semita Avis, pledge mutual defense, shared custody of the libraries, and an equal division of the harvested vis windfall...",
   "boons": {
     "boon_healthy_feature": {
-      "title": "Healthy Environment",
+      
       "type": "Site",
       "magnitude": "MINOR",
       "description": "Fresh, crisp alpine wind makes the community resilient against natural illnesses.",
@@ -294,6 +298,8 @@ export const covenantData: Covenant = {
         {
           "tag": "HEALTH_MODIFIER",
           "scope": "Covenant-wide",
+          "limits": [],
+          "oneTime": false,
           "flatValue": 1,
           "multiplier": 0.0
         }
@@ -305,7 +311,7 @@ export const covenantData: Covenant = {
   },
   "hooks": {
     "hook_isolated": {
-      "title": "Isolated Location",
+      
       "type": "Site",
       "magnitude": "MINOR",
       "description": "Deep within mountainous terrain. Trade caravans struggle to reach the site safely during winter.",
@@ -314,6 +320,8 @@ export const covenantData: Covenant = {
         {
           "tag": "LOGISTICS_PENALTY_WINTER",
           "scope": "Trade",
+          "limits": [],
+          "oneTime": false,
           "flatValue": -2,
           "multiplier": 0.0
         }

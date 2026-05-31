@@ -1,8 +1,8 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
-  import type { Character } from '$lib/types';
+  import type { ArsCharacter } from '$lib/types';
 
-  let { character } = $props<{ character: Character }>();
+  let { character } = $props<{ character: ArsCharacter }>();
 
   const rows = $derived([
     ['Birth Name',      character.birthName],

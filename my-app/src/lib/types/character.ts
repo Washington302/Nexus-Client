@@ -1,15 +1,12 @@
-// src/types/ars-magica/character.ts
-
 import type {
   Trait,
   RawVisStore,
   PersonalityTrait,
   Reputation,
-  HumanCharacteristics,
+  BaseCharacteristics,
+  ArtType,
 } from "./shared";
-import type { Wound, Weapon, Armor, FatigueLevel } from "./combat";
-import type { Laboratory } from "./laboratory";
-
+import type { Wound, FatigueLevel } from "./combat";
 
 export type CharacterType = "MAGUS" | "COMPANION" | "GROG";
 export type AbilityCategory =
@@ -39,7 +36,7 @@ export interface MagicalArt {
   name: string;
   exp: number;
   score: number;
-  type: "TECHNIQUE" | "FORM";
+  type: ArtType;
 }
 
 export interface HermeticData {
@@ -50,10 +47,8 @@ export interface HermeticData {
   parens: string;
   covenantOfApprenticeship: string;
   twilightPending: boolean;
-  laboratory: Laboratory;
-  spells: Record<string, Spell>;
   arts: Record<string, MagicalArt>;
-  rawVis: RawVisStore; // Personal inventory store tracking standard/extraordinary vis items
+  spells?: Record<string, Spell>;
 }
 
 export interface Ability {
@@ -64,63 +59,112 @@ export interface Ability {
   category: AbilityCategory;
 }
 
-export interface Character {
+export interface Activity {
+  type: string;
+  target: string;
+  xp: number;
+  description: string;
+}
+
+export interface ActivitySummary {
+  id: string;
+  characterId: string;
+  year: number;
+  season: "SPRING" | "SUMMER" | "AUTUMN" | "WINTER";
+  notes: string;
+  activities: Activity[];
+}
+
+export interface ArsCharacter {
   id: string;
   userId: string;
-  campaignId: string;
+  gameSystem: string;
+  createdAt: string;
+  updatedAt: string;
   name: string;
-  player: string;               // ← removed
-  description: string;          // ← removed
-  portraitUrl: string;          // ← removed
-  type: "MAGUS" | "COMPANION" | "GROG";
+  player: string;
+  description: string;
+  portraitUrl: string;
 
-  // Physical description
-  birthName: string;            // ← removed
-  yearBorn: number;             // ← removed
-  gender: string;               // ← removed
-  raceNationality: string;      // ← removed
-  placeOfOrigin: string;        // ← removed
-  religion: string;             // ← removed
-  titleProfession: string;      // ← removed
-  height: number;               // ← removed
-  weight: number;               // ← removed
-  hair: string;                 // ← removed
-  eyes: string;                 // ← removed
-  handedness: string;           // ← removed
-
-  // Campaign context
-  saga: string;                 // ← removed
-  setting: string;              // ← removed
-  currentYear: number;          // ← removed
-  covenantId: string;           // ← removed
-  covenant: string;             // ← removed
-  age: number;                  // ← removed
-  size: number;                 // ← removed
-  confidence: number;           // ← removed
-  equipment: string;            // ← removed
-
-  characteristics: HumanCharacteristics;
+  type: CharacterType;
   hermeticData?: HermeticData;
+
+  birthName: string;
+  yearBorn: number;
+  gender: string;
+  raceNationality: string;
+  placeOfOrigin: string;
+  religion: string;
+  titleProfession: string;
+  height: number;
+  weight: number;
+  hair: string;
+  eyes: string;
+  handedness: string;
+
+  saga: string;
+  setting: string;
+  currentYear: number;
+  campaignId: string;
+  covenantId: string;
+  covenant: string;
+
   track: Wound[];
   currentFatigueLevel: FatigueLevel;
   fatiguePenalty: number;
-  weapons: Weapon[];
-  armor: Armor[];
-  abilities: Record<string, Ability>;
+  yearLog: ActivitySummary[];
+
+  characteristics: BaseCharacteristics;
+
+  age: number;
+  size: number;
+  confidence: number;
+  equipment: string;
+
   virtues: Record<string, Trait>;
   flaws: Record<string, Trait>;
-  agingPoints: Record<string, number>;
   personalityTraits: PersonalityTrait[];
   reputations: Reputation[];
+
   warpingPoints: number;
   decrepitudePoints: number;
+  agingPoints: Record<string, number>;
 
-  // Derived combat values
-  totalWoundPenalty: number;    // ← removed
-  totalLoad: number;            // ← removed
-  encumbrance: number;          // ← removed
-  totalArmorProtection: number; // ← removed
-  equippedDefenseModifier: number; // ← removed
-  labUpkeepPoints: number;      // ← removed
-  magus: boolean;               // ← removed
+  magus: boolean;
+
+  abilities?: Record<string, Ability>;
+  visStore?: import('./shared').RawVisStore;
+}
+
+export interface EquipmentInventory {
+  id: string;
+  characterId: string;
+  weapons: import("./combat").Weapon[];
+  armor: import("./combat").Armor[];
+  mundaneEquipmentNotes: string;
+}
+
+export interface AbilitiesInventory {
+  id: string;
+  characterId: string;
+  abilities: Record<string, Ability>;
+}
+
+export interface Grimoire {
+  id: string;
+  characterId: string;
+  spells: Record<string, Spell>;
+}
+
+export interface VisInventory {
+  id: string;
+  characterId: string;
+  visStore: RawVisStore;
+}
+
+export interface Laboratories {
+  id: string;
+  characterId: string;
+  covenantId: string;
+  laboratoryDetails: import("./laboratory").Laboratory;
 }

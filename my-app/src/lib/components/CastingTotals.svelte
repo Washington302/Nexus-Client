@@ -12,12 +12,13 @@
     multiCastingBase,
     baseTargetingBase,
     concentrationBase,
+    artScoreFromXp,
   } from '$lib/utils/arsmagica';
 
   // 1. Target your updated type infrastructure
-  import type { Character, MagicalArt } from '$lib/types';
+  import type { ArsCharacter, MagicalArt } from '$lib/types';
 
-  let { character } = $props<{ character: Character }>();
+  let { character } = $props<{ character: ArsCharacter }>();
 
   // 2. Safe-navigation check on hermeticData to prevent grog/companion or unhydrated page crashes
   const arts = $derived(character?.hermeticData?.arts || {});
@@ -39,25 +40,27 @@
   );
 
   // Safe dictionary method to look up abilities from the Record structure
-const ability = (name: string): number =>
+const abilityScore = (name: string): number =>
   character?.abilities?.[name]?.score ?? 0;
+const abilityExp = (name: string): number =>
+  character?.abilities?.[name]?.exp ?? 0;
 
-  const magicTheory    = $derived(ability('Magic Theory'));
-  const artesLiberales = $derived(ability('Artes Liberales'));
-  const philosophiae   = $derived(ability('Philosophiae'));
-  const finesse        = $derived(ability('Finesse'));
-  const concentration  = $derived(ability('Concentration'));
-  const penetration    = $derived(ability('Penetration'));
-  const parma          = $derived(ability('Parma Magica'));
+  const magicTheory    = $derived(abilityScore('Magic Theory'));
+  const artesLiberales = $derived(abilityScore('Artes Liberales'));
+  const philosophiae   = $derived(abilityScore('Philosophiae'));
+  const finesse        = $derived(abilityScore('Finesse'));
+  const concentration  = $derived(abilityScore('Concentration'));
+  const penetration    = $derived(abilityScore('Penetration'));
+  const parma          = $derived(abilityScore('Parma Magica'));
 
   // 5. Reactive selection state variables initialized to safe defaults
   let selectedTechnique = $state('Creo');
   let selectedForm = $state('Animal');
   let aura = $state(0);
   
-  // Dynamic score resolution
-  const techScore = $derived(arts[selectedTechnique]?.score ?? 0);
-  const formScore = $derived(arts[selectedForm]?.score ?? 0);
+  // Dynamic score resolution — compute from XP
+  const techScore = $derived(artScoreFromXp(arts[selectedTechnique]?.exp ?? 0));
+  const formScore = $derived(artScoreFromXp(arts[selectedForm]?.exp ?? 0));
 
   // 6. Rules formulas calculations
   const castingScoreBase = $derived(castingScore(techScore, formScore, stamina, aura));
@@ -159,7 +162,7 @@ const ability = (name: string): number =>
       <label style={labelStyle} for="technique-select">Technique</label>
       <select bind:value={selectedTechnique} style={selectStyle}>
         {#each techniques as tech}
-          <option value={tech.name}>{tech.name} ({tech.score})</option>
+          <option value={tech.name}>{tech.name} ({artScoreFromXp(tech.exp)})</option>
         {/each}
       </select>
     </div>
@@ -168,7 +171,7 @@ const ability = (name: string): number =>
       <label style={labelStyle} for="form-select">Form</label>
       <select bind:value={selectedForm} style={selectStyle}>
         {#each forms as form}
-          <option value={form.name}>{form.name} ({form.score})</option>
+          <option value={form.name}>{form.name} ({artScoreFromXp(form.exp)})</option>
         {/each}
       </select>
     </div>

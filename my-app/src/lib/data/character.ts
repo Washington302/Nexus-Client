@@ -1,9 +1,11 @@
-import type { Character } from "$lib/types/character";
+import type { ArsCharacter } from "$lib/types/character";
 
-export const character: Character = {
+export const character: ArsCharacter = {
   id: "char_aldric_01",
   userId: "user_kaleb",
-  campaignId: "saga_rhine_01",
+  gameSystem: "ARS_MAGICA",
+  createdAt: "1220-01-15T00:00:00Z",
+  updatedAt: "1220-06-20T00:00:00Z",
   name: "Aldric of Bonisagus",
   player: "Kaleb",
   description:
@@ -25,6 +27,7 @@ export const character: Character = {
   saga: "The Rhine Tribunal",
   setting: "Mythic Europe, 1220 AD",
   currentYear: 1220,
+  campaignId: "saga_rhine_01",
   covenantId: "cov_fengheld",
   covenant: "Fengheld",
   age: 40,
@@ -53,329 +56,6 @@ export const character: Character = {
     parens: "Severin of Bonisagus",
     covenantOfApprenticeship: "Coeris",
     twilightPending: false,
-    rawVis: {
-      standard: [
-        { art: "Creo", pawns: 12 },
-        { art: "Corpus", pawns: 4 },
-        { art: "Vim", pawns: 20 },
-        { art: "Rego", pawns: 5 },
-        { art: "Terram", pawns: 8 },
-      ],
-      extraordinary: [
-        {
-          id: "vis_ded_001",
-          name: "Mottled Phoenix Feather",
-          sourceType: "DEDICATED",
-          arts: ["Creo", "Ignem"],
-          pawns: 2,
-        },
-        {
-          id: "vis_inf_002",
-          name: "Phial of Putrid Black Blood (Vis Prava)",
-          sourceType: "INFERNAL",
-          arts: ["Perdo"],
-          pawns: 3,
-        },
-        {
-          id: "vis_fae_003",
-          name: "Never-Melting Icicle of Winter Frost",
-          sourceType: "FAERIE",
-          arts: ["Muto", "Aquam"],
-          pawns: 1.5,
-        },
-        {
-          id: "vis_div_004",
-          name: "Weeping Alabaster Saint Fragment",
-          sourceType: "DIVINE",
-          arts: ["Creo", "Corpus"],
-          pawns: 1,
-        },
-        {
-          id: "vis_spl_005",
-          name: "Seed of the Phortos Oak",
-          sourceType: "SPELL_LIKE",
-          arts: ["Creo", "Herbam"],
-          pawns: 1,
-          effect: {
-            description:
-              "When pressed into bare earth, it instantly grows into a massive, fully mature oak tree over the course of 6 seconds, exactly mimicking a level 45 ritual.",
-            level: 45,
-          },
-        },
-        {
-          id: "vis_spl_006",
-          name: "Perfectly Clear Glass Optic",
-          sourceType: "SPELL_LIKE",
-          arts: ["Intellego", "Imaginem"],
-          pawns: 2,
-          effect: {
-            description:
-              "When held up to the eye and peered through, it allows the user to see through up to 3 feet of solid stone or wood for 1 minute. Consumed upon use.",
-            level: 30,
-          },
-        },
-      ],
-    },
-    laboratory: {
-      id: "lab_aldric_01",
-      ownerName: "Aldric of Bonisagus",
-      building: "North Tower",
-      floor: 3,
-      personalityTraits: [
-        {
-          name: "Meticulous",
-          score: 3,
-          essential: false,
-          temporary: false,
-        },
-      ],
-      characteristics: {
-         // Every laboratory has a structural size scale
-        scores: {
-          SIZE: 1,
-          REFINEMENT: 1,
-          GENERAL_QUALITY: 0,
-          UPKEEP: 1,
-          SAFETY: 2,
-          WARPING: 0,
-          HEALTH: 1,
-          AESTHETICS: -1,
-        },
-      },
-      visStore: {
-        standard: [
-          { art: "Creo", pawns: 12 },
-          { art: "Corpus", pawns: 4 },
-          { art: "Vim", pawns: 20 },
-          { art: "Rego", pawns: 5 },
-          { art: "Terram", pawns: 8 },
-        ],
-        extraordinary: [
-          {
-            id: "vis_ded_001",
-            name: "Mottled Phoenix Feather",
-            sourceType: "DEDICATED",
-            arts: ["Creo", "Ignem"],
-            pawns: 2,
-          },
-          {
-            id: "vis_inf_002",
-            name: "Phial of Putrid Black Blood (Vis Prava)",
-            sourceType: "INFERNAL",
-            arts: ["Perdo"],
-            pawns: 3,
-          },
-          {
-            id: "vis_fae_003",
-            name: "Never-Melting Icicle of Winter Frost",
-            sourceType: "FAERIE",
-            arts: ["Muto", "Aquam"],
-            pawns: 1.5,
-          },
-          {
-            id: "vis_div_004",
-            name: "Weeping Alabaster Saint Fragment",
-            sourceType: "DIVINE",
-            arts: ["Creo", "Corpus"],
-            pawns: 1,
-          },
-          {
-            id: "vis_spl_005",
-            name: "Seed of the Phortos Oak",
-            sourceType: "SPELL_LIKE",
-            arts: ["Creo", "Herbam"],
-            pawns: 1,
-            effect: {
-              description:
-                "When pressed into bare earth, it instantly grows into a massive, fully mature oak tree over the course of 6 seconds, exactly mimicking a level 45 ritual.",
-              level: 45,
-            },
-          },
-          {
-            id: "vis_spl_006",
-            name: "Perfectly Clear Glass Optic",
-            sourceType: "SPELL_LIKE",
-            arts: ["Intellego", "Imaginem"],
-            pawns: 2,
-            effect: {
-              description:
-                "When held up to the eye and peered through, it allows the user to see through up to 3 feet of solid stone or wood for 1 minute. Consumed upon use.",
-              level: 30,
-            },
-          },
-        ],
-      },
-      magicItems: [],
-      sanctumChambers: [],
-      virtues: {
-        Spotless: {
-          title: "Spotless",
-          type: "Supernatural",
-          magnitude: "FREE",
-          description: "The lab is immaculately maintained; +1 Health.",
-          flaw: false,
-          active: true,
-          replaceable: true,
-          effects: [
-            { tag: "LAB_HEALTH_BONUS", scope: "", flatValue: 1, multiplier: 1 },
-          ],
-        },
-      },
-      flaws: {},
-      activitySpecializations: { Corpus: 2, Creo: 1 },
-      artSpecializations: { Corpus: 2 },
-      sanctumPermittedNames: ["Aldric of Bonisagus"],
-      hasFocusFlaw: false,
-      features: [
-        {
-          name: "Dedicated notes shelf",
-          isFocusFeature: false,
-          supportedActivities: [],
-        },
-        {
-          name: "Specimen cabinet",
-          isFocusFeature: false,
-          supportedActivities: ["Corpus"],
-        },
-      ],
-    },
-    spells: {
-      arise_my_hounds: {
-        name: "Arise, My Hounds",
-        technique: "Creo",
-        form: "Animal",
-        level: 100,
-        base: 3,
-        requisites: {
-        },
-        magnitude: 20,
-        range: "Voice",
-        duration: "Momentary",
-        target: "Group",
-        masteryXp: 0,
-        mastery: 0,
-        notes:
-          "Ritual spell. Resurrects and fully restores up to 10 animals within Voice range. Includes +1 size modification.",
-      },
-      ear_of_the_beasts: {
-        name: "Ear of the Beasts",
-        technique: "Intellego",
-        form: "Animal",
-        level: 25,
-        base: 3,
-        requisites: {
-        },
-        magnitude: 6,
-        range: "Personal",
-        duration: "Concentration",
-        target: "Hearing",
-        masteryXp: 0,
-        mastery: 0,
-        notes:
-          "Allows the caster to understand and speak back in the specific language of the animal being heard.",
-      },
-      guardian_of_the_forest: {
-        name: "Guardian of the Forest",
-        technique: "Intellego",
-        form: "Animal",
-        level: 100,
-        base: 3,
-        requisites: {
-        },
-        magnitude: 20,
-        range: "Arcane Connection",
-        duration: "Year",
-        target: "Boundary",
-        masteryXp: 0,
-        mastery: 0,
-        notes:
-          "Ritual spell. Grants complete insight into the thoughts, emotions, and sensations of every animal within a 3-mile diameter boundary.",
-      },
-      a_wing_of_pegasi: {
-        name: "A Wing of Pegasi",
-        technique: "Muto",
-        form: "Animal",
-        level: 70,
-        base: 3,
-        requisites: {
-        },
-        magnitude: 14,
-        range: "Voice",
-        duration: "Moon",
-        target: "Group",
-        masteryXp: 0,
-        mastery: 0,
-        notes:
-          "Ritual spell. Transforms up to 10 horses into Pegasi by sprouting wings.",
-      },
-      the_silent_forest: {
-        name: "The Silent Forest",
-        technique: "Perdo",
-        form: "Animal",
-        level: 85,
-        base: 3,
-        requisites: {
-        },
-        magnitude: 17,
-        range: "Sight",
-        duration: "Momentary",
-        target: "Boundary",
-        masteryXp: 0,
-        mastery: 0,
-        notes:
-          "Ritual spell. Kills every animal within a targeted boundary up to 3 miles in diameter.",
-      },
-      free_the_army_of_beasts: {
-        name: "Free the Army of Beasts",
-        technique: "Rego",
-        form: "Animal",
-        level: 70,
-        base: 3,
-        requisites: {
-        },
-        magnitude: 14,
-        range: "Sight",
-        duration: "Moon",
-        target: "Group",
-        masteryXp: 0,
-        mastery: 0,
-        notes:
-          "Ritual spell. Grants complete mental control over a huge group of horses (up to 1,000).",
-      },
-      chirurgeons_healing_touch: {
-        name: "The Chirurgeon's Healing Touch",
-        technique: "Creo",
-        form: "Corpus",
-        level: 20,
-        base: 5,
-        requisites: {
-          MagicalArt: { name: "Aquam", exp: 1, score: 1, type: "FORM" },
-        },
-        magnitude: 4,
-        range: "Touch",
-        duration: "Momentary",
-        target: "Individual",
-        masteryXp: 15,
-        mastery: 1,
-        notes: "Heals a Medium wound.",
-      },
-      sight_of_the_true_form: {
-        name: "Sight of the True Form",
-        technique: "Intellego",
-        form: "Corpus",
-        level: 5,
-        base: 3,
-        requisites: {
-        },
-        magnitude: 3,
-        range: "Per",
-        duration: "Momentary",
-        target: "Individual",
-        masteryXp: 0,
-        mastery: 0,
-        notes: "Reveals the true human form beneath any transformation.",
-      },
-    },
     arts: {
       Creo: { name: "Creo", exp: 55, score: 10, type: "TECHNIQUE" },
       Intellego: { name: "Intellego", exp: 21, score: 6, type: "TECHNIQUE" },
@@ -398,121 +78,15 @@ export const character: Character = {
     { type: "LIGHT", penalty: -1, maxWounds: 5, currentWounds: 0 },
     { type: "MEDIUM", penalty: -3, maxWounds: 5, currentWounds: 0 },
     { type: "HEAVY", penalty: -5, maxWounds: 5, currentWounds: 0 },
-    { type: "INCAPACITATED", penalty: -10, maxWounds: 1, currentWounds: 0 },
+    { type: "INCAPACITATED", penalty: 0, maxWounds: 1, currentWounds: 0 },
     { type: "DEAD", penalty: 0, maxWounds: 1, currentWounds: 0 },
   ],
   currentFatigueLevel: "Fresh",
   fatiguePenalty: 0,
-  weapons: [
-    {
-      name: "Dagger",
-      ability: "Single Weapon",
-      baseInitiativeMod: -1,
-      baseAttackMod: 2,
-      baseDefenseMod: 0,
-      baseDamageMod: 3,
-      minimumStrength: -3,
-      load: 1,
-      cost: "Inexpensive",
-      range: 0,
-      equipped: true,
-      shield: false,
-      missile: false,
-      requiresTwoHands: false,
-    },
-  ],
-  armor: [
-    {
-      id: "armor_robes",
-      materialName: "Heavy woolen robes",
-      coverage: "PARTIAL",
-      protection: 0,
-      load: 0.5,
-      quality: "STANDARD",
-      perceptionPenalty: 0,
-      costTier: "INEXPENSIVE",
-      purchasePoints: 0,
-      damageLevels: 0,
-      targetSize: 0,
-      worn: true,
-      magical: false,
-    },
-  ],
-  abilities: {
-    "Magic Theory": {
-      name: "Magic Theory",
-      exp: 75,
-      score: 5,
-      specialty: "Corpus",
-      category: "ARCANE",
-    },
-    Latin: {
-      name: "Latin",
-      exp: 50,
-      score: 4,
-      specialty: "Hermetic usage",
-      category: "ACADEMIC",
-    },
-    "Artes Liberales": {
-      name: "Artes Liberales",
-      exp: 30,
-      score: 3,
-      specialty: "Rhetoric",
-      category: "ACADEMIC",
-    },
-    Finesse: {
-      name: "Finesse",
-      exp: 30,
-      score: 3,
-      specialty: "Precision",
-      category: "ARCANE",
-    },
-    Concentration: {
-      name: "Concentration",
-      exp: 30,
-      score: 3,
-      specialty: "Lab work",
-      category: "ARCANE",
-    },
-    "Parma Magica": {
-      name: "Parma Magica",
-      exp: 30,
-      score: 3,
-      specialty: "Corpus",
-      category: "ARCANE",
-    },
-    Philosophiae: {
-      name: "Philosophiae",
-      exp: 50,
-      score: 4,
-      specialty: "Natural philosophy",
-      category: "ACADEMIC",
-    },
-    Penetration: {
-      name: "Penetration",
-      exp: 5,
-      score: 2,
-      specialty: "Corpus",
-      category: "ARCANE",
-    },
-    "Area Lore (Rhine)": {
-      name: "Area Lore (Rhine)",
-      exp: 15,
-      score: 2,
-      specialty: "Covenants",
-      category: "GENERAL",
-    },
-    "Single Weapon": {
-      name: "Single Weapon",
-      exp: 15,
-      score: 2,
-      specialty: "Dagger",
-      category: "MARTIAL",
-    },
-  },
+  yearLog: [],
   virtues: {
     "The Gift": {
-      title: "The Gift",
+
       type: "Special",
       magnitude: "FREE",
       description: "The ability to work Hermetic magic.",
@@ -522,7 +96,7 @@ export const character: Character = {
       effects: [],
     },
     "Hermetic Magus": {
-      title: "Hermetic Magus",
+
       type: "Social",
       magnitude: "FREE",
       description: "Member of the Order of Hermes.",
@@ -533,13 +107,15 @@ export const character: Character = {
         {
           tag: "SOCIAL_STATUS",
           scope: "Hermetic",
+          limits: [],
+          oneTime: false,
           flatValue: 0,
           multiplier: 1,
         },
       ],
     },
     "Affinity with Corpus": {
-      title: "Affinity with Corpus",
+
       type: "Hermetic",
       magnitude: "MINOR",
       description: "XP in Corpus counts as 1.5× for advancement.",
@@ -550,13 +126,15 @@ export const character: Character = {
         {
           tag: "ART_XP_MULTIPLIER",
           scope: "Corpus",
+          limits: [],
+          oneTime: false,
           flatValue: 0,
           multiplier: 1.5,
         },
       ],
     },
     "Puissant Magic Theory": {
-      title: "Puissant Magic Theory",
+
       type: "Hermetic",
       magnitude: "MINOR",
       description: "+2 to all Magic Theory totals.",
@@ -567,28 +145,30 @@ export const character: Character = {
         {
           tag: "ABILITY_SCORE_FLAT_BONUS",
           scope: "Magic Theory",
+          limits: [],
+          oneTime: false,
           flatValue: 2,
           multiplier: 1,
         },
       ],
     },
     "Elemental Magic": {
-      title: "Elemental Magic",
+
       type: "Hermetic",
       magnitude: "MAJOR",
       description:
-        "You have been trained to manipulate the elemental Forms (Aquam, Auram, Ignem, and Terram) as a connected whole rather than four separate Arts.\n\nWhenever you gain experience from a source dedicated to one of these Arts, you gain half the Source Quality (rounded up) in experience points in each of the other three Arts.\n\nFor example, if you studied Ignem from a book with a Source Quality of 13, you would gain 7 experience points in each of Aquam, Auram, and Terram.\n\nDuring character creation, assign all your experience points in Arts. Then assign half the experience points assigned to each of the elemental Forms to each of the other elemental Forms. Do not add these bonus experience points until you have finished calculating all of them.\n\nIf a spell with one of these Forms as its primary Form has another element as a requisite, you use the primary Form to calculate totals, even if the requisite is lower.",
+        "You have been trained to manipulate the elemental Forms (Aquam, Auram, Ignem, and Terram) as a connected whole rather than four separate Arts.",
       flaw: false,
       active: true,
       replaceable: false,
       effects: [],
     },
     "Cyclic Magic (positive)": {
-      title: "Cyclic Magic (positive)",
+
       type: "Hermetic",
       magnitude: "MINOR",
       description:
-        "Your magic is attuned to some cycle of nature (solar, lunar, or seasonal).\n\nAt those times, you receive a +3 bonus to all Casting Scores. The bonus also applies to Lab Totals if the positive part of the cycle covers the whole season.\n\nThe cycle must be regular and approved by the storyguide, and the length of time when the bonus applies must equal the time when it does not.",
+        "Your magic is attuned to some cycle of nature (solar, lunar, or seasonal).",
       flaw: false,
       active: true,
       replaceable: false,
@@ -597,7 +177,7 @@ export const character: Character = {
   },
   flaws: {
     "Blatant Gift": {
-      title: "Blatant Gift",
+
       type: "Hermetic",
       magnitude: "MAJOR",
       description:
@@ -609,13 +189,15 @@ export const character: Character = {
         {
           tag: "PERSONALITY_TRAIT",
           scope: "mundane social",
+          limits: [],
+          oneTime: false,
           flatValue: -6,
           multiplier: 1,
         },
       ],
     },
     "Obsessed (Corpus research)": {
-      title: "Obsessed (Corpus research)",
+
       type: "Personality",
       magnitude: "MINOR",
       description: "Prioritizes Corpus research above almost all else.",
@@ -626,6 +208,8 @@ export const character: Character = {
         {
           tag: "PERSONALITY_TRAIT",
           scope: "Obsessed",
+          limits: [],
+          oneTime: false,
           flatValue: 3,
           multiplier: 1,
         },
@@ -649,10 +233,4 @@ export const character: Character = {
   warpingPoints: 54,
   decrepitudePoints: 0,
   agingPoints: { Intelligence: 0, Stamina: 0, Quickness: 0 },
-  totalWoundPenalty: 0,
-  totalLoad: 1.5,
-  encumbrance: 0,
-  totalArmorProtection: 0,
-  equippedDefenseModifier: 0,
-  labUpkeepPoints: 2,
 };

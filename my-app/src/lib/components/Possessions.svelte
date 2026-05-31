@@ -15,9 +15,11 @@
     HEAVY: 1.5,
   };
 
+  const labs = $derived(covenant.laboratories ?? []);
+
   // Per-card local usage state — keyed by lab id
   let usageSelections = $state<Record<string, LabUsage>>(
-    Object.fromEntries(covenant.laboratories.map(lab => [lab.id, 'TYPICAL']))
+    Object.fromEntries(labs.map(lab => [lab.id, 'TYPICAL']))
   );
 
   function getUpkeepScore(lab: Laboratory): number {
@@ -35,7 +37,7 @@
 
   // Total upkeep across all labs
   const totalLabCost = $derived(
-    covenant.laboratories.reduce((sum, lab) => {
+    labs.reduce((sum, lab) => {
       return sum + getLabCalculations(lab).costInPounds;
     }, 0)
   );
@@ -252,7 +254,7 @@
   {/if}
 
   <!-- Empty state -->
-  {#if covenant.laboratories.length === 0 && (!covenant.magicItems || covenant.magicItems.length === 0)}
+  {#if labs.length === 0 && (!covenant.magicItems || covenant.magicItems.length === 0)}
     <div style="
       background-color: {COLORS.bgLow};
       border: 1px solid {COLORS.outlineVar};

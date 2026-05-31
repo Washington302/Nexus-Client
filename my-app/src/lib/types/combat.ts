@@ -1,11 +1,9 @@
-// src/types/ars-magica/combat.ts
-
 export type WoundType = "LIGHT" | "MEDIUM" | "HEAVY" | "INCAPACITATED" | "DEAD";
 export type FatigueLevel = "Fresh" | "Winded" | "Weary" | "Tired" | "Dazed" | "Unconscious";
 export type WeaponCostCategory = "Inexpensive" | "Standard" | "Expensive";
-export type Coverage = "FULL" | "PARTIAL" | "NONE";
-export type ArmorQuality = "STANDARD" | "FINE" | "POOR";
-export type CostTier = "INEXPENSIVE" | "STANDARD" | "EXPENSIVE" | "RICH";
+export type Coverage = "PARTIAL" | "FULL";
+export type ArmorQuality = "SHODDY" | "STANDARD" | "SUPERIOR" | "EXCELLENT" | "WONDROUS";
+export type CostTier = "INEXPENSIVE" | "STANDARD" | "EXPENSIVE";
 
 export interface Wound {
   type: WoundType;
@@ -16,7 +14,7 @@ export interface Wound {
 
 export interface Weapon {
   name: string;
-  ability: string;            // Skill requirement: e.g., "Brawl", "Single Weapon"
+  ability: string;
   baseInitiativeMod: number;
   baseAttackMod: number;
   baseDefenseMod: number;
@@ -24,11 +22,11 @@ export interface Weapon {
   minimumStrength: number;
   load: number;
   cost: WeaponCostCategory;
-  missile: boolean;           // Aligns with @JsonProperty("missile")
-  range: number;              // Paces
-  requiresTwoHands: boolean;  // Aligns with @JsonProperty("requiresTwoHands")
-  shield: boolean;            // Aligns with @JsonProperty("shield")
-  equipped: boolean;          // Aligns with @JsonProperty("equipped")
+  missile: boolean;
+  range: number;
+  requiresTwoHands: boolean;
+  shield: boolean;
+  equipped: boolean;
 }
 
 export interface Armor {

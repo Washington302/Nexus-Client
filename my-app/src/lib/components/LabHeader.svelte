@@ -1,9 +1,9 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
-  import type { Laboratory, LabFeature, Character } from '$lib/types';
+  import type { Laboratory, LabFeature, ArsCharacter } from '$lib/types';
   import LabTotal from './LabTotal.svelte';
 
-  let { lab, character } = $props<{ lab: Laboratory, character: Character }>();
+  let { lab, character } = $props<{ lab: Laboratory, character: ArsCharacter }>();
 
   // Safe navigation wrapper converting your feature record map into an array cleanly
   const featuresList = $derived(Object.values(lab?.features || {}) as LabFeature[]);

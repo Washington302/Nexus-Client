@@ -1,14 +1,16 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
+  import { abilityScoreFromXp } from '$lib/utils/arsmagica';
 
   let {
     name = '',
     exp = 0,
-    score = 0,
     specialty = '',
     category = '',
     isLast = false
   } = $props();
+
+  const score = $derived(abilityScoreFromXp(exp));
 
   let hovered = $state(false);
 </script>

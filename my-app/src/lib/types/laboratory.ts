@@ -1,21 +1,18 @@
-// src/types/ars-magica/laboratory.ts
-
 import type { Trait, RawVisStore, LabCharacteristics, PersonalityTrait } from "./shared";
+import type { Spell } from "./character";
+
 export type LabUsage = 'LIGHT' | 'TYPICAL' | 'HEAVY';
 export type ItemType = 'INVESTED' | 'LESSER' | 'CHARGED';
-import type { Spell } from "../types";
-
-
 
 export interface LabPointCalculations {
   labUsage: LabUsage;
-  basePoints: number;      // from calculateLabPoints(upkeepScore)
-  adjustedPoints: number;  // basePoints × multiplier
-  costInPounds: number;    // adjustedPoints / 10
+  basePoints: number;
+  adjustedPoints: number;
+  costInPounds: number;
 }
 
 export interface EnchantedEffect {
-  spell: Spell; 
+  spell: Spell;
   penetration: number;
   triggerCondition: string;
   hasLimitedUses: boolean;
@@ -30,19 +27,20 @@ export interface MagicItem {
   shape: string;
   material: string;
   visCapacity: number;
-  effects: EnchantedEffect[]; 
+  effects: EnchantedEffect[];
   installedInLab: boolean;
   grantedVirtue?: string;
-  labBonus: Record<string, number>; // e.g., {"Safety": 1, "Ignem": 2}
+  labBonus: Record<string, number>;
   creatorSigil?: string;
   talisman: boolean;
 }
 
 export interface SanctumChamber {
   name: string;
-  floorAreaSqFt: number; // e.g., "Bedchamber", "Library", "Specimen Vault"
+  floorAreaSqFt: number;
   description: string;
 }
+
 export interface LabFeature {
   name: string;
   isFocusFeature: boolean;
@@ -65,5 +63,5 @@ export interface Laboratory {
   sanctumPermittedNames: string[];
   magicItems: MagicItem[];
   sanctumChambers: SanctumChamber[];
-  visStore: RawVisStore;
+  visStock: RawVisStore;
 }

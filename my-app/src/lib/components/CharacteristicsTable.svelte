@@ -1,8 +1,8 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
-  import type { Characteristics } from '$lib/types';
+  import type { HumanCharacteristics } from '$lib/types';
 
-  let { characteristics } = $props<{ characteristics: Characteristics }>();
+  let { characteristics } = $props<{ characteristics: HumanCharacteristics }>();
 
   const rows = $derived([
     ['Int', 'Intelligence',  characteristics.scores.INTELLIGENCE],

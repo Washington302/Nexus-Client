@@ -1,12 +1,20 @@
 export type BookType = "SUMMA" | "TRACTATUS" | "LAB_TEXTS" | "MUNDANE";
 export type SourceStatus = "REGISTERED" | "CONTESTED" | "UNCLAIMED";
 export type TraitMagnitude = "MINOR" | "MAJOR" | "FREE";
+export type ArtType = "TECHNIQUE" | "FORM" | "ALTERNATIVE";
+export type RecoveryOutcome =
+  | "FULL_RECOVERY"
+  | "IMPROVEMENT"
+  | "STABLE"
+  | "WORSENING"
+  | "CRISIS"
+  | "DEATH";
+
 export interface CurrencyConfig {
   label: string;
   abbreviation: string;
   rateToBase: number;
 }
-
 
 export type VisSourceType =
   | "STANDARD"
@@ -15,6 +23,7 @@ export type VisSourceType =
   | "INFERNAL"
   | "DIVINE"
   | "SPELL_LIKE";
+
 export type ReputationCategory =
   | "HERMETIC"
   | "ACADEMIC"
@@ -23,22 +32,30 @@ export type ReputationCategory =
   | "LOCAL"
   | "ECCLESIASTICAL";
 
+export type TraitContext =
+  | "CASTING" | "SPONT_CASTING" | "RITUAL_CASTING" | "FAST_CASTING"
+  | "CERTAMEN" | "PENETRATION"
+  | "LAB_INVENTION" | "LAB_LEARNING" | "LAB_FAMILIAR" | "LAB_LONGEVITY"
+  | "LAB_ITEMS" | "LAB_VIS_EXTRACTION" | "LAB_TEXTS"
+  | "STUDY" | "TEACHING" | "WRITING" | "TRAINING" | "PRACTICE" | "EXPOSURE"
+  | "COMBAT_INITIATIVE" | "COMBAT_ATTACK" | "COMBAT_DEFENSE" | "COMBAT_DAMAGE" | "COMBAT_SOAK"
+  | "ENCUMBRANCE" | "MOVEMENT" | "FATIGUE_ROLL" | "RECOVERY_ROLL" | "AGING_ROLL"
+  | "TWILIGHT_AVOIDANCE" | "TWILIGHT_COMPREHENSION" | "WARPING"
+  | "GENERAL" | "SOCIAL";
 
-// src/types/ars-magica/shared.ts
-
-export type CoreCharacteristicName = 
-  | "INTELLIGENCE" 
-  | "PERCEPTION" 
-  | "STRENGTH" 
+export type CoreCharacteristicName =
+  | "INTELLIGENCE"
+  | "PERCEPTION"
+  | "STRENGTH"
   | "STAMINA"
-  | "PRESENCE" 
-  | "COMMUNICATION" 
-  | "DEXTERITY" 
+  | "PRESENCE"
+  | "COMMUNICATION"
+  | "DEXTERITY"
   | "QUICKNESS";
 
 export type BestialCharacteristicName = "CUNNING";
 
-export type LabCharacteristicName = 
+export type LabCharacteristicName =
   | "REFINEMENT"
   | "GENERAL_QUALITY"
   | "UPKEEP"
@@ -46,60 +63,39 @@ export type LabCharacteristicName =
   | "WARPING"
   | "HEALTH"
   | "AESTHETICS"
-  | "SIZE"; // ◄ Moved SIZE here to live inside the map block like the backend
+  | "SIZE";
 
-/**
- * Base abstract mapping alignment mirroring 'Characteristics.java'
- */
 export interface BaseCharacteristics {
   scores: Record<string, number>;
 }
 
-/**
- * For Humans/Magi (Companions, Grogs, Magus types)
- * Matches: CharacterCharacteristics.java
- */
 export interface HumanCharacteristics extends BaseCharacteristics {
-  // We explicitly override the record typing for compile-time frontend protection
   scores: Record<CoreCharacteristicName, number>;
 }
 
-/**
- * For Beasts (Animals, Monsters, Spirits)
- * Swaps Intelligence out for Cunning tracking rules
- */
 export interface BestialCharacteristics extends BaseCharacteristics {
   scores: Record<Exclude<CoreCharacteristicName, "INTELLIGENCE"> | BestialCharacteristicName, number>;
 }
 
-/**
- * For Workspace Environments (Laboratories)
- * Matches: LabCharacteristics.java
- */
 export interface LabCharacteristics extends BaseCharacteristics {
   scores: Record<LabCharacteristicName, number>;
 }
 
-/**
- * Aligns with nexus.api.nexuscore.ArsMagica.Models.Shared.PersonalityTrait
- */
 export interface PersonalityTrait {
-  name: string; // e.g., "Brave", "Greedy"
-  score: number; // Constrained between -10 and 10 on backend
-  essential: boolean; // Maps to @JsonProperty("essential")
-  temporary: boolean; // Maps to @JsonProperty("temporary")
+  name: string;
+  score: number;
+  essential: boolean;
+  temporary: boolean;
 }
 
-/**
- * Aligns with nexus.api.nexuscore.ArsMagica.Models.Character.Reputation
- */
 export interface Reputation {
-  name: string; // e.g., "Pious", "Oaths-giver"
-  type: ReputationCategory; // Vetted strict categorization list
-  score: number; // Public validation tracker (-10 to 10)
-  xp: number; // Accumulator tracking score transitions
-  scope: string; // e.g., "Order of Hermes", "Local Village"
+  name: string;
+  type: ReputationCategory;
+  score: number;
+  xp: number;
+  scope: string;
 }
+
 export interface Book {
   title: string;
   author: string;
@@ -114,12 +110,13 @@ export interface Book {
 export interface TraitEffect {
   tag: string;
   scope: string;
+  limits: TraitContext[];
+  oneTime: boolean;
   flatValue: number;
   multiplier: number;
 }
 
 export interface Trait {
-  title: string;
   type: string;
   magnitude: TraitMagnitude;
   description?: string;
@@ -152,12 +149,11 @@ export interface RawVisStore {
   extraordinary: ExtraordinaryVis[];
 }
 
-// Keep your old VisSource model too since it handles structural income generation streams
 export interface VisSource {
   id: string;
   name: string;
   artType: string;
   pawnsPerYear: number;
   harvestTime: string;
-  status: "REGISTERED" | "CONTESTED" | "UNCLAIMED";
+  status: SourceStatus;
 }
