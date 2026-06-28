@@ -1,5 +1,4 @@
 import type { CoreCharacteristicName } from "$lib/types/shared";
-import { table } from "console";
 
 export interface FrontendAgingResult {
   outcome:

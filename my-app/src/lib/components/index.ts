@@ -45,3 +45,8 @@ export { default as InfoCardEditor } from './InfoCardEditor.svelte';
 export { default as ArtsEditor } from './ArtsEditor.svelte';
 export { default as HermeticInfoHeader } from './HermeticInfoHeader.svelte';
 export { default as SpellModal } from './SpellModal.svelte';
+export { default as FamiliarSection } from './FamiliarSection.svelte';
+export { default as AddWeaponModal } from './AddWeaponModal.svelte';
+export { default as AddArmorModal } from './AddArmorModal.svelte';
+export { default as YearLog } from './YearLog.svelte';
+export { default as CovenantCalendar } from './CovenantCalendar.svelte';

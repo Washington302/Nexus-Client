@@ -231,6 +231,10 @@ export const character: ArsCharacter = {
     },
   ],
   warpingPoints: 54,
+  warpingEffects: '',
   decrepitudePoints: 0,
   agingPoints: { Intelligence: 0, Stamina: 0, Quickness: 0 },
+  yearLog: [
+    { id: 'yl_01', characterId: 'char_aldric_01', year: 1220, season: 'SPRING', notes: 'Established laboratory at Fengheld.', activities: [{ type: 'Laboratory', target: 'Invent Creo Ignem', xp: 15, description: '' }] },
+  ],
 };

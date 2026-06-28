@@ -2,9 +2,7 @@
   import { COLORS, S } from '$lib/constants';
   import type { FatigueLevel } from '$lib/types';
 
-  let { currentFatigueLevel = 'Fresh' } = $props<{ currentFatigueLevel: FatigueLevel }>();
-
-  let activeLevel = $state<FatigueLevel>(currentFatigueLevel);
+  let { currentFatigueLevel = $bindable('Fresh' as FatigueLevel) } = $props<{ currentFatigueLevel: FatigueLevel }>();
 
   const levels: { level: FatigueLevel; penalty: number | null; recovery: string }[] = [
     { level: 'Fresh',       penalty: null, recovery: '—' },
@@ -15,12 +13,13 @@
     { level: 'Unconscious', penalty: null, recovery: '2 hrs' },
   ];
 
-  const currentIndex = $derived(levels.findIndex(l => l.level === activeLevel));
+  const currentIndex = $derived(levels.findIndex(l => l.level === currentFatigueLevel));
+  const penalty = $derived(levels[currentIndex]?.penalty ?? null);
 
-  function penaltyColor(penalty: number | null) {
-    if (penalty === null) return COLORS.inkMuted;
-    if (penalty <= -5) return COLORS.red;
-    if (penalty <= -3) return '#b85c00';
+  function penaltyColor(p: number | null) {
+    if (p === null) return COLORS.inkMuted;
+    if (p <= -5) return COLORS.red;
+    if (p <= -3) return '#b85c00';
     return COLORS.ink;
   }
 </script>
@@ -37,6 +36,7 @@
     background-color: {COLORS.bgLow};
     border-bottom: 1px solid {COLORS.outlineVar};
     padding: 6px 12px;
+    display: flex; justify-content: space-between; align-items: center;
   ">
     <span style="
       font-family: {S.fontBody};
@@ -46,15 +46,20 @@
       letter-spacing: 0.1em;
       color: {COLORS.red};
     ">Fatigue</span>
+    <span style="
+      font-family: {S.fontHeadline};
+      font-size: 14px;
+      font-weight: 700;
+      color: {penaltyColor(penalty)};
+    ">Penalty: {penalty !== null ? penalty : '—'}</span>
   </div>
 
-  {#each levels as { level, penalty, recovery }, i}
+  {#each levels as { level, penalty: p, recovery }, i}
     {@const isActive = i === currentIndex}
     {@const isPast = i < currentIndex}
 
     <button
-      onclick={() => activeLevel = level}
-      
+      onclick={() => currentFatigueLevel = level}
       style="
         width: 100%;
         display: flex;
@@ -69,8 +74,6 @@
         transition: background-color 0.15s ease;
       "
     >
-    
-      <!-- Styled radio -->
       <div style="
         width: 18px;
         height: 18px;
@@ -93,7 +96,6 @@
         {/if}
       </div>
 
-      <!-- Label -->
       <span style="
         font-family: {S.fontBody};
         font-size: 13px;
@@ -103,17 +105,15 @@
         transition: color 0.15s ease;
       ">{level}</span>
 
-      <!-- Penalty -->
       <span style="
         font-family: {S.fontHeadline};
         font-size: 16px;
         font-weight: 800;
-        color: {penaltyColor(penalty)};
+        color: {penaltyColor(p)};
         width: 36px;
         text-align: center;
-      ">{penalty !== null ? penalty : '—'}</span>
+      ">{p !== null ? p : '—'}</span>
 
-      <!-- Recovery -->
       <span style="
         font-family: {S.fontBody};
         font-size: 11px;

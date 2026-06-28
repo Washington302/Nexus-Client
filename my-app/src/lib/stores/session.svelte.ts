@@ -1,11 +1,15 @@
 import { api, setToken, clearToken } from '$lib/services/api';
 import { getCookie, setCookie, removeCookie } from '$lib/services/cookies';
 import type { ArsCharacter } from '../types/character';
+import type { Campaign } from '../types/campaign';
 
 export const session = $state({
   activeCharacter: null as ArsCharacter | null,
   activeCharacterId: null as string | null,
   characters: [] as ArsCharacter[],
+  activeCampaign: null as Campaign | null,
+  activeCampaignId: null as string | null,
+  campaigns: [] as Campaign[],
   userId: null as string | null,
   username: null as string | null,
   email: null as string | null,
@@ -92,9 +96,34 @@ export async function logout() {
   clearToken();
   removeCookie('characterId');
   removeCookie('covenantId');
+  removeCookie('campaignId');
   session.activeCharacter = null;
   session.activeCharacterId = null;
+  session.activeCampaign = null;
+  session.activeCampaignId = null;
   session.userId = null;
   session.username = null;
   session.email = null;
+}
+
+export async function loadCampaigns() {
+  try {
+    session.campaigns = await api.campaign.list();
+    const savedId = getCookie('campaignId');
+    const active = session.campaigns.find((c) => c.id === savedId) ?? session.campaigns[0] ?? null;
+    session.activeCampaign = active;
+    session.activeCampaignId = active?.id ?? null;
+  } catch {
+    session.campaigns = [];
+  }
+}
+
+export async function setActiveCampaign(id: string) {
+  session.activeCampaignId = id;
+  setCookie('campaignId', id);
+  try {
+    session.activeCampaign = await api.campaign.get(id);
+  } catch {
+    session.activeCampaign = null;
+  }
 }

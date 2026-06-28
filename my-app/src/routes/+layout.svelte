@@ -10,9 +10,15 @@
       ? { id: session.userId, displayName: session.username ?? '', role: 'PLAYER' as const }
       : null,
   );
+
+  let saga = $derived(
+    session.activeCampaign && 'tribunalRegion' in session.activeCampaign
+      ? session.activeCampaign as import('$lib/types/campaign').ArsMagicaSaga
+      : null,
+  );
 </script>
 
-<SiteNav saga={null} {user} />
+<SiteNav {saga} {user} />
 {#if session.activeCharacter}
   <CharacterNav character={session.activeCharacter} />
 {/if}

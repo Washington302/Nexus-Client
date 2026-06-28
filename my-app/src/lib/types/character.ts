@@ -39,6 +39,22 @@ export interface MagicalArt {
   type: ArtType;
 }
 
+export interface Familiar {
+  name: string;
+  species: string;
+  size: number;
+  might: number;
+  mightType: 'MAGIC' | 'FAERIE';
+  goldCord: number;
+  silverCord: number;
+  bronzeCord: number;
+  characteristics: Record<string, number>;
+  abilities: Record<string, Ability>;
+  bondQualities: string;
+  spells: Record<string, Spell>;
+  notes: string;
+}
+
 export interface HermeticData {
   house: string;
   wizardsSigil: string;
@@ -49,6 +65,7 @@ export interface HermeticData {
   twilightPending: boolean;
   arts: Record<string, MagicalArt>;
   spells?: Record<string, Spell>;
+  familiar?: Familiar;
 }
 
 export interface Ability {
@@ -127,12 +144,15 @@ export interface ArsCharacter {
   reputations: Reputation[];
 
   warpingPoints: number;
+  warpingEffects: string;
   decrepitudePoints: number;
   agingPoints: Record<string, number>;
 
   magus: boolean;
 
   abilities?: Record<string, Ability>;
+  weapons?: import("./combat").Weapon[];
+  armor?: import("./combat").Armor[];
   visStore?: import('./shared').RawVisStore;
 }
 

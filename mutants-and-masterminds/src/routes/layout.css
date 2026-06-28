@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Oswald:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap');
+
+:root {
+	--ink: #111111;
+	--accent: #777777;
+	--border: #111111;
+	--newsprint: #FAF6E9;
+	--danger: #CC2222;
+	--highlight: #FFD700;
+	--primary: #1A3A8F;
+	--secondary: #2A52C9;
+	--panel-bg: #FFFFFF;
+	--success: #1A6B1A;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background: var(--newsprint);
+	font-family: 'Nunito', sans-serif;
+	font-size: 16px;
+	color: var(--ink);
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+input[type="number"] {
+	-moz-appearance: textfield;
+}
+
+a { color: inherit; }

@@ -2,17 +2,20 @@
   import { COLORS, S } from '$lib/constants';
   import type { Wound } from '$lib/types';
 
-  let { track, size = 0 } = $props<{ track: Wound[]; size: number }>();
-
-  let localTrack = $state<Wound[]>(track.map((w: Wound) => ({ ...w })));
+  let { track = $bindable([] as Wound[]), size = 0 } = $props<{ track: Wound[]; size: number }>();
 
   function toggleWound(wi: number, bi: number) {
-    const current = localTrack[wi].currentWounds;
-    localTrack[wi] = {
-      ...localTrack[wi],
+    const current = track[wi].currentWounds;
+    track[wi] = {
+      ...track[wi],
       currentWounds: bi + 1 === current ? bi : bi + 1
     };
+    track = [...track];
   }
+
+  const totalPenalty = $derived(
+    track.reduce((sum: number, w: Wound) => sum + w.penalty * w.currentWounds, 0)
+  );
 
   const thresholds: Record<string, string> = {
     LIGHT:         `1–${5 + size}`,
@@ -27,9 +30,9 @@
     return `${wound.penalty}`;
   }
 
-  function penaltyColor(penalty: number) {
-    if (penalty <= -5) return COLORS.red;
-    if (penalty <= -3) return '#b85c00';
+  function penaltyColor(p: number) {
+    if (p <= -5) return COLORS.red;
+    if (p <= -3) return '#b85c00';
     return COLORS.inkMuted;
   }
 </script>
@@ -58,12 +61,20 @@
       letter-spacing: 0.1em;
       color: {COLORS.red};
     ">Wounds</span>
-    <span style="
-      font-family: {S.fontBody};
-      font-size: 10px;
-      font-style: italic;
-      color: {COLORS.inkMuted};
-    ">Size {size >= 0 ? '+' : ''}{size}</span>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <span style="
+        font-family: {S.fontHeadline};
+        font-size: 14px;
+        font-weight: 700;
+        color: {totalPenalty < 0 ? COLORS.red : COLORS.inkMuted};
+      ">Total Penalty: {totalPenalty}</span>
+      <span style="
+        font-family: {S.fontBody};
+        font-size: 10px;
+        font-style: italic;
+        color: {COLORS.inkMuted};
+      ">Size {size >= 0 ? '+' : ''}{size}</span>
+    </div>
   </div>
 
   <div style="
@@ -85,7 +96,7 @@
     {/each}
   </div>
 
-  {#each localTrack as wound, wi}
+  {#each track as wound, wi}
     {@const hasWounds = wound.currentWounds > 0}
     <div style="
       display: grid;
@@ -117,7 +128,6 @@
         color: {penaltyColor(wound.penalty)};
       ">{penaltyDisplay(wound)}</span>
 
-      <!-- Styled wound boxes -->
       <div style="display: flex; gap: 6px; flex-wrap: wrap;">
         {#each Array(wound.maxWounds) as _, bi}
           {@const filled = bi < wound.currentWounds}

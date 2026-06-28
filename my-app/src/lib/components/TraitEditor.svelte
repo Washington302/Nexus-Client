@@ -10,6 +10,9 @@
 
   let adding = $state(false);
   let newName = $state('');
+  let newType = $state('General');
+
+  const traitTypes = ['General', 'Hermetic', 'Supernatural', 'Martial', 'Social', 'Mundane', 'Story'];
 </script>
 
 <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -30,10 +33,27 @@
         font-size: 13px;
         font-weight: 600;
         color: {COLORS.ink};
-        min-width: 120px;
+        min-width: 100px;
       ">{key}</span>
       <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
         <div style="display: flex; align-items: center; gap: 6px;">
+          <select
+            bind:value={traits[key].type}
+            style="
+              padding: 4px 6px;
+              border: 1px solid {COLORS.outlineVar};
+              border-radius: 4px;
+              font-family: {S.fontBody};
+              font-size: 11px;
+              color: {COLORS.ink};
+              background-color: {COLORS.white};
+              max-width: 100px;
+            "
+          >
+            {#each traitTypes as t}
+              <option value={t}>{t}</option>
+            {/each}
+          </select>
           <select
             bind:value={traits[key].magnitude}
             style="
@@ -102,6 +122,22 @@
         border-radius: 6px;
       "
     >
+      <select
+        bind:value={newType}
+        style="
+          padding: 4px 6px;
+          border: 1px solid {COLORS.outlineVar};
+          border-radius: 4px;
+          font-family: {S.fontBody};
+          font-size: 11px;
+          color: {COLORS.ink};
+          background-color: {COLORS.white};
+        "
+      >
+        {#each traitTypes as t}
+          <option value={t}>{t}</option>
+        {/each}
+      </select>
       <input
         type="text"
         bind:value={newName}
@@ -121,7 +157,7 @@
         onclick={() => {
           if (newName) {
             traits[newName] = {
-              type: 'General',
+              type: newType,
               magnitude: 'MINOR',
               flaw: false,
               active: true,
@@ -130,6 +166,7 @@
             };
             traits = { ...traits };
             newName = '';
+            newType = 'General';
             adding = false;
           }
         }}

@@ -7,10 +7,12 @@
     spells = {},
     isEditable = false,
     onEdit = (_spell: Spell) => {},
+    onDelete = undefined as ((spellName: string) => void) | undefined,
   } = $props<{
     spells: Record<string, Spell>;
     isEditable?: boolean;
     onEdit?: (spell: Spell) => void;
+    onDelete?: (spellName: string) => void;
   }>();
 
   const spellsList = $derived(Object.values(spells) as Spell[]);
@@ -122,12 +124,31 @@ const grouped = $derived(
                     transition: color 0.15s ease;
                   ">{spell.name}</span>
 
-                  <span style="
-                    font-family: {S.fontHeadline};
-                    font-size: 16px;
-                    font-weight: 800;
-                    color: {COLORS.red};
-                  ">Level {spell.level}</span>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="
+                      font-family: {S.fontHeadline};
+                      font-size: 16px;
+                      font-weight: 800;
+                      color: {COLORS.red};
+                    ">Level {spell.level}</span>
+                    {#if isEditable && onDelete}
+                      <button
+                        onclick={(e) => { e.stopPropagation(); onDelete(spell.name); }}
+                        style="
+                          padding: 0 4px;
+                          border: none;
+                          background: transparent;
+                          color: {COLORS.inkMuted};
+                          font-size: 14px;
+                          line-height: 1;
+                          cursor: pointer;
+                          transition: color 0.15s ease;
+                        "
+                        onmouseenter={(e) => (e.currentTarget as HTMLElement).style.color = COLORS.red}
+                        onmouseleave={(e) => (e.currentTarget as HTMLElement).style.color = COLORS.inkMuted}
+                      >×</button>
+                    {/if}
+                  </div>
                 </div>
 
                 <div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;">

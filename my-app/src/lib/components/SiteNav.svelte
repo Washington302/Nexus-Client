@@ -83,14 +83,29 @@
             letter-spacing: 0.08em;
           ">{saga.tribunalRegion}</span>
         </a>
+      {:else}
+        <div style="
+          width: 1px;
+          height: 20px;
+          background-color: {COLORS.inkMuted};
+        " />
+        <a href="/campaigns" style="
+          font-family: {S.fontBody};
+          font-size: 12px;
+          font-weight: 600;
+          color: {COLORS.inkMuted};
+          text-decoration: none;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        ">Campaigns</a>
       {/if}
     </div>
 
     {#if saga}
       <div style="display: flex; align-items: center; gap: 4px;">
         {#each [
-          ['Characters', `/saga/${saga.id}`],
-          ['Covenant', `/saga/${saga.id}/covenant`],
+          ['Characters', '/'],
+          ['Covenant', '/covenant'],
         ] as [label, href]}
           <a {href}
             style="
@@ -184,7 +199,9 @@
             overflow: hidden;
           ">
             {#each [
-              ['My Characters', `/saga/${saga?.id}`],
+              ['My Characters', '/'],
+              ['Campaigns', '/campaigns'],
+              ['Dashboard', '/dashboard'],
               ['Profile', '/profile'],
               ['Settings', '/settings'],
             ] as [label, href]}

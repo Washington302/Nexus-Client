@@ -1,6 +1,8 @@
 import type { ArsCharacter, Ability } from '../types/character';
 import type { Covenant, LibraryInventory, CovenantLaboratories, CovenantVisInventory, CovenantMagicItemInventory } from '../types/covenant';
+import type { Campaign, ArsMagicaSaga } from '../types/campaign';
 import type { Laboratory } from '../types/laboratory';
+import type { Weapon, Armor } from '../types/combat';
 
 interface LaboratoriesDocument {
   id: string;
@@ -87,6 +89,8 @@ export const api = {
         `/api/v1/ars-magica/character/${id}`,
         { method: 'PATCH', body: JSON.stringify({ field, value }) },
       ),
+    delete: (id: string) =>
+      request<void>(`/api/v1/ars-magica/character/${id}`, { method: 'DELETE' }),
     abilities: {
       list: (id: string) =>
         request<Record<string, Ability>>(
@@ -122,7 +126,45 @@ export const api = {
     },
     weapons: {
       list: (id: string) =>
-        request<unknown[]>(`/api/v1/ars-magica/character/${id}/weapons`),
+        request<Weapon[]>(`/api/v1/ars-magica/character/${id}/weapons`),
+      add: (id: string, weapon: Weapon) =>
+        request<Weapon>(`/api/v1/ars-magica/character/${id}/weapons`, {
+          method: 'POST',
+          body: JSON.stringify(weapon),
+        }),
+      remove: (id: string, weaponName: string) =>
+        request<Weapon>(`/api/v1/ars-magica/character/${id}/weapons/${encodeURIComponent(weaponName)}`, {
+          method: 'DELETE',
+        }),
+      equip: (id: string, weaponName: string) =>
+        request<Weapon>(`/api/v1/ars-magica/character/${id}/weapons/${encodeURIComponent(weaponName)}/equip`, {
+          method: 'POST',
+        }),
+      unequip: (id: string, weaponName: string) =>
+        request<Weapon>(`/api/v1/ars-magica/character/${id}/weapons/${encodeURIComponent(weaponName)}/unequip`, {
+          method: 'POST',
+        }),
+    },
+    armor: {
+      list: (id: string) =>
+        request<Armor[]>(`/api/v1/ars-magica/character/${id}/armor`),
+      add: (id: string, armor: Armor) =>
+        request<Armor>(`/api/v1/ars-magica/character/${id}/armor`, {
+          method: 'POST',
+          body: JSON.stringify(armor),
+        }),
+      remove: (id: string, armorName: string) =>
+        request<Armor>(`/api/v1/ars-magica/character/${id}/armor/${encodeURIComponent(armorName)}`, {
+          method: 'DELETE',
+        }),
+      wear: (id: string, armorName: string) =>
+        request<Armor>(`/api/v1/ars-magica/character/${id}/armor/${encodeURIComponent(armorName)}/wear`, {
+          method: 'POST',
+        }),
+      removeWorn: (id: string, armorName: string) =>
+        request<Armor>(`/api/v1/ars-magica/character/${id}/armor/${encodeURIComponent(armorName)}/remove`, {
+          method: 'POST',
+        }),
     },
     laboratory: {
       get: (id: string) =>
@@ -147,6 +189,11 @@ export const api = {
       }),
     get: (id: string) =>
       request<Covenant>(`/api/v1/covenants/${id}`),
+    update: (id: string, data: Partial<Covenant>) =>
+      request<Covenant>(`/api/v1/covenants/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
     library: {
       get: (id: string) =>
         request<LibraryInventory>(`/api/v1/covenants/${id}/library`),
@@ -163,5 +210,31 @@ export const api = {
       get: (id: string) =>
         request<CovenantVisInventory>(`/api/v1/covenants/${id}/vis`),
     },
+  },
+
+  campaign: {
+    create: (name: string, tribunalRegion?: string) =>
+      request<Campaign>('/api/v1/campaigns', {
+        method: 'POST',
+        body: JSON.stringify({ name, tribunalRegion }),
+      }),
+    list: () =>
+      request<Campaign[]>('/api/v1/campaigns'),
+    get: (id: string) =>
+      request<Campaign>(`/api/v1/campaigns/${id}`),
+    update: (id: string, data: Partial<ArsMagicaSaga>) =>
+      request<Campaign>(`/api/v1/campaigns/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string) =>
+      request<void>(`/api/v1/campaigns/${id}`, { method: 'DELETE' }),
+    addMember: (id: string, userId: string, displayName: string, role: import('../types/campaign').CampaignRole) =>
+      request<Campaign>(`/api/v1/campaigns/${id}/members`, {
+        method: 'POST',
+        body: JSON.stringify({ userId, displayName, role }),
+      }),
+    removeMember: (id: string, userId: string) =>
+      request<Campaign>(`/api/v1/campaigns/${id}/members/${userId}`, { method: 'DELETE' }),
   },
 };

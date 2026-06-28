@@ -10,6 +10,9 @@
   let creating = $state(false);
   let createError = $state<string | null>(null);
 
+  let deletingId = $state<string | null>(null);
+  let deleting = $state(false);
+
   const characters = $derived(session.characters);
 
   async function handleCreate() {
@@ -260,14 +263,32 @@
                 font-size: 11px;
                 color: {COLORS.inkMuted};
               ">Warping: {char.warpingPoints} · Decrepitude: {char.decrepitudePoints}</span>
-              <span style="
-                font-family: {S.fontBody};
-                font-size: 11px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
-                color: {COLORS.red};
-              ">Open →</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button
+                  onclick={(e) => { e.preventDefault(); e.stopPropagation(); deletingId = char.id; }}
+                  style="
+                    padding: 2px 8px;
+                    border: 1px solid transparent;
+                    border-radius: 3px;
+                    background: transparent;
+                    color: {COLORS.inkMuted};
+                    font-family: {S.fontBody};
+                    font-size: 10px;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                  "
+                  onmouseenter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = COLORS.red; (e.currentTarget as HTMLElement).style.color = COLORS.red; }}
+                  onmouseleave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; (e.currentTarget as HTMLElement).style.color = COLORS.inkMuted; }}
+                >Delete</button>
+                <span style="
+                  font-family: {S.fontBody};
+                  font-size: 11px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.06em;
+                  color: {COLORS.red};
+                ">Open →</span>
+              </div>
             </div>
           </a>
         {/each}
@@ -311,6 +332,66 @@
     </div>
   {/if}
 </div>
+
+{#if deletingId}
+  <div
+    role="presentation"
+    style="
+      position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+    "
+    onclick={() => deletingId = null}
+    onkeydown={(e) => e.key === 'Escape' && (deletingId = null)}
+  >
+    <div
+      role="dialog"
+      style="
+        background-color: {COLORS.white}; border: 1px solid {COLORS.outlineVar};
+        border-radius: 8px; padding: 32px; width: 380px;
+        display: flex; flex-direction: column; gap: 20px; box-sizing: border-box;
+      "
+      onclick={(e) => e.stopPropagation()}
+    >
+      <h2 style="font-family: {S.fontHeadline}; font-size: 20px; font-weight: 800; color: {COLORS.ink}; margin: 0;">
+        Delete Character
+      </h2>
+      <p style="font-family: {S.fontBody}; font-size: 13px; color: {COLORS.inkMuted}; margin: 0; line-height: 1.5;">
+        Are you sure you want to delete this character? This action cannot be undone.
+      </p>
+      <div style="display: flex; gap: 8px;">
+        <button
+          onclick={async () => {
+            if (!deletingId) return;
+            deleting = true;
+            try {
+              await api.character.delete(deletingId);
+              await loadActiveCharacter();
+            } catch {}
+            deleting = false;
+            deletingId = null;
+          }}
+          disabled={deleting}
+          style="
+            flex: 1; padding: 12px; border: none; border-radius: 4px;
+            background-color: {deleting ? COLORS.inkMuted : COLORS.red};
+            color: {COLORS.white}; font-family: {S.fontBody}; font-size: 13px;
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+            cursor: {deleting ? 'not-allowed' : 'pointer'};
+          "
+        >{deleting ? 'Deleting...' : 'Delete'}</button>
+        <button
+          onclick={() => deletingId = null}
+          style="
+            flex: 1; padding: 12px; border: 1px solid {COLORS.outlineVar}; border-radius: 4px;
+            background-color: {COLORS.bgLow}; color: {COLORS.inkMuted};
+            font-family: {S.fontBody}; font-size: 13px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer;
+          "
+        >Cancel</button>
+      </div>
+    </div>
+  </div>
+{/if}
 
 {#if showNewChar}
   <div

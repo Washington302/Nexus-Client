@@ -2,8 +2,8 @@
   import { onMount } from 'svelte';
   import type { Covenant } from '$lib/types/covenant';
   import { api } from '$lib/services/api';
-  import { session } from '$lib/stores/session.svelte';
-  import { Tabs, CovenantHeader, ChipList, Inhabitants, Library, Reputations, Finances, Possessions, CovenantVis } from '$lib/components';
+  import { session, loadActiveCharacter } from '$lib/stores/session.svelte';
+  import { Tabs, CovenantHeader, ChipList, Inhabitants, Library, Reputations, Finances, Possessions, CovenantVis, CovenantCalendar } from '$lib/components';
   import { COLORS, S } from '$lib/constants';
 
   let covenant = $state<Covenant | null>(null);
@@ -15,6 +15,10 @@
   let newTribunal = $state('');
   let creating = $state(false);
   let createError = $state<string | null>(null);
+  let showJoin = $state(false);
+  let joinCovId = $state('');
+  let joining = $state(false);
+  let joinError = $state<string | null>(null);
 
   const tabList = ['Inhabitants', 'Library', 'Possessions', 'Finances', 'Calendar', 'Vis Sources'];
   let activeTab = $state('Inhabitants');
@@ -51,6 +55,15 @@
     }
   }
 
+  async function addCharacterToCovenant(charId: string, charType: string, covId: string) {
+    const cov = await api.covenant.get(covId);
+    const listKey = charType === 'MAGUS' ? 'magiIds' : charType === 'COMPANION' ? 'companionIds' : 'namedGrogIds';
+    if (!cov[listKey].includes(charId)) {
+      cov[listKey] = [...cov[listKey], charId];
+    }
+    return api.covenant.update(covId, cov);
+  }
+
   async function handleCreate() {
     creating = true;
     createError = null;
@@ -59,6 +72,7 @@
       if (session.activeCharacter) {
         await api.character.patch(session.activeCharacter.id, 'covenantId', covenant.id);
         await api.character.patch(session.activeCharacter.id, 'covenant', covenant.name);
+        await addCharacterToCovenant(session.activeCharacter.id, session.activeCharacter.type, covenant.id);
       }
       showCreate = false;
       newName = '';
@@ -121,6 +135,15 @@
           <div>
             <Reputations reputations={covenant.reputations} />
           </div>
+          <div style="border-top: 1px solid; margin: 4px 0;"></div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-family:{S.fontBody}; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:{COLORS.inkMuted};">Share & Link</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <code style="flex:1; font-size:11px; padding:4px 6px; background:{COLORS.bgLow}; border:1px solid {COLORS.outlineVar}; border-radius:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{covenant!.id}</code>
+              <button onclick={() => navigator.clipboard.writeText(covenant!.id)} style="padding:4px 8px; border:1px solid {COLORS.outlineVar}; border-radius:3px; background:{COLORS.white}; font-family:{S.fontBody}; font-size:10px; cursor:pointer; white-space:nowrap; flex-shrink:0;">Copy</button>
+            </div>
+            <p style="font-family:{S.fontBody}; font-size:10px; color:{COLORS.inkMuted}; margin:0; line-height:1.4;">Share this ID with other players. They can link their characters to this covenant from the character page.</p>
+          </div>
         </aside>
 
         <section style="display: flex; flex-direction: column; gap: 20px; border: 1px solid; padding: 24px; border-radius: 16px;">
@@ -145,7 +168,7 @@
             {:else if activeTab === 'Finances'}
               <Finances {covenant} />
             {:else if activeTab === 'Calendar'}
-              <div style="color: #94a3b8;">Covenant timeline and seasonal activities.</div>
+              <CovenantCalendar {covenant} />
             {:else if activeTab === 'Vis Sources'}
               <CovenantVis {covenant} />
             {/if}
@@ -158,22 +181,39 @@
           No covenant linked to this character.
         </p>
         {#if session.userId}
-          <button
-            onclick={() => showCreate = true}
-            style="
-              padding: 12px 24px;
-              border: none;
-              border-radius: 4px;
-              background-color: {COLORS.red};
-              color: {COLORS.white};
-              font-family: {S.fontBody};
-              font-size: 13px;
-              font-weight: 700;
-              text-transform: uppercase;
-              letter-spacing: 0.08em;
-              cursor: pointer;
-            "
-          >Create Covenant</button>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+            <button
+              onclick={() => showCreate = true}
+              style="
+                padding: 12px 24px;
+                border: none;
+                border-radius: 4px;
+                background-color: {COLORS.red};
+                color: {COLORS.white};
+                font-family: {S.fontBody};
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                cursor: pointer;
+              "
+            >Create Covenant</button>
+            <span style="font-family:{S.fontBody}; font-size:12px; color:{COLORS.inkMuted};">or</span>
+            {#if showJoin}
+              <div style="display: flex; flex-direction: column; gap: 8px; width: 320px;">
+                <input type="text" bind:value={joinCovId} placeholder="Paste covenant ID" style="padding:10px 12px; border:1px solid {COLORS.outlineVar}; border-radius:4px; font-family:{S.fontBody}; font-size:13px; text-align:center;" />
+                {#if joinError}
+                  <p style="font-family:{S.fontBody}; font-size:11px; color:{COLORS.red}; margin:0;">{joinError}</p>
+                {/if}
+                <div style="display: flex; gap: 8px;">
+                  <button onclick={async () => { if (!joinCovId || !session.activeCharacter) return; joining = true; joinError = null; try { await api.character.patch(session.activeCharacter.id, 'covenantId', joinCovId); await addCharacterToCovenant(session.activeCharacter.id, session.activeCharacter.type, joinCovId); await loadActiveCharacter(); await loadCovenant(); showJoin = false; joinCovId = ''; } catch { joinError = 'Failed to join covenant. Check the ID.'; } finally { joining = false; } }} disabled={joining || !joinCovId} style="flex:1; padding:10px; border:none; border-radius:4px; background:{COLORS.red}; color:{COLORS.white}; font-family:{S.fontBody}; font-size:12px; font-weight:700; cursor:pointer; opacity:{joining || !joinCovId ? 0.5 : 1};">{joining ? 'Joining...' : 'Join'}</button>
+                  <button onclick={() => { showJoin = false; joinCovId = ''; joinError = null; }} style="padding:10px; border:1px solid {COLORS.outlineVar}; border-radius:4px; background:transparent; font-family:{S.fontBody}; font-size:12px; cursor:pointer; color:{COLORS.inkMuted};">Cancel</button>
+                </div>
+              </div>
+            {:else}
+              <button onclick={() => showJoin = true} style="padding:8px 16px; border:1px solid {COLORS.outlineVar}; border-radius:4px; background:transparent; color:{COLORS.inkMuted}; font-family:{S.fontBody}; font-size:12px; cursor:pointer;">Join Existing Covenant</button>
+            {/if}
+          </div>
         {/if}
       </div>
     {/if}

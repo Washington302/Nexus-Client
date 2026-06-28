@@ -4,6 +4,7 @@
   import { api } from '$lib/services/api';
   import { session } from '$lib/stores/session.svelte';
   import type { ArsCharacter, MagicalArt } from '$lib/types/character';
+  import type { Weapon, Armor } from '$lib/types';
   import { artScoreFromXp, abilityScoreFromXp } from '$lib/utils/arsmagica';
 
   let character = $state<ArsCharacter | null>(null);
@@ -59,13 +60,22 @@
     if (session.activeCharacterId) {
       try {
         const id = session.activeCharacterId;
-        const [charData, abilitiesMap, spellsMap, visDoc] = await Promise.all([
+        const abilitiesRaw = api.character.abilities.list(id).catch(() => ({} as Record<string, import('$lib/types/character').Ability>));
+        const spellsRaw = api.character.spells.list(id).catch(() => ({} as Record<string, import('$lib/types/character').Spell>));
+        const visRaw = api.character.visStore.get(id).catch(() => null as unknown as CollectionDoc<import('$lib/types/shared').RawVisStore>);
+        const weaponsRaw = api.character.weapons.list(id).catch(() => [] as Weapon[]);
+        const armorRaw = api.character.armor.list(id).catch(() => [] as Armor[]);
+        const [charData, abilitiesMap, spellsMap, visDoc, weaponsList, armorList] = await Promise.all([
           api.character.get(id),
-          api.character.abilities.list(id).catch(() => ({}) as Record<string, import('$lib/types/character').Ability>),
-          api.character.spells.list(id).catch(() => ({}) as Record<string, import('$lib/types/character').Spell>),
-          api.character.visStore.get(id).catch(() => null as CollectionDoc<import('$lib/types/shared').RawVisStore> | null),
+          abilitiesRaw,
+          spellsRaw,
+          visRaw,
+          weaponsRaw,
+          armorRaw,
         ]);
         charData.abilities = abilitiesMap;
+        charData.weapons = weaponsList;
+        charData.armor = armorList;
         if (visDoc?.visStore) charData.visStore = visDoc.visStore;
         ensureArts(charData);
         ensureAbilityScores(charData);
@@ -85,7 +95,7 @@
 {#if loading}
   <p>Loading...</p>
 {:else if character}
-  <CharacterSheet {character} {isEditable} onSaveField={handleSaveField} />
+  <CharacterSheet bind:character={character} {isEditable} onSaveField={handleSaveField} />
 {:else}
   <p>No character selected. <a href="/auth/login">Sign in</a> or create a character.</p>
 {/if}

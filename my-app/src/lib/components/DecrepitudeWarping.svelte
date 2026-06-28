@@ -1,43 +1,72 @@
 <script lang="ts">
   import { COLORS, S } from '$lib/constants';
   import Modal from './Modal.svelte';
+  import { evaluateAgingRoll } from '$lib/utils/aging';
+  import type { CoreCharacteristicName } from '$lib/types/shared';
 
   let { 
-    decrepitudePoints = 0, 
-    warpingPoints = 0,
-    agingPoints = {},
+    decrepitudePoints = $bindable(0), 
+    warpingPoints = $bindable(0),
+    warpingEffects = $bindable(''),
+    agingPoints = $bindable({} as Record<string, number>),
+    characteristics = $bindable({ scores: {} as Record<string, number> }),
     onSave = async (_field: string, _data: unknown) => {},
-  } = $props<{
-    decrepitudePoints: number;
-    warpingPoints: number;
-    agingPoints: Record<string, number>;
-    onSave?: (field: string, data: unknown) => Promise<void>;
-  }>();
+  } = $props();
 
   let agingModalOpen = $state(false);
   let warpingModalOpen = $state(false);
+  let rollModalOpen = $state(false);
 
   // Editable copies
   let localAgingPoints = $state({} as Record<string, number>);
   let localWarping = $state(0);
+  let localWarpingEffects = $state('');
+  let newAgingKey = $state('');
+
+  // Derived scores
+  let decrepitudeScore = $derived(decrepitudePoints);
+  let warpingScore = $derived(Math.floor(warpingPoints / 5));
+
+  // Aging roll state
+  let agingTotal = $state(0);
+  let rollChar = $state<CoreCharacteristicName>('STAMINA');
+  let rollResult = $state<ReturnType<typeof evaluateAgingRoll> | null>(null);
+
+  const coreChars: CoreCharacteristicName[] = [
+    'INTELLIGENCE', 'PERCEPTION', 'STRENGTH', 'STAMINA',
+    'PRESENCE', 'COMMUNICATION', 'DEXTERITY', 'QUICKNESS',
+  ];
 
   function openAging() {
     localAgingPoints = { ...agingPoints };
+    newAgingKey = '';
     agingModalOpen = true;
   }
 
   function openWarping() {
     localWarping = warpingPoints;
+    localWarpingEffects = warpingEffects;
     warpingModalOpen = true;
+  }
+
+  function openRoll() {
+    agingTotal = 0;
+    rollChar = 'STAMINA';
+    rollResult = null;
+    rollModalOpen = true;
   }
 
   async function saveAging() {
     await onSave('agingPoints', localAgingPoints);
+    agingPoints = { ...localAgingPoints };
     agingModalOpen = false;
   }
 
   async function saveWarping() {
     await onSave('warpingPoints', localWarping);
+    await onSave('warpingEffects', localWarpingEffects);
+    warpingPoints = localWarping;
+    warpingEffects = localWarpingEffects;
     warpingModalOpen = false;
   }
 
@@ -57,6 +86,39 @@
         localAgingPoints = { ...localAgingPoints };
       }
     }
+  }
+
+  function addNewAgingKey() {
+    const key = newAgingKey.trim();
+    if (key && !(key in localAgingPoints)) {
+      localAgingPoints[key] = 1;
+      localAgingPoints = { ...localAgingPoints };
+      newAgingKey = '';
+    }
+  }
+
+  function resolveRoll() {
+    rollResult = evaluateAgingRoll(
+      agingTotal,
+      rollChar,
+      decrepitudePoints,
+      localAgingPoints,
+      characteristics.scores as Record<CoreCharacteristicName, number>,
+    );
+  }
+
+  async function applyRoll() {
+    const result = rollResult;
+    if (!result) return;
+    await onSave('agingPoints', result.updatedAgingPoints);
+    await onSave('decrepitudePoints', result.updatedDecrepitudePoints);
+    await onSave('characteristics', { scores: result.updatedCharacteristics });
+    decrepitudePoints = result.updatedDecrepitudePoints;
+    agingPoints = { ...result.updatedAgingPoints };
+    characteristics = { scores: { ...result.updatedCharacteristics } };
+    localAgingPoints = { ...result.updatedAgingPoints };
+    rollModalOpen = false;
+    rollResult = null;
   }
 </script>
 
@@ -108,14 +170,19 @@
         text-transform: uppercase;
         letter-spacing: 0.08em;
         color: {COLORS.inkMuted};
-        margin-bottom: 4px;
-      ">Decrepitude</div>
+        margin-bottom: 2px;
+      ">Decrepitude Score</div>
       <div style="
         font-family: {S.fontHeadline};
         font-size: 24px;
         font-weight: 800;
-        color: {decrepitudePoints > 0 ? COLORS.red : COLORS.ink};
-      ">{decrepitudePoints}</div>
+        color: {decrepitudeScore > 0 ? COLORS.red : COLORS.ink};
+      ">{decrepitudeScore}</div>
+      <div style="
+        font-family: {S.fontBody};
+        font-size: 10px;
+        color: {COLORS.inkMuted};
+      ">{decrepitudePoints} pts</div>
       <div style="
         font-family: {S.fontBody};
         font-size: 10px;
@@ -145,14 +212,19 @@
         text-transform: uppercase;
         letter-spacing: 0.08em;
         color: {COLORS.inkMuted};
-        margin-bottom: 4px;
-      ">Warping</div>
+        margin-bottom: 2px;
+      ">Warping Score</div>
       <div style="
         font-family: {S.fontHeadline};
         font-size: 24px;
         font-weight: 800;
-        color: {warpingPoints > 0 ? COLORS.red : COLORS.ink};
-      ">{warpingPoints}</div>
+        color: {warpingScore > 0 ? COLORS.red : COLORS.ink};
+      ">{warpingScore}</div>
+      <div style="
+        font-family: {S.fontBody};
+        font-size: 10px;
+        color: {COLORS.inkMuted};
+      ">{warpingPoints} pts</div>
       <div style="
         font-family: {S.fontBody};
         font-size: 10px;
@@ -195,7 +267,7 @@
         </div>
       </div>
     {/each}
-    {#if Object.values(localAgingPoints).every(p => p === 0) || Object.keys(localAgingPoints).length === 0}
+    {#if Object.keys(localAgingPoints).length === 0}
       <p style="
         font-family: {S.fontBody};
         font-size: 13px;
@@ -203,10 +275,66 @@
         color: {COLORS.inkMuted};
       ">No aging effects yet.</p>
     {/if}
+    <div style="display: flex; gap: 6px; margin-top: 8px;">
+      <input type="text" placeholder="New stat..." bind:value={newAgingKey}
+        onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addNewAgingKey(); } }}
+        style="flex:1; padding:6px 8px; border:1px solid {COLORS.outlineVar}; border-radius:4px; font-family:{S.fontBody}; font-size:13px; color:{COLORS.ink}; background:{COLORS.bg};"
+      />
+      <button onclick={addNewAgingKey} style="padding:6px 12px; border:1px solid {COLORS.outlineVar}; border-radius:4px; background:{COLORS.bgLow}; color:{COLORS.ink}; font-family:{S.fontBody}; font-size:12px; cursor:pointer;">Add</button>
+    </div>
+    <button onclick={openRoll} style="width:100%; margin-top:4px; padding:8px; border:1px dashed {COLORS.red}; border-radius:4px; background:transparent; color:{COLORS.red}; font-family:{S.fontBody}; font-size:11px; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.06em;">+ Roll Aging</button>
     <div style="display: flex; gap: 8px; margin-top: 12px;">
       <button onclick={saveAging} style="flex:1; padding:8px; border:none; border-radius:4px; background:{COLORS.red}; color:{COLORS.white}; font-family:{S.fontBody}; font-size:12px; font-weight:700; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em;">Save</button>
       <button onclick={() => agingModalOpen = false} style="flex:1; padding:8px; border:1px solid {COLORS.outlineVar}; border-radius:4px; background:{COLORS.bgLow}; color:{COLORS.inkMuted}; font-family:{S.fontBody}; font-size:12px; font-weight:700; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em;">Cancel</button>
     </div>
+  </div>
+</Modal>
+
+<!-- Aging Roll Modal -->
+<Modal bind:open={rollModalOpen} title="Aging Roll">
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <span style="font-family:{S.fontBody}; font-size:12px; color:{COLORS.inkMuted};">Aging Total (roll + modifiers)</span>
+      <input type="number" bind:value={agingTotal} style="width:100px; padding:6px 8px; border:1px solid {COLORS.outlineVar}; border-radius:4px; font-family:{S.fontHeadline}; font-size:18px; font-weight:700; color:{COLORS.ink}; text-align:center;" />
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <span style="font-family:{S.fontBody}; font-size:12px; color:{COLORS.inkMuted};">Target Characteristic (for 9–12 range)</span>
+      <select bind:value={rollChar} style="width:fit-content; padding:6px 8px; border:1px solid {COLORS.outlineVar}; border-radius:4px; font-family:{S.fontBody}; font-size:13px; color:{COLORS.ink}; background:{COLORS.bg};">
+        {#each coreChars as c}
+          <option value={c}>{c}</option>
+        {/each}
+      </select>
+    </div>
+    <button onclick={resolveRoll} disabled={agingTotal === null} style="padding:8px; border:none; border-radius:4px; background:{COLORS.red}; color:{COLORS.white}; font-family:{S.fontBody}; font-size:12px; font-weight:700; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em;">Resolve</button>
+
+    {#if rollResult}
+      <div style="padding:12px; border:1px solid {COLORS.outlineVar}; border-radius:4px; background:{COLORS.bgLow}; display:flex; flex-direction:column; gap:6px;">
+        <div style="font-family:{S.fontBody}; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:{COLORS.inkMuted};">Outcome</div>
+        <div style="font-family:{S.fontHeadline}; font-size:16px; font-weight:700; color:{COLORS.red};">
+          {#if rollResult.outcome === 'NO_EFFECT'}
+            No Effect
+          {:else if rollResult.outcome === 'APPARENT_AGE_INCREASE'}
+            Apparent Age Increase
+          {:else if rollResult.outcome === 'AGING_POINT'}
+            Aging Point — {rollResult.affectedCharacteristic}
+          {:else}
+            Decrepitude Gained
+          {/if}
+        </div>
+        {#if rollResult.crisisTriggered}
+          <div style="font-family:{S.fontBody}; font-size:12px; color:{COLORS.red}; font-weight:600;">Crisis!</div>
+        {/if}
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:4px;">
+          <span style="font-family:{S.fontBody}; font-size:12px; color:{COLORS.inkMuted};">Decrepitude</span>
+          <span style="font-family:{S.fontHeadline}; font-size:14px; font-weight:700; color:{COLORS.ink}; text-align:right;">{rollResult.updatedDecrepitudePoints}</span>
+          <span style="font-family:{S.fontBody}; font-size:12px; color:{COLORS.inkMuted};">Aging Points ({rollResult.affectedCharacteristic ?? '—'})</span>
+          <span style="font-family:{S.fontHeadline}; font-size:14px; font-weight:700; color:{COLORS.ink}; text-align:right;">{rollResult.updatedAgingPoints[rollResult.affectedCharacteristic ?? ''] ?? '—'}</span>
+        </div>
+      </div>
+      <button onclick={applyRoll} style="padding:8px; border:none; border-radius:4px; background:{COLORS.red}; color:{COLORS.white}; font-family:{S.fontBody}; font-size:12px; font-weight:700; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em;">Apply Result</button>
+    {/if}
+
+    <button onclick={() => rollModalOpen = false} style="padding:8px; border:1px solid {COLORS.outlineVar}; border-radius:4px; background:{COLORS.bgLow}; color:{COLORS.inkMuted}; font-family:{S.fontBody}; font-size:12px; font-weight:700; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em;">Cancel</button>
   </div>
 </Modal>
 
@@ -216,6 +344,12 @@
     <div style="display: flex; align-items: center; gap: 12px;">
       <span style="font-family:{S.fontBody}; font-size:13px; color:{COLORS.ink};">Warping Points</span>
       <input type="number" min="0" bind:value={localWarping} style="width:80px; padding:6px 8px; border:1px solid {COLORS.outlineVar}; border-radius:4px; font-family:{S.fontHeadline}; font-size:16px; font-weight:700; color:{COLORS.ink}; text-align:center;" />
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <span style="font-family:{S.fontBody}; font-size:12px; color:{COLORS.inkMuted};">Warping Effects</span>
+      <textarea bind:value={localWarpingEffects} rows="4"
+        style="width:100%; padding:8px; border:1px solid {COLORS.outlineVar}; border-radius:4px; font-family:{S.fontBody}; font-size:13px; color:{COLORS.ink}; background:{COLORS.bg}; resize:vertical; box-sizing:border-box;"
+      ></textarea>
     </div>
     <div style="display: flex; gap: 8px; margin-top: 4px;">
       <button onclick={saveWarping} style="flex:1; padding:8px; border:none; border-radius:4px; background:{COLORS.red}; color:{COLORS.white}; font-family:{S.fontBody}; font-size:12px; font-weight:700; cursor:pointer; text-transform:uppercase; letter-spacing:0.08em;">Save</button>
