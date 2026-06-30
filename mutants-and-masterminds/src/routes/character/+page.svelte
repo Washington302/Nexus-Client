@@ -2,12 +2,12 @@
 	import { session } from '$lib/stores/session.svelte';
 	import { api } from '$lib/services/api';
 	import type { MnmCharacter } from '$lib/services/api';
+	import { abilityMod, abilityModStr, effectCost, perRankCost, powerTotalCost, ensureDefaults, initNormalizePower, normalizePowerForSave } from '$lib/utils/character';
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
 	import ComicPanel from '$lib/components/ComicPanel.svelte';
 	import StatBubble from '$lib/components/StatBubble.svelte';
 	import SkillTable from '$lib/components/SkillTable.svelte';
 	import PillBadge from '$lib/components/PillBadge.svelte';
-	import ConditionPip from '$lib/components/ConditionPip.svelte';
 	import EditableWrapper from '$lib/components/EditableWrapper.svelte';
 	import AbilitiesEditor from '$lib/components/editors/AbilitiesEditor.svelte';
 	import DefensesEditor from '$lib/components/editors/DefensesEditor.svelte';
@@ -70,100 +70,70 @@
 		const c = session.activeCharacter;
 		if (c) {
 			const d = JSON.parse(JSON.stringify(c));
-			if (d.abilities == null) d.abilities = {};
-			if (d.defenses == null) d.defenses = {};
-			if (d.skills == null) d.skills = [];
-			if (d.advantages == null) d.advantages = [];
-			if (d.powers == null) d.powers = [];
-			if (d.complications == null) d.complications = [];
-			if (d.equipmentPool == null) d.equipmentPool = { totalEpAllowed: 0, epSpent: 0, items: [] };
-			if (d.headquarters == null) d.headquarters = [];
+			ensureDefaults(d);
 
-			// Normalize Jackson property names from Lombok is-prefix fields
-			if (d.powers) {
-				for (const p of d.powers) {
-					if ('array' in p && !('isArray' in p)) p.isArray = p.array;
-					if (p.effects) {
-						for (const e of p.effects) {
-							if ('primary' in e && !('isPrimary' in e)) e.isPrimary = e.primary;
-							if (e.modifiers) {
-								for (const m of e.modifiers) {
-									if ('flat' in m && !('isFlat' in m)) m.isFlat = m.flat;
-								}
-							}
-						}
-					}
-					if (p.alternateEffects) {
-						for (const a of p.alternateEffects) {
-							if (a.effects) {
-								for (const e of a.effects) {
-									if ('primary' in e && !('isPrimary' in e)) e.isPrimary = e.primary;
-									if (e.modifiers) {
-										for (const m of e.modifiers) {
-											if ('flat' in m && !('isFlat' in m)) m.isFlat = m.flat;
-										}
-									}
-								}
-							}
-						}
-					}
-					delete p.array;
-				}
+			for (const p of (d.powers ?? [])) {
+				initNormalizePower(p);
 			}
 
-			const abKeys = ['strength','stamina','agility','dexterity','fighting','intellect','awareness','presence'] as const;
-			for (const k of abKeys) {
-				const finalKey = k + 'FinalValue';
-				if (d.abilities[finalKey] == null) d.abilities[finalKey] = 0;
-			}
-			const defKeys = ['dodge','parry','fortitude','toughness','will'] as const;
-			for (const k of defKeys) {
-				const finalKey = k + 'FinalValue';
-				if (d.defenses[finalKey] == null) d.defenses[finalKey] = 0;
-			}
 			// Auto-compute power costs
 			if (d.powers) {
-			function effectCost(e: any): number {
-				let perRank = e.baseCostPerRank ?? 2;
-				let flat = 0;
-				for (const m of e.modifiers ?? []) {
-					if (m.isFlat) {
-						flat += m.type === 'FLAW' ? -m.costModifier : m.costModifier;
-					} else {
-						perRank += m.type === 'FLAW' ? -m.costModifier : m.costModifier;
-					}
-				}
-				return perRank * (e.rank ?? 0) + flat;
-			}
-			function perRankCost(e: any): number {
-				let perRank = e.baseCostPerRank ?? 2;
-				for (const m of e.modifiers ?? []) {
-					if (!m.isFlat) {
-						perRank += m.type === 'FLAW' ? -m.costModifier : m.costModifier;
-					}
-				}
-				return perRank;
-			}
 			for (const p of d.powers) {
-				const active = (p.effects ?? []).reduce((sum: number, e: any) => sum + effectCost(e), 0);
-				const alts = (p.alternateEffects ?? []).reduce((sum: number, a: any) => {
-					const altActive = (a.effects ?? []).reduce((s: number, e: any) => s + effectCost(e), 0);
-					return Math.max(sum, altActive);
-				}, 0);
-				p.totalPowerCost = Math.max(active, alts) + (p.alternateEffects?.length ?? 0);
+				p.totalPowerCost = powerTotalCost(p.effects, p.alternateEffects);
 				for (const e of p.effects ?? []) {
+					if (e.effectName?.toLowerCase() === 'summon') e.isSummon = true;
 					e.calculatedCost = effectCost(e);
+					if (e.isSummon && !e.summonExtension) {
+						e.summonExtension = { summonRank: e.rank, minionPpBudget: e.rank * 15 };
+					}
 				}
 				for (const a of p.alternateEffects ?? []) {
 					a.costPerRank = (a.effects ?? []).reduce((sum: number, e: any) => sum + perRankCost(e), 0);
 					a.currentAllocatedRank = a.effects[0]?.rank ?? 0;
 					for (const e of a.effects ?? []) {
+						if (e.effectName?.toLowerCase() === 'summon') e.isSummon = true;
 						e.calculatedCost = effectCost(e);
+						if (e.isSummon && !e.summonExtension) {
+							e.summonExtension = { summonRank: e.rank, minionPpBudget: e.rank * 15 };
+						}
 					}
 				}
 			}
 			}
+			// Auto-compute ability PP cost
+			const abiKeys = ['strength','stamina','agility','dexterity','fighting','intellect','awareness','presence'] as const;
+			let totalAbiPP = 0;
+			for (const k of abiKeys) {
+				const base = d.abilities[k + 'BaseRank'] ?? 0;
+				const mod = d.abilities[k + 'CostModifier'] ?? 0;
+				const enh = d.abilities[k + 'EnhancedRank'] ?? 0;
+				d.abilities[k + 'FinalValue'] = base + enh;
+				totalAbiPP += Math.max(0, base) * (2 + mod);
+			}
+			d.spentAbilities = totalAbiPP;
+			// Auto-compute skill bonuses and costs
+			const ABIL_MAP: Record<string, string> = { STRENGTH:'strength', STAMINA:'stamina', AGILITY:'agility', DEXTERITY:'dexterity', FIGHTING:'fighting', INTELLECT:'intellect', AWARENESS:'awareness', PRESENCE:'presence' };
+			let totalSkillPP = 0;
+			for (const s of (d.skills ?? [])) {
+				const abiKey = ABIL_MAP[s.keyAbility] ?? 'agility';
+				const abiVal = (d.abilities as any)?.[abiKey + 'FinalValue'] ?? 0;
+				s.finalBonus = (s.ranks ?? 0) + abilityMod(abiVal) + (s.modifier ?? 0);
+				s.ppCost = Math.ceil((s.ranks ?? 0) / 2);
+				totalSkillPP += s.ppCost;
+			}
+			d.spentSkills = totalSkillPP;
+			// Auto-compute equipment costs
+			const hqs = d.headquarters ?? [];
+			for (const hq of hqs) {
+				const dsCost = (hq.defenseSystems ?? []).reduce((s: number, ds: any) => s + (ds.totalPowerCost ?? 0), 0);
+				hq.totalEpCost = Math.round((hq.sizeCost ?? 0) + (hq.toughnessCost ?? 0) + dsCost);
+			}
+			const itemsCost = (d.equipmentPool?.items ?? []).reduce((s: number, i: any) => s + (i.epCost ?? 0), 0);
+			const hqCost = hqs.reduce((s: number, hq: any) => s + (hq.totalEpCost ?? 0), 0);
+			if (d.equipmentPool) d.equipmentPool.epSpent = Math.round(itemsCost + hqCost);
+			d.totalSpent = (d.spentAbilities ?? 0) + (d.spentDefenses ?? 0) + (d.spentSkills ?? 0) + (d.spentAdvantages ?? 0) + (d.spentPowers ?? 0);
 
+			activeDefensePowerMods = new Set(['dodge','parry','fortitude','toughness','will']);
 			draft = d;
 			originalSnapshot = JSON.stringify(d);
 			autosaveDirty = false;
@@ -178,10 +148,287 @@
 		}
 	});
 
-	function abilityMod(val: number): string {
-		const mod = Math.floor((val - 10) / 2);
-		return mod >= 0 ? '+' + mod : String(mod);
+	$effect(() => {
+		if (!draft) return;
+		// Auto-compute ability PP
+		const abiKeys = ['strength','stamina','agility','dexterity','fighting','intellect','awareness','presence'] as const;
+		let totalAbiPP = 0;
+		for (const k of abiKeys) {
+			const base = (draft.abilities as any)[k + 'BaseRank'] ?? 0;
+			const mod = (draft.abilities as any)[k + 'CostModifier'] ?? 0;
+			const enh = (draft.abilities as any)[k + 'EnhancedRank'] ?? 0;
+			(draft.abilities as any)[k + 'FinalValue'] = base + enh;
+			totalAbiPP += Math.max(0, base) * (2 + mod);
+		}
+		draft.spentAbilities = totalAbiPP;
+		// Auto-compute skill bonuses and costs
+		const ABIL_MAP: Record<string, string> = { STRENGTH:'strength', STAMINA:'stamina', AGILITY:'agility', DEXTERITY:'dexterity', FIGHTING:'fighting', INTELLECT:'intellect', AWARENESS:'awareness', PRESENCE:'presence' };
+		let totalSkillPP = 0;
+		for (const s of (draft.skills ?? [])) {
+			const abiKey = ABIL_MAP[s.keyAbility] ?? 'agility';
+			const abiVal = (draft.abilities as any)?.[abiKey + 'FinalValue'] ?? 0;
+			s.finalBonus = (s.ranks ?? 0) + abilityMod(abiVal) + (s.modifier ?? 0);
+			s.ppCost = Math.ceil((s.ranks ?? 0) / 2);
+			totalSkillPP += s.ppCost;
+		}
+		draft.spentSkills = totalSkillPP;
+		// Auto-compute equipment costs
+		const hqs = draft.headquarters ?? [];
+		for (const hq of hqs) {
+			const dsCost = (hq.defenseSystems ?? []).reduce((s: number, d: any) => s + (d.totalPowerCost ?? 0), 0);
+			hq.totalEpCost = Math.round((hq.sizeCost ?? 0) + (hq.toughnessCost ?? 0) + dsCost);
+		}
+		const itemsCost = (draft.equipmentPool?.items ?? []).reduce((s: number, i: any) => s + (i.epCost ?? 0), 0);
+		const hqCost = hqs.reduce((s: number, hq: any) => s + (hq.totalEpCost ?? 0), 0);
+		if (draft.equipmentPool) draft.equipmentPool.epSpent = Math.round(itemsCost + hqCost);
+		draft.totalSpent = (draft.spentAbilities ?? 0) + (draft.spentDefenses ?? 0) + (draft.spentSkills ?? 0) + (draft.spentAdvantages ?? 0) + (draft.spentPowers ?? 0);
+	});
+
+
+	// ── Conditions & Maneuvers State ──
+	type ConditionKey = 'vulnerable' | 'defenseless' | 'impaired' | 'disabled' | 'hindered' | 'dazed' | 'stunned' | 'fatigued' | 'exhausted' | 'incapacitated';
+	let activeConditions = $state<Set<ConditionKey>>(new Set());
+
+	let activeDefensePowerMods = $state<Set<string>>(new Set());
+
+	function toggleDefensePowerMod(key: string) {
+		if (activeDefensePowerMods.has(key)) activeDefensePowerMods.delete(key);
+		else activeDefensePowerMods.add(key);
+		activeDefensePowerMods = new Set(activeDefensePowerMods);
 	}
+
+	function toggleCondition(key: ConditionKey) {
+		if (activeConditions.has(key)) activeConditions.delete(key);
+		else activeConditions.add(key);
+		activeConditions = new Set(activeConditions); // trigger reactivity
+	}
+
+	const MANEUVER_LIMIT = 5;
+	let allOutAttack = $state(0);
+	let powerAttack = $state(0);
+	let accurateAttack = $state(0);
+	let defensiveAttack = $state(0);
+	let showAttackSelector = $state(false);
+
+	function resetManeuvers() {
+		allOutAttack = 0;
+		powerAttack = 0;
+		accurateAttack = 0;
+		defensiveAttack = 0;
+	}
+
+	// ── Computed Combat Stats ──
+	function abiVal(key: string): number { return (draft?.abilities as any)?.[key + 'FinalValue'] ?? 0; }
+	function abiMod(key: string): number { return abilityMod(abiVal(key)); }
+	function abiAbsent(key: string): boolean { return (draft?.abilities as any)?.[key + 'Absent'] ?? false; }
+
+	function defPointsBought(key: string): number { return (draft?.defenses as any)?.[key + 'PointsBought'] ?? 0; }
+	function defOtherMods(key: string): number { return (draft?.defenses as any)?.[key + 'OtherModifiers'] ?? 0; }
+
+	function protectionRanks(): number { return 0; }
+
+	function defensiveRollRanks(): number {
+		let ranks = 0;
+		for (const a of (draft?.advantages ?? [])) {
+			if (a.name?.toLowerCase().includes('defensive roll')) ranks += a.ranks ?? 0;
+		}
+		return ranks;
+	}
+
+	function improvedInitiativeRanks(): number {
+		for (const a of (draft?.advantages ?? [])) {
+			if (a.name?.toLowerCase() === 'improved initiative') return a.ranks ?? 0;
+		}
+		return 0;
+	}
+
+	function getDefenseFinal(key: string, abilityKey: string): { value: number; immune: boolean } {
+		const absent = abiAbsent(abilityKey);
+		if (absent) return { value: 0, immune: true };
+		const abilModVal = abiMod(abilityKey);
+		let base = abilModVal + defPointsBought(key) + (activeDefensePowerMods.has(key) ? defOtherMods(key) : 0);
+
+		if (activeConditions.has('impaired')) base -= 2;
+		if (activeConditions.has('disabled')) base -= 5;
+		if (activeConditions.has('fatigued')) base -= 1;
+		if (activeConditions.has('exhausted')) base -= 2;
+
+		// Maneuver shifts only affect active defenses (Dodge/Parry)
+		const isActive = key === 'dodge' || key === 'parry';
+		if (isActive) {
+			if (activeConditions.has('defenseless')) base = 0;
+			else if (activeConditions.has('vulnerable')) base = Math.ceil(base / 2);
+			base -= allOutAttack + defensiveAttack;
+		}
+		return { value: Math.max(0, base), immune: false };
+	}
+
+	function getToughnessFinal(): { value: number; immune: boolean } {
+		const absent = abiAbsent('stamina');
+		if (absent) return { value: 0, immune: true };
+		let base = abiMod('stamina') + defPointsBought('toughness') + defensiveRollRanks() + (activeDefensePowerMods.has('toughness') ? defOtherMods('toughness') : 0);
+		if (activeConditions.has('impaired')) base -= 2;
+		if (activeConditions.has('disabled')) base -= 5;
+		if (activeConditions.has('fatigued')) base -= 1;
+		if (activeConditions.has('exhausted')) base -= 2;
+		if (activeConditions.has('defenseless')) base = 0;
+		return { value: Math.max(0, base), immune: false };
+	}
+
+	const pl = $derived(draft?.powerLevel ?? 10);
+	const plCaps = $derived.by(() => {
+		const cap = pl * 2;
+		const dodgeTough = getDefenseFinal('dodge', 'agility').value + getToughnessFinal().value;
+		const parryTough = getDefenseFinal('parry', 'fighting').value + getToughnessFinal().value;
+		const fortWill = getDefenseFinal('fortitude', 'stamina').value + getDefenseFinal('will', 'awareness').value;
+		return {
+			dodgeToughOk: dodgeTough <= cap,
+			parryToughOk: parryTough <= cap,
+			fortWillOk: fortWill <= cap,
+			dodgeTough,
+			parryTough,
+			fortWill,
+			cap,
+		};
+	});
+
+	function getInitiative(): number {
+		return abiMod('agility') + improvedInitiativeRanks() * 4;
+	}
+
+	// ── Attack Actions from Powers ──
+	type AttackAction = {
+		name: string;
+		descriptors: string[];
+		effectType: string;
+		effectRank: number;
+		attackBonus: number;
+		autoHit: boolean;
+		range: 'close' | 'ranged';
+		resistance: string;
+		resistanceDC: number;
+		notes: string;
+	};
+
+	function getAttackBonus(closeOrRanged: 'close' | 'ranged'): number {
+		const baseAbi = closeOrRanged === 'close' ? abiMod('fighting') : abiMod('dexterity');
+		let skillRanks = 0;
+		for (const s of (draft?.skills ?? [])) {
+			const name = (s.skillName ?? '').toLowerCase();
+			if (closeOrRanged === 'close' && name.includes('close combat')) skillRanks += s.ranks ?? 0;
+			if (closeOrRanged === 'ranged' && name.includes('ranged combat')) skillRanks += s.ranks ?? 0;
+		}
+		let advRanks = 0;
+		for (const a of (draft?.advantages ?? [])) {
+			const name = (a.name ?? '').toLowerCase();
+			if (closeOrRanged === 'ranged' && name.includes('ranged attack')) advRanks += a.ranks ?? 0;
+			if (closeOrRanged === 'close' && name.includes('close attack')) advRanks += a.ranks ?? 0;
+		}
+		let total = baseAbi + skillRanks + advRanks;
+		total += allOutAttack + accurateAttack;
+		total -= powerAttack + defensiveAttack;
+		return total;
+	}
+
+	function getAttackActions(): AttackAction[] {
+		if (!draft) return [];
+		const actions: AttackAction[] = [];
+		for (const p of (draft.powers ?? [])) {
+			for (const e of (p.effects ?? [])) {
+				if (!e._showInCombat) continue;
+				const modNames = (e.modifiers ?? []).map((m: any) => (m.name ?? '').toLowerCase());
+				const isPerception = modNames.some((n: string) => n.includes('perception'));
+				const isArea = modNames.some((n: string) => n.includes('area') || n.includes('burst') || n.includes('cone') || n.includes('cloud') || n.includes('line'));
+				const autoHit = isPerception || isArea;
+				const isRanged = !autoHit && modNames.some((n: string) => n.includes('ranged'));
+				const closeOrRanged = isRanged ? 'ranged' : 'close';
+				let effectRank = e.rank ?? 0;
+				if (e._isThrownWeapon) effectRank += abiVal('strength');
+				effectRank += powerAttack;
+				effectRank -= accurateAttack;
+				const ab = autoHit ? 0 : getAttackBonus(closeOrRanged);
+				const name = (e.effectName ?? '').toLowerCase();
+				const isDamaging = name.includes('damage') || modNames.some((n: string) => n.includes('damaging'));
+				const resistDC = isDamaging ? (effectRank + 15) : (effectRank + 10);
+				const resistance = name.includes('affliction') ? 'Will / Fortitude' :
+					isDamaging ? 'Toughness' : name.includes('move') ? 'Strength / Dodge' : 'Dodge';
+				actions.push({
+					name: (p.name ?? '') + ' — ' + (e.effectName ?? ''),
+					descriptors: p.descriptors ?? [],
+					effectType: e.effectName ?? '',
+					effectRank,
+					attackBonus: ab,
+					autoHit,
+					range: closeOrRanged,
+					resistance,
+					resistanceDC: resistDC,
+					notes: '',
+				});
+			}
+			for (const a of (p.alternateEffects ?? [])) {
+				for (const e of (a.effects ?? [])) {
+					if (!e._showInCombat) continue;
+					const modNames = (e.modifiers ?? []).map((m: any) => (m.name ?? '').toLowerCase());
+					const isPerception = modNames.some((n: string) => n.includes('perception'));
+					const isArea = modNames.some((n: string) => n.includes('area') || n.includes('burst') || n.includes('cone') || n.includes('cloud') || n.includes('line'));
+					const autoHit = isPerception || isArea;
+					const isRanged = !autoHit && modNames.some((n: string) => n.includes('ranged'));
+					const closeOrRanged = isRanged ? 'ranged' : 'close';
+					let effectRank = e.rank ?? 0;
+					if (e._isThrownWeapon) effectRank += abiVal('strength');
+					effectRank += powerAttack;
+					effectRank -= accurateAttack;
+					const ab = autoHit ? 0 : getAttackBonus(closeOrRanged);
+					const name = (e.effectName ?? '').toLowerCase();
+				const isDamaging = name.includes('damage') || modNames.some((n: string) => n.includes('damaging'));
+				const resistDC = isDamaging ? (effectRank + 15) : (effectRank + 10);
+				const resistance = name.includes('affliction') ? 'Will / Fortitude' :
+					isDamaging ? 'Toughness' : name.includes('move') ? 'Strength / Dodge' : 'Dodge';
+				actions.push({
+					name: a.name + ' — ' + (e.effectName ?? ''),
+						descriptors: a.descriptors ?? [],
+						effectType: e.effectName ?? '',
+						effectRank,
+						attackBonus: ab,
+						autoHit,
+						range: closeOrRanged,
+						resistance,
+						resistanceDC: resistDC,
+						notes: '',
+					});
+				}
+			}
+		}
+		return actions;
+	}
+
+	let attackActions = $derived.by(() => getAttackActions());
+
+	type SelectableEffect = {
+		powerName: string;
+		effectName: string;
+		effect: any;
+	};
+
+	let selectableEffects = $derived.by<SelectableEffect[]>(() => {
+		const list: SelectableEffect[] = [];
+		if (!draft) return list;
+		for (const p of (draft.powers ?? [])) {
+			for (const e of (p.effects ?? [])) {
+				const name = (e.effectName ?? '').toLowerCase();
+				if (name === 'summon' || name === 'movement' || name === 'senses' || name === 'immunity') continue;
+				list.push({ powerName: p.name ?? '', effectName: e.effectName ?? '', effect: e });
+			}
+			for (const a of (p.alternateEffects ?? [])) {
+				for (const e of (a.effects ?? [])) {
+					const name = (e.effectName ?? '').toLowerCase();
+					if (name === 'summon' || name === 'movement' || name === 'senses' || name === 'immunity') continue;
+					list.push({ powerName: a.name ?? '', effectName: e.effectName ?? '', effect: e });
+				}
+			}
+		}
+		return list;
+	});
 
 	function shareCharacter() {
 		if (!draft) return;
@@ -203,6 +450,20 @@
 			const payload = JSON.parse(JSON.stringify(draft));
 			delete payload.createdAt;
 			delete payload.updatedAt;
+			// Ensure primitive defaults on all skills
+			for (const s of (payload.skills || [])) {
+				if (typeof s.ppCost !== 'number') s.ppCost = 0;
+			}
+			if (typeof payload.spentAbilities !== 'number') payload.spentAbilities = 0;
+			if (typeof payload.totalSpent !== 'number') payload.totalSpent = 0;
+			// Ensure primitive defaults on equipment
+			if (payload.equipmentPool) {
+				if (typeof payload.equipmentPool.epSpent !== 'number') payload.equipmentPool.epSpent = 0;
+				if (typeof payload.equipmentPool.totalEpAllowed !== 'number') payload.equipmentPool.totalEpAllowed = 0;
+			}
+			for (const hq of (payload.headquarters || [])) {
+				if (typeof hq.totalEpCost !== 'number') hq.totalEpCost = 0;
+			}
 			if (payload.abilities) {
 				for (const k of Object.keys(payload.abilities)) {
 					if (typeof payload.abilities[k] === 'object') delete payload.abilities[k];
@@ -213,30 +474,9 @@
 					if (typeof payload.defenses[k] === 'object') delete payload.defenses[k];
 				}
 			}
-			// Strip Jackson-derived property names and ensure is-prefix versions are present
 			for (const p of (payload.powers || [])) {
-				delete p.array;
-				if (typeof p.isArray !== 'boolean') p.isArray = false;
-				for (const e of (p.effects || [])) {
-					delete e.primary;
-					if (typeof e.isPrimary !== 'boolean') e.isPrimary = false;
-					for (const m of (e.modifiers || [])) {
-						delete m.flat;
-						if (typeof m.isFlat !== 'boolean') m.isFlat = false;
-					}
-				}
-				for (const a of (p.alternateEffects || [])) {
-					for (const e of (a.effects || [])) {
-						delete e.primary;
-						if (typeof e.isPrimary !== 'boolean') e.isPrimary = false;
-						for (const m of (e.modifiers || [])) {
-							delete m.flat;
-							if (typeof m.isFlat !== 'boolean') m.isFlat = false;
-						}
-					}
-				}
+				normalizePowerForSave(p);
 			}
-			// Strip client-only fields before sending to backend
 			const updated = await api.character.update(draft.id, payload);
 			if (session.activeCharacter) {
 				Object.assign(session.activeCharacter, updated);
@@ -335,15 +575,33 @@
 		</EditableWrapper>
 
 		<ComicPanel header="&#9733; Conditions" color="red">
-			<div style="margin-bottom: 8px;">
-				<span class="action-word zap" style="font-size: 22px;">CONDITION</span>
+			<div style="margin-bottom: 6px;">
+				<span class="action-word zap" style="font-size: 20px;">STATUS</span>
+				<button class="reset-cond-btn" onclick={() => { activeConditions = new Set(); resetManeuvers(); }}>Reset</button>
 			</div>
-			<ConditionPip label="Normal" color="gray" />
-			<ConditionPip label="Fatigued / Exhausted" color="yellow" />
-			<ConditionPip label="Dazed / Stunned" color="red" />
-			<ConditionPip label="Incapacitated" color="black" />
-			<ConditionPip label="Hindered / Immobile" color="gray" />
-			<ConditionPip label="Vulnerable / Defenseless" color="red" />
+			{#each [
+				{ key: 'vulnerable' as ConditionKey, label: 'Vulnerable', desc: 'Halve Dodge & Parry', color: 'red' },
+				{ key: 'defenseless' as ConditionKey, label: 'Defenseless', desc: 'Dodge & Parry \u2192 0', color: 'black' },
+				{ key: 'impaired' as ConditionKey, label: 'Impaired', desc: '-2 to all checks', color: 'yellow' },
+				{ key: 'disabled' as ConditionKey, label: 'Disabled', desc: '-5 to all checks', color: 'red' },
+				{ key: 'hindered' as ConditionKey, label: 'Hindered', desc: 'Halve Speed', color: 'gray' },
+				{ key: 'dazed' as ConditionKey, label: 'Dazed', desc: 'Standard action only', color: 'yellow' },
+				{ key: 'stunned' as ConditionKey, label: 'Stunned', desc: 'No actions', color: 'red' },
+				{ key: 'fatigued' as ConditionKey, label: 'Fatigued', desc: '-1 to checks', color: 'yellow' },
+				{ key: 'exhausted' as ConditionKey, label: 'Exhausted', desc: '-2 to checks', color: 'red' },
+			] as item}
+				<label class="cond-check-row">
+					<input type="checkbox" checked={activeConditions.has(item.key)} onchange={() => toggleCondition(item.key)} />
+					<div class="cond-pip {item.color}"></div>
+					<span class="cond-label">{item.label}</span>
+					<span class="cond-desc">{item.desc}</span>
+				</label>
+			{/each}
+			{#if activeConditions.has('dazed') || activeConditions.has('stunned')}
+				<div class="action-warning">
+					{activeConditions.has('stunned') ? '⛔ STUNNED — No actions this round' : '⚠️ DAZED — Standard action only'}
+				</div>
+			{/if}
 		</ComicPanel>
 	</div>
 
@@ -354,12 +612,14 @@
 				<span class="action-word">WHAM!</span>
 				<span class="stat-hint">Stat values lead every module</span>
 			</div>
-			<div class="stat-row-6">
+			<div class="stat-row-8">
 				<StatBubble value={draft.abilities?.strengthFinalValue ?? 0} label="STR" color="danger" />
 				<StatBubble value={draft.abilities?.staminaFinalValue ?? 0} label="STA" color="default" />
 				<StatBubble value={draft.abilities?.agilityFinalValue ?? 0} label="AGL" color="default" />
+				<StatBubble value={draft.abilities?.dexterityFinalValue ?? 0} label="DEX" color="default" />
 				<StatBubble value={draft.abilities?.fightingFinalValue ?? 0} label="FGT" color="success" />
 				<StatBubble value={draft.abilities?.intellectFinalValue ?? 0} label="INT" color="secondary" />
+				<StatBubble value={draft.abilities?.awarenessFinalValue ?? 0} label="AWE" color="default" />
 				<StatBubble value={draft.abilities?.presenceFinalValue ?? 0} label="PRE" color="default" />
 			</div>
 		</ComicPanel>
@@ -371,31 +631,51 @@
 
 	<div class="panel-grid">
 		<EditableWrapper title="Defenses" isEditable={true} onSave={async () => {}}>
-			{#snippet children()}
+{#snippet children()}
+			{@const dd2 = getDefenseFinal('dodge', 'agility')}
+			{@const dp2 = getDefenseFinal('parry', 'fighting')}
+			{@const df2 = getDefenseFinal('fortitude', 'stamina')}
+			{@const dt2 = getToughnessFinal()}
+			{@const dw2 = getDefenseFinal('will', 'awareness')}
 			<ComicPanel header="&#9733; Defenses" color="blue">
 				<div class="def-row">
+					<button class="pwr-check" disabled={defOtherMods('dodge') === 0} class:checked={defOtherMods('dodge') !== 0 && activeDefensePowerMods.has('dodge')} onclick={() => toggleDefensePowerMod('dodge')}>{defOtherMods('dodge') !== 0 && activeDefensePowerMods.has('dodge') ? '✓' : ''}</button>
 					<span class="def-pill">Dodge</span>
-					<span class="input-box-demo">{draft.defenses?.dodgeFinalValue ?? 0}</span>
+					<span class="input-box-demo">{dd2.immune ? 'Immune' : dd2.value}</span>
+					<span class="dc-badge">DC {dd2.immune ? '—' : dd2.value + 10}</span>
 				</div>
 				<div class="def-row">
+					<button class="pwr-check" disabled={defOtherMods('parry') === 0} class:checked={defOtherMods('parry') !== 0 && activeDefensePowerMods.has('parry')} onclick={() => toggleDefensePowerMod('parry')}>{defOtherMods('parry') !== 0 && activeDefensePowerMods.has('parry') ? '✓' : ''}</button>
 					<span class="def-pill">Parry</span>
-					<span class="input-box-demo">{draft.defenses?.parryFinalValue ?? 0}</span>
+					<span class="input-box-demo">{dp2.immune ? 'Immune' : dp2.value}</span>
+					<span class="dc-badge">DC {dp2.immune ? '—' : dp2.value + 10}</span>
 				</div>
 				<div class="def-row">
+					<button class="pwr-check" disabled={defOtherMods('fortitude') === 0} class:checked={defOtherMods('fortitude') !== 0 && activeDefensePowerMods.has('fortitude')} onclick={() => toggleDefensePowerMod('fortitude')}>{defOtherMods('fortitude') !== 0 && activeDefensePowerMods.has('fortitude') ? '✓' : ''}</button>
 					<span class="def-pill green">Fortitude</span>
-					<span class="input-box-demo">{draft.defenses?.fortitudeFinalValue ?? 0}</span>
+					<span class="input-box-demo">{df2.immune ? 'Immune' : df2.value}</span>
+					<span class="dc-badge">DC {df2.immune ? '—' : df2.value + 10}</span>
 				</div>
 				<div class="def-row">
-					<span class="def-pill green">Toughness</span>
-					<span class="input-box-demo">{draft.defenses?.toughnessFinalValue ?? 0}</span>
+					<button class="pwr-check" disabled={defOtherMods('toughness') === 0} class:checked={defOtherMods('toughness') !== 0 && activeDefensePowerMods.has('toughness')} onclick={() => toggleDefensePowerMod('toughness')}>{defOtherMods('toughness') !== 0 && activeDefensePowerMods.has('toughness') ? '✓' : ''}</button>
+					<span class="def-pill">Toughness</span>
+					<span class="input-box-demo">{dt2.immune ? 'Immune' : dt2.value}</span>
+					<span class="dc-badge">DC {dt2.immune ? '—' : dt2.value + 10}</span>
 				</div>
 				<div class="def-row">
+					<button class="pwr-check" disabled={defOtherMods('will') === 0} class:checked={defOtherMods('will') !== 0 && activeDefensePowerMods.has('will')} onclick={() => toggleDefensePowerMod('will')}>{defOtherMods('will') !== 0 && activeDefensePowerMods.has('will') ? '✓' : ''}</button>
 					<span class="def-pill blue">Will</span>
-					<span class="input-box-demo">{draft.defenses?.willFinalValue ?? 0}</span>
+					<span class="input-box-demo">{dw2.immune ? 'Immune' : dw2.value}</span>
+					<span class="dc-badge">DC {dw2.immune ? '—' : dw2.value + 10}</span>
 				</div>
 				<hr class="divider" />
 				<div class="note-box">
-					<strong>Defense Bonus</strong> = 10 + ability modifier + ranks
+					Dodge = Agi + Pts + Pwr | Parry = Fgt + Pts + Pwr | Fort = Sta + Pts + Pwr | Will = Awe + Pts + Pwr | Tough = Sta + Pts + Pwr + DefRoll
+				</div>
+				<div class="pl-warnings">
+					<span class:pl-ok={plCaps.dodgeToughOk} class:pl-violation={!plCaps.dodgeToughOk}>Dodge+Tough {plCaps.dodgeTough}/{plCaps.cap}</span>
+					<span class:pl-ok={plCaps.parryToughOk} class:pl-violation={!plCaps.parryToughOk}>Parry+Tough {plCaps.parryTough}/{plCaps.cap}</span>
+					<span class:pl-ok={plCaps.fortWillOk} class:pl-violation={!plCaps.fortWillOk}>Fort+Will {plCaps.fortWill}/{plCaps.cap}</span>
 				</div>
 			</ComicPanel>
 			{/snippet}
@@ -405,12 +685,78 @@
 		</EditableWrapper>
 
 		<ComicPanel header="&#9733; Combat" color="red">
-			<div style="margin-bottom: 8px;">
-				<span class="action-word pow" style="font-size: 26px; display: inline;">POW!</span>
+			<div style="margin-bottom: 6px; display:flex; align-items:center; gap:12px;">
+				<span class="action-word pow" style="font-size: 22px;">POW!</span>
+				<div class="field-group" style="flex-direction:row;align-items:center;gap:4px;">
+					<div class="field-hdr" style="font-size:12px;">Initiative</div>
+					<span class="init-value">{getInitiative() >= 0 ? '+' : ''}{getInitiative()}</span>
+				</div>
 			</div>
-			<div class="field-group">
-				<div class="field-hdr">Initiative Bonus</div>
-				<span class="input-box-demo" style="width:60px;height:44px;">{abilityMod(draft.abilities?.agilityFinalValue ?? 0)}</span>
+			<div class="maneuver-bar">
+				<span class="maneuver-hdr">Maneuvers</span>
+				<div class="maneuver-row">
+					<label class="maneuver-btn" class:active={allOutAttack > 0}>
+						All-out
+						<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={allOutAttack} />
+					</label>
+					<label class="maneuver-btn" class:active={powerAttack > 0}>
+						Power
+						<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={powerAttack} />
+					</label>
+					<label class="maneuver-btn" class:active={accurateAttack > 0}>
+						Accurate
+						<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={accurateAttack} />
+					</label>
+					<label class="maneuver-btn" class:active={defensiveAttack > 0}>
+						Defensive
+						<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={defensiveAttack} />
+					</label>
+					<button class="maneuver-reset" onclick={resetManeuvers}>Reset</button>
+				</div>
+				<div class="maneuver-shift">
+					{allOutAttack + accurateAttack > 0 ? `Attack: +${allOutAttack + accurateAttack}` : ''}
+					{powerAttack + defensiveAttack > 0 ? ` / ` : ''}
+					{powerAttack + accurateAttack > 0 ? '' : ''}
+					{allOutAttack + defensiveAttack > 0 ? `Defense: -${allOutAttack + defensiveAttack}` : ''}
+					{powerAttack > 0 ? `DC: +${powerAttack}` : ''}
+					{accurateAttack > 0 ? `DC: -${accurateAttack}` : ''}
+				</div>
+			</div>
+			<div class="attacks-list">
+				<div class="atk-hdr-row">
+					<span class="atk-hdr">Action</span>
+					<span class="atk-hdr">Bonus</span>
+					<span class="atk-hdr">Resist</span>
+					<span class="atk-hdr">DC</span>
+				</div>
+				{#each attackActions as atk}
+					<div class="atk-card" class:ranged={atk.range === 'ranged'}>
+						<div class="atk-name">{atk.name}</div>
+						<div class="atk-bonus">{atk.autoHit ? 'Auto' : atk.attackBonus >= 0 ? '+' + atk.attackBonus : String(atk.attackBonus)}</div>
+						<div class="atk-resist">{atk.resistance}</div>
+						<div class="atk-dc">{atk.resistanceDC > 0 ? atk.resistanceDC : '—'}</div>
+						{#if atk.descriptors.length}
+							<div class="atk-desc">{atk.descriptors.join(', ')}</div>
+						{/if}
+					</div>
+				{/each}
+				{#if selectableEffects.length > 0}
+					<div class="atk-select-bar">
+						<button class="select-atk-btn" onclick={() => showAttackSelector = !showAttackSelector}>
+							{showAttackSelector ? '▼' : '▶'} Select Attacks
+						</button>
+					</div>
+					{#if showAttackSelector}
+						<div class="atk-select-list">
+							{#each selectableEffects as se}
+								<label class="atk-select-item" class:active={se.effect._showInCombat}>
+									<input type="checkbox" checked={se.effect._showInCombat} onchange={() => se.effect._showInCombat = !se.effect._showInCombat} />
+									<span class="atk-select-name">{se.powerName} — {se.effectName}</span>
+								</label>
+							{/each}
+						</div>
+					{/if}
+				{/if}
 			</div>
 		</ComicPanel>
 	</div>
@@ -521,12 +867,35 @@
 								{#each power.effects as effect}
 									<div class="effect-line">
 										<span class="effect-name">{effect.effectName}</span>
+										{#if effect.isSummon}<span class="summon-badge">Summon</span>{/if}
 										<span class="effect-detail">Rank {effect.rank} &middot; {effect.baseCostPerRank} PP/r &middot; <strong>{effect.calculatedCost} PP</strong></span>
 										{#if effect.modifiers?.length}
 											<div class="modifier-line">
 												{#each effect.modifiers as mod}
 													<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.isFlat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
 												{/each}
+											</div>
+										{/if}
+										{#if effect.isSummon && effect.summonExtension}
+											<div class="summon-block">
+												<div class="summon-info">Summon Rank {effect.summonExtension.summonRank} &middot; {effect.summonExtension.minionPpBudget} PP Minion</div>
+												{#if effect.summonExtension.minionStatBlock}
+													{@const sb = effect.summonExtension.minionStatBlock}
+													<div class="minion-statblock">
+														<div class="minion-stat-name">{sb.name}</div>
+														<div class="minion-stat-row"><span class="minion-stat-lbl">STR</span><span class="minion-stat-val">{sb.abilities.strengthFinalValue}</span><span class="minion-stat-lbl">STA</span><span class="minion-stat-val">{sb.abilities.staminaFinalValue}</span><span class="minion-stat-lbl">AGL</span><span class="minion-stat-val">{sb.abilities.agilityFinalValue}</span><span class="minion-stat-lbl">DEX</span><span class="minion-stat-val">{sb.abilities.dexterityFinalValue}</span><span class="minion-stat-lbl">FGT</span><span class="minion-stat-val">{sb.abilities.fightingFinalValue}</span><span class="minion-stat-lbl">INT</span><span class="minion-stat-val">{sb.abilities.intellectFinalValue}</span><span class="minion-stat-lbl">AWE</span><span class="minion-stat-val">{sb.abilities.awarenessFinalValue}</span><span class="minion-stat-lbl">PRE</span><span class="minion-stat-val">{sb.abilities.presenceFinalValue}</span></div>
+														<div class="minion-stat-row"><span class="minion-stat-lbl">Dodge</span><span class="minion-stat-val">{sb.defenses.dodgeFinalValue}</span><span class="minion-stat-lbl">Parry</span><span class="minion-stat-val">{sb.defenses.parryFinalValue}</span><span class="minion-stat-lbl">Fort</span><span class="minion-stat-val">{sb.defenses.fortitudeFinalValue}</span><span class="minion-stat-lbl">Tough</span><span class="minion-stat-val">{sb.defenses.toughnessFinalValue}</span><span class="minion-stat-lbl">Will</span><span class="minion-stat-val">{sb.defenses.willFinalValue}</span></div>
+														{#if sb.skills?.length}
+															<div class="minion-stat-row"><span class="minion-stat-lbl">Skills</span><span class="minion-stat-skills">{sb.skills.map(s => s.skillName + (s.ranks ? ' ' + s.ranks : '')).join(', ')}</span></div>
+														{/if}
+														{#if sb.advantages?.length}
+															<div class="minion-stat-row"><span class="minion-stat-lbl">Adv</span><span class="minion-stat-skills">{sb.advantages.map(a => a.name + (a.ranks > 1 ? ' ' + a.ranks : '')).join(', ')}</span></div>
+														{/if}
+														{#if sb.powers?.length}
+															<div class="minion-stat-row"><span class="minion-stat-lbl">Powers</span><span class="minion-stat-skills">{sb.powers.map(p => p.name).join(', ')}</span></div>
+														{/if}
+													</div>
+												{/if}
 											</div>
 										{/if}
 									</div>
@@ -537,7 +906,7 @@
 										<div class="alt-effect-block">
 											<div class="alt-header">
 												<span class="alt-name">{alt.name}</span>
-												<span class="alt-meta">{alt.arrayType === 'DYNAMIC' ? 'Dynamic' : 'Alternate'} &middot; {alt.costPerRank} PP/r &middot; <strong>{alt.costPerRank * (alt.currentAllocatedRank || alt.effects[0]?.rank || 0)} PP</strong></span>
+												<span class="alt-meta">{alt.arrayType === 'DYNAMIC' ? 'Dynamic' : 'Alternate'} &middot; <strong>{alt.effects.reduce((s, e) => s + (e.calculatedCost ?? 0), 0)} PP</strong></span>
 											</div>
 											{#if alt.description}<div class="alt-desc">{alt.description}</div>{/if}
 											{#each alt.effects as effect}
@@ -630,7 +999,7 @@
 		background: var(--newsprint);
 		padding: 20px;
 		width: 100%;
-		max-width: 1200px;
+		max-width: 90vw;
 	}
 
 	.speech-bubble {
@@ -670,6 +1039,7 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 14px;
+		margin-top: 20px;
 		margin-bottom: 14px;
 	}
 
@@ -702,9 +1072,9 @@
 		color: var(--accent);
 	}
 
-	.stat-row-6 {
+	.stat-row-8 {
 		display: grid;
-		grid-template-columns: repeat(6, 1fr);
+		grid-template-columns: repeat(4, 1fr);
 		gap: 8px;
 	}
 
@@ -840,11 +1210,17 @@
 	}
 
 	.def-row {
-		display: flex;
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr 1fr;
+		gap: 8px;
 		align-items: center;
-		justify-content: space-between;
+		justify-items: center;
 		margin-bottom: 8px;
 	}
+	.pwr-check { width:18px; height:18px; border:2px solid var(--border); border-radius:3px; background:transparent; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:var(--panel-bg); line-height:1; transition:all 0.15s; }
+	.pwr-check.checked { background:var(--secondary); border-color:var(--secondary); }
+	.pwr-check:disabled { opacity:0.35; cursor:default; }
+
 
 	.def-pill {
 		display: inline-block;
@@ -862,6 +1238,12 @@
 	}
 	.def-pill.green { border-color: var(--success); color: var(--success); background: var(--panel-bg); }
 	.def-pill.blue { border-color: var(--secondary); color: var(--secondary); background: var(--panel-bg); }
+
+	.dc-badge { font-family:'Oswald',sans-serif; font-size:13px; font-weight:700; color:var(--ink); background:color-mix(in srgb, var(--ink) 8%, transparent); padding:2px 8px; border-radius:4px; margin-left:4px; white-space:nowrap; }
+
+	.pl-warnings { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; font-family:'Oswald',sans-serif; font-size:12px; font-weight:600; }
+	.pl-ok { color:var(--success); }
+	.pl-violation { color:var(--danger); }
 
 	.advantage-row {
 		display: flex;
@@ -954,6 +1336,16 @@
 		color: var(--accent);
 		margin-left: 6px;
 	}
+	.summon-badge { display:inline-block; font-family:'Oswald',sans-serif; font-size:8px; font-weight:700; color:white; background:var(--secondary); padding:1px 5px; margin-left:4px; text-transform:uppercase; letter-spacing:0.05em; vertical-align:middle; }
+	.summon-block { margin:3px 0 2px 8px; padding:3px 6px; background:color-mix(in srgb, var(--secondary) 10%, transparent); border-left:2px solid var(--secondary); }
+	.summon-info { font-family:'Oswald',sans-serif; font-size:10px; font-weight:700; color:var(--secondary); text-transform:uppercase; letter-spacing:0.05em; }
+	.minion-name { font-family:'Nunito',sans-serif; font-size:11px; color:var(--ink); margin-top:1px; }
+	.minion-statblock { margin-top:3px; padding:4px; background:color-mix(in srgb, var(--panel-bg) 60%, transparent); border:1.5px solid var(--border); }
+	.minion-stat-name { font-family:'Bangers',cursive; font-size:12px; color:var(--accent); margin-bottom:2px; }
+	.minion-stat-row { display:flex; flex-wrap:wrap; gap:2px 6px; margin-bottom:1px; font-family:'Oswald',sans-serif; font-size:12px; }
+	.minion-stat-lbl { font-weight:700; color:var(--ink); opacity:.7; }
+	.minion-stat-val { font-weight:700; color:var(--ink); margin-right:6px; }
+	.minion-stat-skills { font-family:'Nunito',sans-serif; font-size:12px; color:var(--ink); }
 	.modifier-line {
 		display: flex;
 		flex-wrap: wrap;
@@ -1234,10 +1626,11 @@
 	.priority-label {
 		font-family: 'Oswald', sans-serif;
 		font-size: 12px;
-		font-weight: 700;
-		color: var(--accent);
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
+			font-weight: 700;
+			color: var(--accent);
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+			margin-bottom: 2px;
 	}
 	.priority-item {
 		display: flex;
@@ -1347,4 +1740,46 @@
 		color: var(--highlight);
 		letter-spacing: 0.04em;
 	}
+	/* ── Condition Checkboxes ── */
+	.cond-check-row { display:flex; align-items:center; gap:6px; padding:3px 0; border-bottom:1.5px dashed var(--border); cursor:pointer; }
+	.cond-check-row input[type="checkbox"] { accent-color:var(--primary); cursor:pointer; }
+	.cond-pip { width:10px; height:10px; border-radius:50%; border:1.5px solid var(--border); flex-shrink:0; }
+	.cond-pip.red { background:var(--danger); }
+	.cond-pip.yellow { background:var(--highlight); }
+	.cond-pip.gray { background:var(--accent); }
+	.cond-pip.black { background:var(--border); }
+	.cond-label { font-family:'Nunito',sans-serif; font-size:13px; font-weight:600; color:var(--ink); min-width:80px; }
+	.cond-desc { font-family:'Nunito',sans-serif; font-size:11px; color:var(--accent); opacity:.7; }
+	.reset-cond-btn { background:var(--panel-bg); border:1.5px solid var(--border); color:var(--accent); font-family:'Oswald',sans-serif; font-size:10px; font-weight:700; padding:2px 8px; cursor:pointer; margin-left:auto; }
+	.action-warning { margin-top:6px; padding:4px 8px; background:var(--danger); color:white; font-family:'Bangers',cursive; font-size:14px; text-align:center; letter-spacing:0.06em; }
+	/* ── Maneuvers ── */
+	.maneuver-bar { margin:6px 0; padding:6px; border:1.5px dashed var(--border); background:color-mix(in srgb, var(--panel-bg) 60%, transparent); }
+	.maneuver-hdr { font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; display:block; }
+	.maneuver-row { display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
+	.maneuver-btn { display:flex; align-items:center; gap:3px; font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; color:var(--ink); padding:2px 6px; border:1.5px solid var(--border); background:var(--newsprint); cursor:pointer; }
+	.maneuver-btn.active { border-color:var(--primary); background:color-mix(in srgb, var(--primary) 20%, transparent); }
+	.maneuver-input { width:28px; padding:1px 2px; border:none; font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; color:var(--ink); background:transparent; text-align:center; outline:none; }
+	.maneuver-reset { background:var(--panel-bg); border:1.5px solid var(--border); color:var(--accent); font-family:'Oswald',sans-serif; font-size:10px; font-weight:700; padding:2px 8px; cursor:pointer; }
+	.maneuver-shift { font-family:'Nunito',sans-serif; font-size:11px; color:var(--accent); margin-top:2px; }
+	/* ── Combat / Initiative ── */
+	.init-value { font-family:'Bangers',cursive; font-size:22px; color:var(--success); display:inline-block; min-width:36px; text-align:center; }
+	/* ── Attack Cards ── */
+	.attacks-list { display:flex; flex-direction:column; gap:3px; max-height:320px; overflow-y:auto; scrollbar-width:none; }
+	.atk-hdr-row { display:grid; grid-template-columns:1fr 44px 72px 44px; gap:4px; padding:3px 4px; border-bottom:2px solid var(--border); font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.06em; }
+	.atk-card { display:grid; grid-template-columns:1fr 44px 72px 44px; gap:4px; align-items:center; padding:3px 4px; border:1.5px solid var(--border); background:color-mix(in srgb, var(--panel-bg) 60%, transparent); }
+	.atk-card.ranged { border-left:3px solid var(--primary); }
+	.atk-name { font-family:'Nunito',sans-serif; font-size:12px; font-weight:600; color:var(--ink); grid-column:1; }
+	.atk-bonus { font-family:'Bangers',cursive; font-size:16px; color:var(--success); text-align:center; }
+	.atk-resist { font-family:'Oswald',sans-serif; font-size:10px; font-weight:700; color:var(--accent); text-align:center; }
+	.atk-dc { font-family:'Bangers',cursive; font-size:16px; color:var(--danger); text-align:center; }
+	.atk-desc { grid-column:1/-1; font-family:'Nunito',sans-serif; font-size:10px; color:var(--accent); opacity:.6; }
+	.atk-empty { font-family:'Nunito',sans-serif; font-size:12px; color:var(--accent); padding:8px; text-align:center; }
+	.atk-select-bar { margin-top:4px; }
+	.select-atk-btn { background:var(--panel-bg); border:1.5px solid var(--border); color:var(--accent); font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; padding:3px 10px; cursor:pointer; width:100%; text-align:left; letter-spacing:0.04em; }
+	.select-atk-btn:hover { border-color:var(--primary); color:var(--ink); }
+	.atk-select-list { margin-top:2px; border:1.5px solid var(--border); background:color-mix(in srgb, var(--panel-bg) 50%, transparent); max-height:200px; overflow-y:auto; }
+	.atk-select-item { display:flex; align-items:center; gap:6px; padding:3px 6px; cursor:pointer; font-family:'Nunito',sans-serif; font-size:11px; color:var(--ink); border-bottom:1px solid var(--border); }
+	.atk-select-item.active { background:color-mix(in srgb, var(--danger) 12%, transparent); }
+	.atk-select-item input[type="checkbox"] { accent-color:var(--danger); cursor:pointer; }
+	.atk-select-name { flex:1; }
 </style>

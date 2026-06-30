@@ -56,7 +56,7 @@
 			<div class="field"><label class="field-label">Size Cost</label><input type="number" class="num-input" bind:value={hq.sizeCost} min="0" /></div>
 			<div class="field"><label class="field-label">Toughness</label><input type="number" class="num-input" bind:value={hq.toughnessValue} min="0" /></div>
 			<div class="field"><label class="field-label">Toughness Cost</label><input type="number" class="num-input" bind:value={hq.toughnessCost} min="0" /></div>
-			<div class="field"><label class="field-label">Total EP</label><input type="number" class="num-input" bind:value={hq.totalEpCost} min="0" /></div>
+			<div class="field"><label class="field-label">Total EP</label><span class="sum-display">{hq.totalEpCost}</span></div>
 		</div>
 		<div class="field"><label class="field-label">Description</label><textarea class="desc-input" bind:value={hq.description} placeholder="Description"></textarea></div>
 		<div class="field"><label class="field-label">Features</label>
@@ -119,4 +119,5 @@
 	.add-small-btn { background:var(--primary); border:2px solid var(--border); color:white; font-family:'Oswald',sans-serif; font-size:12px; font-weight:700; padding:3px 8px; cursor:pointer; align-self:flex-start; letter-spacing:0.04em; }
 	.add-btn { background:var(--primary); border:2px solid var(--border); color:white; font-family:'Oswald',sans-serif; font-size:12px; font-weight:700; padding:6px 12px; cursor:pointer; align-self:flex-start; letter-spacing:0.04em; }
 	.check-row { display:flex; align-items:center; gap:6px; font-family:'Nunito',sans-serif; font-size:12px; color:var(--ink); cursor:pointer; }
+	.sum-display { font-family:'Bangers',cursive; font-size:16px; color:var(--primary); padding:2px 0; }
 </style>

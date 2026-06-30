@@ -20,13 +20,7 @@
 
 {#if isEditable}
 	<div class="edit-wrap">
-		<div
-			class="click-area"
-			onclick={() => editOpen = true}
-			onkeydown={(e) => e.key === 'Enter' && (editOpen = true)}
-			role="button"
-			tabindex={0}
-		>
+		<div class="click-area">
 			{@render children?.()}
 		</div>
 		<button
@@ -47,10 +41,7 @@
 	.edit-wrap {
 		position: relative;
 	}
-	.click-area {
-		cursor: pointer;
-		outline: none;
-	}
+
 	.edit-btn {
 		position: absolute;
 		top: -4px;

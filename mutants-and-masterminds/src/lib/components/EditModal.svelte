@@ -78,8 +78,8 @@
 		background: var(--panel-bg);
 		border: 3px solid var(--border);
 		box-shadow: 6px 6px 0 var(--border);
-		width: 90%;
-		max-width: 70vw;
+		width: 80%;
+		max-width: 60vw;
 		max-height: 80vh;
 		overflow-y: auto;
 		scrollbar-width: none;

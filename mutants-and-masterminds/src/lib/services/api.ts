@@ -130,6 +130,7 @@ export interface Skill {
 	ranks: number;
 	modifier: number;
 	finalBonus: number;
+	ppCost: number;
 }
 
 export interface Advantage {
@@ -145,14 +146,45 @@ export interface PowerModifier {
 	isFlat: boolean;
 }
 
+export interface SummonExtension {
+	summonRank: number;
+	minionPpBudget: number;
+	minionStatBlock?: MinionStatBlock;
+}
+
+export interface MinionStatBlock {
+	name: string;
+	powerLevel: number;
+	abilities: AbilitiesBlock;
+	defenses: DefensesBlock;
+	skills: Skill[];
+	advantages: Advantage[];
+	powers: Power[];
+	combatState: CombatState;
+	totalPpSpent: number;
+}
+
 export interface PowerEffect {
 	effectName: string;
-	baseEffect: string;
-	isPrimary: boolean;
+	effectType: string;
 	rank: number;
 	baseCostPerRank: number;
 	modifiers: PowerModifier[];
 	calculatedCost: number;
+	isPrimary: boolean;
+	isSummon: boolean;
+	summonExtension?: SummonExtension;
+
+	// Active state flags
+	_showInCombat?: boolean;
+	_isThrownWeapon?: boolean;
+}
+
+export interface CombatState {
+	conditions: string[];
+	damage: number;
+	dying: number;
+	staggered: boolean;
 }
 
 export interface AlternateEffect {

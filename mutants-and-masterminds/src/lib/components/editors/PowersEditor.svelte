@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { Power, PowerEffect, PowerModifier, AlternateEffect } from '$lib/services/api';
+	import { createDefaultMinionStatblock } from '$lib/utils/character';
+	import MinionEditor from './MinionEditor.svelte';
 
 	let {
 		powers
@@ -47,10 +49,24 @@
 				alt.currentAllocatedRank = alt.effects[0]?.rank ?? 0;
 			}
 			for (const e of power.effects) {
+				if (e.effectName.toLowerCase() === 'summon') e.isSummon = true;
 				e.calculatedCost = effectCost(e);
+				if (e.isSummon && e.summonExtension) {
+					e.summonExtension.summonRank = e.rank;
+					e.summonExtension.minionPpBudget = e.rank * 15;
+					if (!e.summonExtension.minionStatBlock) {
+						e.summonExtension.minionStatBlock = createDefaultMinionStatblock(e.rank);
+					}
+				}
 			}
 		}
 	});
+
+	let collapsedPowers = $state<Record<number, boolean>>({});
+
+	function togglePowerCollapse(i: number) {
+		collapsedPowers = { ...collapsedPowers, [i]: !collapsedPowers[i] };
+	}
 
 	function addPower() {
 		powers.push({
@@ -83,6 +99,7 @@
 			baseCostPerRank: 2,
 			modifiers: [],
 			calculatedCost: 0,
+			isSummon: false,
 		});
 	}
 
@@ -124,14 +141,16 @@
 <div class="editor-grid">
 	{#each powers as power, i}
 		<div class="power-card">
-			<div class="power-header">
-				<input type="text" class="power-name-input" bind:value={power.name} placeholder="Power name" />
+			<div class="power-header" onclick={() => togglePowerCollapse(i)} role="button" tabindex="0" onkeydown={(e) => e.key === 'Enter' && togglePowerCollapse(i)}>
+				<span class="collapse-icon">{collapsedPowers[i] ? '\u25B6' : '\u25BC'}</span>
+				<input type="text" class="power-name-input" bind:value={power.name} placeholder="Power name" onclick={(e) => e.stopPropagation()} />
 				<label class="array-toggle">
 					<input type="checkbox" checked={power.isArray} onchange={() => toggleArray(power)} />
 					<span class="array-label">Array</span>
 				</label>
 				<button class="remove-btn" onclick={() => removePower(i)}>&#10005;</button>
 			</div>
+			{#if !collapsedPowers[i]}
 			<textarea class="desc-textarea" bind:value={power.description} placeholder="What does this power do?" rows="2"></textarea>
 			<div class="descriptors-row">
 							<input type="text" class="desc-input" value={power.descriptors?.[0] ?? ''}
@@ -149,9 +168,11 @@
 				<div class="effects-head">{power.isArray ? 'Active Slot Effects' : 'Effects'}</div>
 				{#each power.effects as effect, ei}
 					<div class="effect-card">
-						<div class="effect-row">
-							<input type="text" class="effect-input" bind:value={effect.effectName} placeholder="Effect name" />
-							<div class="effect-meta">
+								<div class="effect-row">
+								<input type="text" class="effect-input" bind:value={effect.effectName} placeholder="Effect name" />
+								<button class="combat-toggle" class:active={effect._showInCombat} onclick={() => effect._showInCombat = !effect._showInCombat} title="Show in combat">⚔</button>
+								<button class="combat-toggle" class:active={effect._isThrownWeapon} onclick={() => effect._isThrownWeapon = !effect._isThrownWeapon} title="Strength-based damage">💪</button>
+								<div class="effect-meta">
 								<label class="sm-label">Rank</label>
 								<input type="number" class="sm-input sm-input-sm" bind:value={effect.rank} />
 								<label class="sm-label">PP/r</label>
@@ -181,6 +202,32 @@
 							{/each}
 							<button class="add-mod-btn" onclick={() => addModifier(effect)}>+ Modifier</button>
 						</div>
+						{#if effect.effectName?.toLowerCase() === 'summon' || effect.isSummon}
+						<label class="summon-toggle">
+							<input type="checkbox" bind:checked={effect.isSummon} />
+							<span class="sm-label">Summon</span>
+						</label>
+						{#if effect.isSummon}
+							{@const summonRank = effect.rank}
+							{@const ppBudget = summonRank * 15}
+							<div class="summon-section">
+								<div class="summon-head">Minion &middot; PL {summonRank} &middot; {ppBudget} PP</div>
+								{#if !effect.summonExtension}
+									{@const _ = effect.summonExtension = { summonRank, minionPpBudget: ppBudget, minionStatBlock: createDefaultMinionStatblock(summonRank) }}
+								{/if}
+								{#if effect.summonExtension}
+									{@const se = effect.summonExtension}
+									<input type="text" class="summon-name-input" value={se.minionStatBlock?.name ?? ''}
+										oninput={(e) => { const v = (e.target as HTMLInputElement).value; if (se.minionStatBlock) se.minionStatBlock.name = v; }}
+										placeholder="Minion name" />
+									<button class="edit-minion-btn" onclick={() => { (se as any)._expanded = !(se as any)._expanded; }} type="button">{(se as any)._expanded ? 'Collapse Minion' : 'Edit Minion'}</button>
+									{#if (se as any)._expanded && se.minionStatBlock}
+										<div class="minion-expanded"><MinionEditor minion={se.minionStatBlock} /></div>
+									{/if}
+								{/if}
+							</div>
+						{/if}
+						{/if}
 					</div>
 				{/each}
 				<button class="add-effect-btn" onclick={() => addEffect(power.effects)}>+ Effect</button>
@@ -214,9 +261,11 @@
 							<div class="alt-effects-list">
 								{#each alt.effects as effect, ei}
 									<div class="effect-card">
-										<div class="effect-row">
-											<input type="text" class="effect-input" bind:value={effect.effectName} placeholder="Effect name" />
-											<div class="effect-meta">
+												<div class="effect-row">
+													<input type="text" class="effect-input" bind:value={effect.effectName} placeholder="Effect name" />
+													<button class="combat-toggle" class:active={effect._showInCombat} onclick={() => effect._showInCombat = !effect._showInCombat} title="Show in combat">⚔</button>
+													<button class="combat-toggle" class:active={effect._isThrownWeapon} onclick={() => effect._isThrownWeapon = !effect._isThrownWeapon} title="Strength-based damage">💪</button>
+													<div class="effect-meta">
 												<label class="sm-label">Rank</label>
 												<input type="number" class="sm-input sm-input-sm" bind:value={effect.rank} />
 												<label class="sm-label">PP/r</label>
@@ -254,6 +303,7 @@
 					{/each}
 					<button class="add-alt-btn" onclick={() => addAlternateEffect(power)}>+ Alternate Effect</button>
 				</div>
+			{/if}
 			{/if}
 		</div>
 	{/each}
@@ -582,4 +632,15 @@
 		padding: 3px 8px;
 		margin-top: 2px;
 	}
+	.summon-toggle { display:flex; align-items:center; gap:4px; margin-top:4px; padding:4px 6px; background:color-mix(in srgb, var(--secondary) 15%, transparent); border:1.5px solid var(--secondary); cursor:pointer; }
+	.summon-section { margin-top:4px; padding:6px; border:1.5px solid var(--secondary); background:color-mix(in srgb, var(--panel-bg) 50%, transparent); }
+	.summon-head { font-family:'Oswald',sans-serif; font-size:13px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; }
+	.summon-name-input { width:100%; padding:4px 8px; border:2px solid var(--border); font-family:'Nunito',sans-serif; font-size:13px; color:var(--ink); background:var(--newsprint); outline:none; box-sizing:border-box; }
+	.summon-name-input:focus { border-color:var(--secondary); }
+	.edit-minion-btn { width:100%; margin-top:4px; background:var(--secondary); border:2px solid var(--border); color:white; font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; padding:4px 0; cursor:pointer; }
+	.minion-expanded { margin-top:6px; padding:8px; border:2px solid var(--secondary); background:color-mix(in srgb, var(--panel-bg) 50%, transparent); max-height:400px; overflow-y:auto; }
+	.power-header { cursor:pointer; }
+	.collapse-icon { font-size:10px; color:var(--accent); margin-right:2px; }
+	.combat-toggle { background:none; border:1.5px solid var(--border); border-radius:4px; font-size:14px; cursor:pointer; padding:1px 5px; line-height:1; opacity:.4; transition:opacity .15s; }
+	.combat-toggle.active { opacity:1; border-color:var(--danger); background:color-mix(in srgb, var(--danger) 15%, transparent); }
 </style>

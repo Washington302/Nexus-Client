@@ -33,6 +33,7 @@
 			ranks: 0,
 			modifier: 0,
 			finalBonus: 0,
+			ppCost: 0,
 		});
 	}
 
@@ -46,7 +47,8 @@
 		<span class="header-cell">Skill</span>
 		<span class="header-cell center">Ranks</span>
 		<span class="header-cell center">Key</span>
-		<span class="header-cell center" style="width:26px;"></span>
+		<span class="header-cell center">Mod</span>
+		<span class="header-cell center"></span>
 	</div>
 	{#each skills as skill, i}
 		<div class="skill-row">
@@ -57,6 +59,7 @@
 					<option value={opt.value}>{opt.label}</option>
 				{/each}
 			</select>
+			<input type="number" class="ranks-input" bind:value={skill.modifier} />
 			<button class="remove-btn" onclick={() => removeSkill(i)}>&#10005;</button>
 		</div>
 	{/each}
@@ -71,8 +74,8 @@
 	}
 	.header-row {
 		display: grid;
-		grid-template-columns: 1fr 60px 50px 26px;
-		gap: 6px;
+		grid-template-columns: 1fr 60px 56px 56px 30px;
+		gap: 8px;
 		border-bottom: 2px solid var(--border);
 		padding-bottom: 4px;
 		margin-bottom: 2px;
@@ -85,21 +88,22 @@
 		color: var(--accent);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
+		white-space: nowrap;
 	}
 	.header-cell.center { text-align: center; }
 	.skill-row {
 		display: grid;
-		grid-template-columns: 1fr 60px 50px 26px;
-		gap: 6px;
+		grid-template-columns: 1fr 60px 56px 56px 30px;
+		gap: 8px;
 		align-items: center;
 		padding: 3px 0;
 	}
 	.skill-input {
 		width: 100%;
-		padding: 3px 6px;
+		padding: 2px 6px;
 		border: 2px solid var(--border);
 		font-family: 'Nunito', sans-serif;
-		font-size: 15px;
+		font-size: 13px;
 		color: var(--ink);
 		background: var(--newsprint);
 		outline: none;
@@ -109,10 +113,10 @@
 	}
 	.ranks-input {
 		width: 100%;
-		padding: 3px 6px;
+		padding: 2px 6px;
 		border: 2px solid var(--border);
 		font-family: 'Oswald', sans-serif;
-		font-size: 14px;
+		font-size: 12px;
 		font-weight: 700;
 		color: var(--ink);
 		background: var(--newsprint);
@@ -124,10 +128,10 @@
 	}
 	.ability-select {
 		width: 100%;
-		padding: 3px 4px;
+		padding: 2px 4px;
 		border: 2px solid var(--border);
 		font-family: 'Oswald', sans-serif;
-		font-size: 15px;
+		font-size: 12px;
 		font-weight: 700;
 		color: var(--primary);
 		background: var(--newsprint);
