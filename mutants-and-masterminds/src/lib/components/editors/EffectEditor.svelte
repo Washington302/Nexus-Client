@@ -1,11 +1,20 @@
 <script lang="ts">
 	import ModifierRow from './ModifierRow.svelte';
 	import MinionEditor from './MinionEditor.svelte';
+	import { createDefaultModifier } from '$lib/utils/character';
 
-	let { effect, onRemove }: { effect: any; onRemove: () => void } = $props();
+	let {
+		effect,
+		onRemove,
+		allowNestedSummon = true,
+	}: {
+		effect: any;
+		onRemove: () => void;
+		allowNestedSummon?: boolean;
+	} = $props();
 
 	function addModifier() {
-		effect.modifiers.push({ name: '', type: 'EXTRA', costModifier: 1, isFlat: false });
+		effect.modifiers.push(createDefaultModifier());
 	}
 
 	function removeModifier(mi: number) {
@@ -62,9 +71,13 @@
 						value={se.minionStatBlock?.name ?? ''}
 						oninput={(e) => { const v = (e.target as HTMLInputElement).value; if (se.minionStatBlock) se.minionStatBlock.name = v; }}
 						placeholder="Minion name" />
-					<button class="edit-minion-btn" onclick={() => { (se as any)._expanded = !(se as any)._expanded; }} type="button">{(se as any)._expanded ? 'Collapse Minion' : 'Edit Minion'}</button>
-					{#if (se as any)._expanded && se.minionStatBlock}
-						<div class="minion-expanded"><MinionEditor minion={se.minionStatBlock} /></div>
+					{#if allowNestedSummon}
+						<button class="edit-minion-btn" onclick={() => { (se as any)._expanded = !(se as any)._expanded; }} type="button">{(se as any)._expanded ? 'Collapse Minion' : 'Edit Minion'}</button>
+						{#if (se as any)._expanded && se.minionStatBlock}
+							<div class="minion-expanded"><MinionEditor minion={se.minionStatBlock} /></div>
+						{/if}
+					{:else}
+						<div class="summon-note">Minions can't have their own summonable minions.</div>
 					{/if}
 				{/if}
 			</div>

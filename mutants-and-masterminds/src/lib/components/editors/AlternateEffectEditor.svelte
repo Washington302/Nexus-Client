@@ -1,14 +1,19 @@
 <script lang="ts">
 	import EffectEditor from './EffectEditor.svelte';
+	import { createDefaultEffect } from '$lib/utils/character';
 
-	let { alt, onRemove }: { alt: any; onRemove: () => void } = $props();
+	let {
+		alt,
+		onRemove,
+		allowNestedSummon = true,
+	}: {
+		alt: any;
+		onRemove: () => void;
+		allowNestedSummon?: boolean;
+	} = $props();
 
 	function addEffect() {
-		alt.effects.push({
-			effectName: '', baseEffect: '', isPrimary: alt.effects.length === 0,
-			rank: 1, baseCostPerRank: 2, modifiers: [], calculatedCost: 0, isSummon: false,
-			manualAtkBonus: 0, manualRankBonus: 0,
-		});
+		alt.effects.push(createDefaultEffect(alt.effects.length === 0));
 	}
 
 	function removeEffect(ei: number) {

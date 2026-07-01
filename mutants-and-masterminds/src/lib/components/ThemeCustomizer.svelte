@@ -89,7 +89,7 @@
 		<div class="preview-grid">
 			<div class="preview-panel" style="border-color: {draft.border}; box-shadow: 3px 3px 0 {draft.border};">
 				<div class="preview-header" style="background: {draft.primary}; border-bottom-color: {draft.border};">
-					&#9733; Identity
+					★ Identity
 				</div>
 				<div class="preview-body" style="background: {draft.panelBg}; color: {draft.ink};">
 					<span class="preview-title" style="color: {draft.accent}; text-shadow: 1px 1px 0 rgba(0,0,0,0.4);">Captain Nova</span>
@@ -107,7 +107,7 @@
 
 			<div class="preview-panel" style="border-color: {draft.border}; box-shadow: 3px 3px 0 {draft.border};">
 				<div class="preview-header" style="background: {draft.danger}; border-bottom-color: {draft.border};">
-					&#9733; Combat
+					★ Combat
 				</div>
 				<div class="preview-body" style="background: {draft.panelBg}; color: {draft.ink};">
 					<div class="preview-stat-row">
@@ -131,7 +131,7 @@
 
 			<div class="preview-panel" style="border-color: {draft.border}; box-shadow: 3px 3px 0 {draft.border};">
 				<div class="preview-header" style="background: {draft.primary}; border-bottom-color: {draft.border};">
-					&#9733; Powers
+					★ Powers
 				</div>
 				<div class="preview-body" style="background: {draft.panelBg}; color: {draft.ink};">
 					<div class="preview-power-row">

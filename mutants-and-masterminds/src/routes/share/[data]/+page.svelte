@@ -64,7 +64,7 @@
 	<SplashHeader title="Shared " highlight="Character" subtitle="Read-only view &middot; Mutants &amp; Masterminds" />
 
 	<div class="panel-grid-3">
-		<ComicPanel header="&#9733; Identity" color="blue">
+		<ComicPanel header="★ Identity" color="blue">
 			<div class="field-row"><span class="field-label">Name</span><span class="field-val">{char.name}</span></div>
 			<div class="field-row"><span class="field-label">Identity</span><span class="field-val">{char.identity}</span></div>
 			<div class="field-row"><span class="field-label">Gender</span><span class="field-val">{char.gender || '—'}</span></div>
@@ -72,7 +72,7 @@
 			<div class="field-row"><span class="field-label">Power Level</span><span class="field-val">{char.powerLevel}</span></div>
 		</ComicPanel>
 
-		<ComicPanel header="&#9733; Power Points" color="dark">
+		<ComicPanel header="★ Power Points" color="dark">
 			<div class="pp-display">
 				<div class="pp-ring"><div class="pp-ring-inner"><div class="pp-num">{char.totalAllowed ?? 0}</div><div class="pp-lbl">Total</div></div></div>
 				<div class="pp-ring used"><div class="pp-ring-inner"><div class="pp-num" style="color:var(--danger);">{char.totalSpent ?? 0}</div><div class="pp-lbl">Spent</div></div></div>
@@ -83,12 +83,12 @@
 			</div>
 		</ComicPanel>
 
-		<ComicPanel header="&#9733; Conditions" color="red">
+		<ComicPanel header="★ Conditions" color="red">
 			<div class="cond-static">Fatigued &middot; Exhausted &middot; Dazed &middot; Stunned &middot; Incapacitated &middot; Vulnerable &middot; Defenseless &middot; Impaired &middot; Disabled &middot; Hindered</div>
 		</ComicPanel>
 	</div>
 
-	<ComicPanel header="&#9733; Abilities" color="blue">
+	<ComicPanel header="★ Abilities" color="blue">
 		<div class="stat-row-8">
 			<StatBubble value={char.abilities?.strengthFinalValue ?? 0} label="STR" color="danger" />
 			<StatBubble value={char.abilities?.staminaFinalValue ?? 0} label="STA" color="default" />
@@ -102,7 +102,7 @@
 	</ComicPanel>
 
 	<div class="panel-grid">
-		<ComicPanel header="&#9733; Defenses" color="blue">
+		<ComicPanel header="★ Defenses" color="blue">
 			{#if true}
 			{@const dd = getDefenseFinal(char.abilities, char.defenses, 'dodge', 'agility')}
 			{@const dp = getDefenseFinal(char.abilities, char.defenses, 'parry', 'fighting')}
@@ -124,12 +124,12 @@
 			{/if}
 		</ComicPanel>
 
-		<ComicPanel header="&#9733; Combat" color="red">
+		<ComicPanel header="★ Combat" color="red">
 			<div class="field-row"><span class="field-label">Initiative</span><span class="field-val init-val">{getInitiative(char.abilities, char.advantages) >= 0 ? '+' : ''}{getInitiative(char.abilities, char.advantages)}</span></div>
 		</ComicPanel>
 	</div>
 
-	<ComicPanel header="&#9733; Skills" color="yellow">
+	<ComicPanel header="★ Skills" color="yellow">
 		{#if char.skills?.length}
 		<SkillTable skills={char.skills} />
 		{:else}
@@ -137,7 +137,7 @@
 		{/if}
 	</ComicPanel>
 
-	<ComicPanel header="&#9733; Advantages" color="dark">
+	<ComicPanel header="★ Advantages" color="dark">
 		{#if char.advantages?.length}
 		{#each char.advantages as adv}
 		<div class="advantage-row"><span class="advantage-bullet">&#9656;</span><span class="advantage-name">{adv.name}{adv.ranks > 1 ? ' ' + adv.ranks : ''}</span>{#if adv.description}<span class="advantage-desc">&mdash; {adv.description}</span>{/if}</div>
@@ -147,14 +147,14 @@
 		{/if}
 	</ComicPanel>
 
-	<ComicPanel header="&#9733; Equipment" color="blue">
+	<ComicPanel header="★ Equipment" color="blue">
 		<div class="ep-bar"><span class="ep-label">EP {char.equipmentPool?.epSpent ?? 0} / {char.equipmentPool?.totalEpAllowed ?? 0}</span></div>
 		{#each char.equipmentPool?.items ?? [] as item}
 		<div class="equipment-row"><span class="equipment-bullet">&#8226;</span><span class="equipment-name">{item.itemName}</span><span class="equipment-cost">{item.epCost} EP</span></div>
 		{#if item.description}<div class="equipment-desc">{item.description}</div>{/if}
 		{/each}
 		<hr class="divider" />
-		<div class="ep-bar" style="margin-top:6px;"><span class="ep-label">&#9733; Headquarters</span></div>
+			<div class="ep-bar" style="margin-top:6px;"><span class="ep-label">★ Headquarters</span></div>
 		{#if char.headquarters?.length}
 		{#each char.headquarters as hq}
 		<div class="hq-row"><span class="hq-name">{hq.name}</span><span class="hq-cost">{hq.totalEpCost} EP</span>{#if hq.isSharedTeamBase}<span class="shared-badge">Team Base</span>{/if}</div>
@@ -168,7 +168,7 @@
 		{/if}
 	</ComicPanel>
 
-	<ComicPanel header="&#9733; Powers" color="blue">
+	<ComicPanel header="★ Powers" color="blue">
 		{#if char.powers?.length}
 		{#each char.powers as power}
 		<div class="power-row">
@@ -212,7 +212,7 @@
 		{/if}
 	</ComicPanel>
 
-	<ComicPanel header="&#9733; Notes &amp; Complications" color="yellow">
+	<ComicPanel header="★ Notes &amp; Complications" color="yellow">
 		{#if char.complications?.length}
 		{#each char.complications as comp}
 		<div class="complication-row"><div class="comp-badge">{comp.type}</div><div class="comp-text">{comp.description}</div></div>
@@ -224,7 +224,7 @@
 
 	<div class="signature-band" style="margin-top:16px;">
 		<div class="sig-dots"></div>
-		<span style="position:relative;z-index:1;">&#9733; SHARED CHARACTER SHEET &middot; POWER LEVEL {char.powerLevel} &#9733;</span>
+		<span style="position:relative;z-index:1;">★ SHARED CHARACTER SHEET &middot; POWER LEVEL {char.powerLevel} ★</span>
 	</div>
 </div>
 {/if}

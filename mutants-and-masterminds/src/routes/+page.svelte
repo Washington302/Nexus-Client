@@ -16,11 +16,11 @@
 	<SplashHeader title="Unofficial " highlight="Mutants &amp; Masterminds" subtitle="Superhero Roleplaying · Character Manager" />
 
 	<div class="speech-bubble">
-		&#9733; Welcome to the ultimate Unofficial Mutants &amp; Masterminds character manager! &#9733;
+		★ Welcome to the ultimate Unofficial Mutants &amp; Masterminds character manager! ★
 	</div>
 
 	<div class="panel-grid">
-		<ComicPanel header="&#9733; Get Started" color="blue">
+		<ComicPanel header="★ Get Started" color="blue">
 			<div style="font-family:'Nunito',sans-serif;font-size:11px;line-height:1.6;color:var(--ink);">
 				<p style="margin-bottom:10px;">Create and manage your superhero characters with our comic-style character sheet.</p>
 				{#if !session.userId}
@@ -34,22 +34,22 @@
 			</div>
 		</ComicPanel>
 
-		<ComicPanel header="&#9733; Features" color="dark">
+		<ComicPanel header="★ Features" color="dark">
 			<div class="feature-list">
 				<div class="feature-item">
-					<span class="feature-icon">&#9733;</span>
+					<span class="feature-icon">★</span>
 					<span>Comic-style character sheets</span>
 				</div>
 				<div class="feature-item">
-					<span class="feature-icon">&#9733;</span>
+					<span class="feature-icon">★</span>
 					<span>Track abilities, skills &amp; powers</span>
 				</div>
 				<div class="feature-item">
-					<span class="feature-icon">&#9733;</span>
+					<span class="feature-icon">★</span>
 					<span>Manage power points &amp; conditions</span>
 				</div>
 				<div class="feature-item">
-					<span class="feature-icon">&#9733;</span>
+					<span class="feature-icon">★</span>
 					<span>Multiple characters per account</span>
 				</div>
 			</div>
@@ -58,7 +58,7 @@
 
 	<div class="signature-band">
 		<div class="sig-dots"></div>
-		<span style="position:relative;z-index:1;">&#9733; UNOFFICIAL MUTANTS &amp; MASTERMINDS · CHARACTER MANAGER &#9733;</span>
+		<span style="position:relative;z-index:1;">★ UNOFFICIAL MUTANTS &amp; MASTERMINDS · CHARACTER MANAGER ★</span>
 	</div>
 </div>
 

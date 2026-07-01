@@ -2,12 +2,13 @@
 	import { session } from '$lib/stores/session.svelte';
 	import { api } from '$lib/services/api';
 	import type { MnmCharacter } from '$lib/services/api';
-	import { abilityMod, abilityModStr, effectCost, perRankCost, powerTotalCost, ensureDefaults, initNormalizePower, normalizePowerForSave, effectResistance, resistanceLabel } from '$lib/utils/character';
+	import { abilityMod, abilityModStr, ensureDefaults, initNormalizePower, normalizePowerForSave, effectResistance, resistanceLabel, recomputeCharacterCosts, prepareCharacterPayloadForSave } from '$lib/utils/character';
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
 	import ComicPanel from '$lib/components/ComicPanel.svelte';
 	import StatBubble from '$lib/components/StatBubble.svelte';
 	import SkillTable from '$lib/components/SkillTable.svelte';
 	import EditableWrapper from '$lib/components/EditableWrapper.svelte';
+	import EditableSectionCard from '$lib/components/EditableSectionCard.svelte';
 	import IdentityPanel from '$lib/components/IdentityPanel.svelte';
 	import ConditionsPanel from '$lib/components/ConditionsPanel.svelte';
 	import DefensesDisplay from '$lib/components/DefensesDisplay.svelte';
@@ -105,79 +106,7 @@
 				d.powers.push(devicePower);
 			}
 			delete d.devices;
-			// Auto-compute power costs (including embedded device powers)
-			function calcPowerInit(p: any) {
-				p.totalPowerCost = powerTotalCost(p.effects, p.alternateEffects);
-				for (const e of p.effects ?? []) {
-					if (e.effectName?.toLowerCase() === 'summon') e.isSummon = true;
-					e.calculatedCost = effectCost(e);
-					if (e.isSummon && !e.summonExtension) {
-						e.summonExtension = { summonRank: e.rank, minionPpBudget: e.rank * 15 };
-					}
-				}
-				for (const a of p.alternateEffects ?? []) {
-					a.costPerRank = (a.effects ?? []).reduce((sum: number, e: any) => sum + perRankCost(e), 0);
-					a.currentAllocatedRank = a.effects[0]?.rank ?? 0;
-					for (const e of a.effects ?? []) {
-						if (e.effectName?.toLowerCase() === 'summon') e.isSummon = true;
-						e.calculatedCost = effectCost(e);
-						if (e.isSummon && !e.summonExtension) {
-							e.summonExtension = { summonRank: e.rank, minionPpBudget: e.rank * 15 };
-						}
-					}
-				}
-			}
-			if (d.powers) {
-			for (const p of d.powers) {
-				if (p._deviceType) {
-					for (const ep of (p._embeddedPowers ?? [])) calcPowerInit(ep);
-					const raw = (p._embeddedPowers ?? []).reduce((s: number, ep: any) => s + (ep.totalPowerCost ?? 0), 0);
-					let discount = 0;
-					if (raw <= 5) {
-						discount = p._deviceType === 'EASILY_REMOVABLE' ? 4 : 2;
-					} else {
-						const perFive = Math.ceil(raw / 5);
-						discount = p._deviceType === 'EASILY_REMOVABLE' ? perFive * 2 : perFive;
-					}
-					p.totalPowerCost = Math.max(0, raw - discount);
-				} else {
-					calcPowerInit(p);
-				}
-			}
-			}
-			d.spentPowers = (d.powers ?? []).reduce((sum: number, p: any) => sum + (p.totalPowerCost ?? 0), 0);
-			// Auto-compute ability PP cost
-			const abiKeys = ['strength','stamina','agility','dexterity','fighting','intellect','awareness','presence'] as const;
-			let totalAbiPP = 0;
-			for (const k of abiKeys) {
-				const base = d.abilities[k + 'BaseRank'] ?? 0;
-				const mod = d.abilities[k + 'CostModifier'] ?? 0;
-				const enh = d.abilities[k + 'EnhancedRank'] ?? 0;
-				d.abilities[k + 'FinalValue'] = base + enh;
-				totalAbiPP += Math.max(0, base) * (2 + mod);
-			}
-			d.spentAbilities = totalAbiPP;
-			// Auto-compute skill bonuses and costs
-			const ABIL_MAP: Record<string, string> = { STRENGTH:'strength', STAMINA:'stamina', AGILITY:'agility', DEXTERITY:'dexterity', FIGHTING:'fighting', INTELLECT:'intellect', AWARENESS:'awareness', PRESENCE:'presence' };
-			let totalSkillRanks = 0;
-			for (const s of (d.skills ?? [])) {
-				const abiKey = ABIL_MAP[s.keyAbility] ?? 'agility';
-				const abiVal = (d.abilities as any)?.[abiKey + 'FinalValue'] ?? 0;
-				s.finalBonus = (s.ranks ?? 0) + abilityMod(abiVal) + (s.modifier ?? 0);
-				totalSkillRanks += (s.ranks ?? 0);
-			}
-			d.spentSkills = Math.ceil(totalSkillRanks / 2);
-			// Auto-compute equipment costs
-			const hqs = d.headquarters ?? [];
-			for (const hq of hqs) {
-				const dsCost = (hq.defenseSystems ?? []).reduce((s: number, ds: any) => s + (ds.totalPowerCost ?? 0), 0);
-				hq.totalEpCost = Math.round((hq.sizeCost ?? 0) + (hq.toughnessCost ?? 0) + dsCost);
-			}
-			const itemsCost = (d.equipmentPool?.items ?? []).reduce((s: number, i: any) => s + (i.epCost ?? 0), 0);
-			const hqCost = hqs.reduce((s: number, hq: any) => s + (hq.totalEpCost ?? 0), 0);
-			if (d.equipmentPool) d.equipmentPool.epSpent = Math.round(itemsCost + hqCost);
-			d.totalSpent = (d.spentAbilities ?? 0) + (d.spentDefenses ?? 0) + (d.spentSkills ?? 0) + (d.spentAdvantages ?? 0) + (d.spentPowers ?? 0);
-
+			recomputeCharacterCosts(d);
 			activeDefensePowerMods = new Set(['dodge','parry','fortitude','toughness','will']);
 			draft = d;
 			originalSnapshot = JSON.stringify(d);
@@ -195,38 +124,7 @@
 
 	$effect(() => {
 		if (!draft) return;
-		// Auto-compute ability PP
-		const abiKeys = ['strength','stamina','agility','dexterity','fighting','intellect','awareness','presence'] as const;
-		let totalAbiPP = 0;
-		for (const k of abiKeys) {
-			const base = (draft.abilities as any)[k + 'BaseRank'] ?? 0;
-			const mod = (draft.abilities as any)[k + 'CostModifier'] ?? 0;
-			const enh = (draft.abilities as any)[k + 'EnhancedRank'] ?? 0;
-			(draft.abilities as any)[k + 'FinalValue'] = base + enh;
-			totalAbiPP += Math.max(0, base) * (2 + mod);
-		}
-		draft.spentAbilities = totalAbiPP;
-		// Auto-compute skill bonuses and costs
-		const ABIL_MAP: Record<string, string> = { STRENGTH:'strength', STAMINA:'stamina', AGILITY:'agility', DEXTERITY:'dexterity', FIGHTING:'fighting', INTELLECT:'intellect', AWARENESS:'awareness', PRESENCE:'presence' };
-		let totalSkillRanks = 0;
-		for (const s of (draft.skills ?? [])) {
-			const abiKey = ABIL_MAP[s.keyAbility] ?? 'agility';
-			const abiVal = (draft.abilities as any)?.[abiKey + 'FinalValue'] ?? 0;
-			s.finalBonus = (s.ranks ?? 0) + abilityMod(abiVal) + (s.modifier ?? 0);
-			totalSkillRanks += (s.ranks ?? 0);
-		}
-		draft.spentSkills = Math.ceil(totalSkillRanks / 2);
-		// Auto-compute equipment costs
-		const hqs = draft.headquarters ?? [];
-		for (const hq of hqs) {
-			const dsCost = (hq.defenseSystems ?? []).reduce((s: number, d: any) => s + (d.totalPowerCost ?? 0), 0);
-			hq.totalEpCost = Math.round((hq.sizeCost ?? 0) + (hq.toughnessCost ?? 0) + dsCost);
-		}
-		const itemsCost = (draft.equipmentPool?.items ?? []).reduce((s: number, i: any) => s + (i.epCost ?? 0), 0);
-		const hqCost = hqs.reduce((s: number, hq: any) => s + (hq.totalEpCost ?? 0), 0);
-		if (draft.equipmentPool) draft.equipmentPool.epSpent = Math.round(itemsCost + hqCost);
-		draft.spentPowers = (draft.powers ?? []).reduce((sum: number, p: any) => sum + (p.totalPowerCost ?? 0), 0);
-		draft.totalSpent = (draft.spentAbilities ?? 0) + (draft.spentDefenses ?? 0) + (draft.spentSkills ?? 0) + (draft.spentAdvantages ?? 0) + (draft.spentPowers ?? 0);
+		recomputeCharacterCosts(draft);
 	});
 
 
@@ -549,71 +447,7 @@
 		saveError = null;
 		saveSuccess = false;
 		try {
-			const payload = JSON.parse(JSON.stringify(draft));
-			delete payload.createdAt;
-			delete payload.updatedAt;
-			// Ensure primitive defaults on all skills
-			for (const s of (payload.skills || [])) {
-				if (typeof s.ppCost !== 'number') s.ppCost = 0;
-			}
-			if (typeof payload.spentAbilities !== 'number') payload.spentAbilities = 0;
-			if (typeof payload.totalSpent !== 'number') payload.totalSpent = 0;
-			// Ensure primitive defaults on equipment
-			if (payload.equipmentPool) {
-				if (typeof payload.equipmentPool.epSpent !== 'number') payload.equipmentPool.epSpent = 0;
-				if (typeof payload.equipmentPool.totalEpAllowed !== 'number') payload.equipmentPool.totalEpAllowed = 0;
-			}
-			for (const hq of (payload.headquarters || [])) {
-				if (typeof hq.totalEpCost !== 'number') hq.totalEpCost = 0;
-			}
-			if (payload.abilities) {
-				for (const k of Object.keys(payload.abilities)) {
-					if (typeof payload.abilities[k] === 'object') delete payload.abilities[k];
-				}
-			}
-			if (payload.defenses) {
-				for (const k of Object.keys(payload.defenses)) {
-					if (typeof payload.defenses[k] === 'object') delete payload.defenses[k];
-				}
-			}
-			for (const p of (payload.powers || [])) {
-				normalizePowerForSave(p);
-			}
-			// Split device-flagged powers into devices[] for the backend
-			const devices: any[] = [];
-			const regularPowers: any[] = [];
-			for (const p of (payload.powers || [])) {
-				if (p._deviceType) {
-					const embeddedPowers = (p._embeddedPowers || []).map((ep: any) => {
-						normalizePowerForSave(ep);
-						delete ep._deviceType;
-						delete ep._embeddedPowers;
-						return ep;
-					});
-					const rawCost = embeddedPowers.reduce((s: number, ep: any) => s + (ep.totalPowerCost ?? 0), 0);
-					let discount = 0;
-					if (rawCost <= 5) {
-						discount = p._deviceType === 'EASILY_REMOVABLE' ? 4 : 2;
-					} else {
-						const perFive = Math.ceil(rawCost / 5);
-						discount = p._deviceType === 'EASILY_REMOVABLE' ? perFive * 2 : perFive;
-					}
-					devices.push({
-						deviceId: p.powerId,
-						name: p.name,
-						deviceType: p._deviceType,
-						embeddedPowers,
-						rawCombinedCost: rawCost,
-						pointDiscount: discount,
-						finalDeviceCost: Math.max(0, rawCost - discount),
-					});
-				} else {
-					regularPowers.push(p);
-				}
-			}
-			payload.powers = regularPowers;
-			payload.devices = devices;
-			payload.spentPowers = regularPowers.reduce((sum: number, p: any) => sum + (p.totalPowerCost ?? 0), 0) + devices.reduce((sum: number, d: any) => sum + (d.finalDeviceCost ?? 0), 0);
+			const payload = prepareCharacterPayloadForSave(draft);
 			const updated = await api.character.update(draft.id, payload);
 			if (session.activeCharacter) {
 				Object.assign(session.activeCharacter, updated);
@@ -635,17 +469,16 @@
 	<SplashHeader title="Unofficial " highlight="Mutants &amp; Masterminds" subtitle="Superhero Roleplaying · Character Sheet" />
 
 	<div class="speech-bubble">
-		&#9733; The tactical interface — built for heroes who need data <em>fast</em>. &#9733;
+		★ The tactical interface — built for heroes who need data <em>fast</em>. ★
 	</div>
 
 	<div class="panel-grid-3">
-		<ComicPanel header="&#9733; Identity" color="blue">
+		<ComicPanel header="★ Identity" color="blue">
 			<IdentityPanel {draft} />
 		</ComicPanel>
 
-		<EditableWrapper title="Power Points" isEditable={true} onSave={async () => {}}>
-			{#snippet children()}
-			<ComicPanel header="&#9733; Power Points" color="dark">
+		<EditableSectionCard title="Power Points" color="dark">
+			{#snippet view()}
 				<div class="pp-display">
 					<div class="pp-ring">
 						<div class="pp-ring-inner">
@@ -667,132 +500,131 @@
 					</div>
 					<div class="pp-bar-text">{draft.totalAllowed - draft.totalSpent} PP Remaining</div>
 				</div>
-			</ComicPanel>
 			{/snippet}
-			{#snippet editForm()}
+			{#snippet edit()}
 				<PowerPointsEditor draft={draft} />
 			{/snippet}
-		</EditableWrapper>
+		</EditableSectionCard>
 
-		<ComicPanel header="&#9733; Conditions" color="red">
+		<ComicPanel header="★ Conditions" color="red">
 			<ConditionsPanel {activeConditions} {toggleCondition} onReset={() => { activeConditions = new Set(); resetManeuvers(); resetCombatState(); }} />
 		</ComicPanel>
 	</div>
 
-	<EditableWrapper title="Abilities" isEditable={true} onSave={async () => {}}>
-		{#snippet children()}
-		<ComicPanel header="&#9733; Abilities — Stats Module" color="blue">
-			<div style="margin-bottom: 8px;">
-				<span class="action-word">WHAM!</span>
-				<span class="stat-hint">Stat values lead every module</span>
+	<EditableSectionCard title="Abilities" color="blue">
+		{#snippet view()}
+			<div>
+				<div style="margin-bottom: 8px;">
+					<span class="action-word">WHAM!</span>
+					<span class="stat-hint">Stat values lead every module</span>
+				</div>
+				<div class="stat-row-8">
+					<StatBubble value={draft.abilities?.strengthFinalValue ?? 0} label="STR" color="danger" />
+					<StatBubble value={draft.abilities?.staminaFinalValue ?? 0} label="STA" color="default" />
+					<StatBubble value={draft.abilities?.agilityFinalValue ?? 0} label="AGL" color="default" />
+					<StatBubble value={draft.abilities?.dexterityFinalValue ?? 0} label="DEX" color="default" />
+					<StatBubble value={draft.abilities?.fightingFinalValue ?? 0} label="FGT" color="success" />
+					<StatBubble value={draft.abilities?.intellectFinalValue ?? 0} label="INT" color="secondary" />
+					<StatBubble value={draft.abilities?.awarenessFinalValue ?? 0} label="AWE" color="default" />
+					<StatBubble value={draft.abilities?.presenceFinalValue ?? 0} label="PRE" color="default" />
+				</div>
 			</div>
-			<div class="stat-row-8">
-				<StatBubble value={draft.abilities?.strengthFinalValue ?? 0} label="STR" color="danger" />
-				<StatBubble value={draft.abilities?.staminaFinalValue ?? 0} label="STA" color="default" />
-				<StatBubble value={draft.abilities?.agilityFinalValue ?? 0} label="AGL" color="default" />
-				<StatBubble value={draft.abilities?.dexterityFinalValue ?? 0} label="DEX" color="default" />
-				<StatBubble value={draft.abilities?.fightingFinalValue ?? 0} label="FGT" color="success" />
-				<StatBubble value={draft.abilities?.intellectFinalValue ?? 0} label="INT" color="secondary" />
-				<StatBubble value={draft.abilities?.awarenessFinalValue ?? 0} label="AWE" color="default" />
-				<StatBubble value={draft.abilities?.presenceFinalValue ?? 0} label="PRE" color="default" />
-			</div>
-		</ComicPanel>
 		{/snippet}
-		{#snippet editForm()}
+		{#snippet edit()}
 			<AbilitiesEditor abilities={draft.abilities} />
 		{/snippet}
-	</EditableWrapper>
+	</EditableSectionCard>
 
 	<div class="panel-grid">
-		<EditableWrapper title="Defenses" isEditable={true} onSave={async () => {}}>
-{#snippet children()}
-			<ComicPanel header="&#9733; Defenses" color="blue">
+		<EditableSectionCard title="Defenses" color="blue">
+			{#snippet view()}
 				<DefensesDisplay {draft} {getDefenseFinal} {getToughnessFinal} {defOtherMods} {activeDefensePowerMods} {toggleDefensePowerMod} {plCaps} />
-			</ComicPanel>
 			{/snippet}
-			{#snippet editForm()}
-				<DefensesEditor bind:defenses={draft.defenses} />
+			{#snippet edit()}
+				<DefensesEditor defenses={draft.defenses} />
 			{/snippet}
-		</EditableWrapper>
+		</EditableSectionCard>
 
-		<EditableWrapper title="Combat" isEditable={true} onSave={async () => {}}>
-			{#snippet children()}
-			<ComicPanel header="&#9733; Combat" color="red">
-				<div style="margin-bottom: 6px; display:flex; align-items:center; gap:12px;">
-					<span class="action-word pow" style="font-size: 22px;">POW!</span>
-					<div class="field-group" style="flex-direction:row;align-items:center;gap:4px;">
-						<div class="field-hdr" style="font-size:12px;">Initiative</div>
-						<span class="init-value">{getInitiative() >= 0 ? '+' : ''}{getInitiative()}</span>
+		<EditableSectionCard title="Combat" color="red">
+			{#snippet view()}
+				<div>
+					<div style="margin-bottom: 6px; display:flex; align-items:center; gap:12px;">
+						<span class="action-word pow" style="font-size: 22px;">POW!</span>
+						<div class="field-group" style="flex-direction:row;align-items:center;gap:4px;">
+							<div class="field-hdr" style="font-size:12px;">Initiative</div>
+							<span class="init-value">{getInitiative() >= 0 ? '+' : ''}{getInitiative()}</span>
+						</div>
 					</div>
-				</div>
-				<div class="maneuver-bar">
-					<span class="maneuver-hdr">Maneuvers</span>
-					<div class="maneuver-row">
-						<label class="maneuver-btn" class:active={allOutAttack > 0}>
-							All-out
-							<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={allOutAttack} />
-						</label>
-						<label class="maneuver-btn" class:active={powerAttack > 0}>
-							Power
-							<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={powerAttack} />
-						</label>
-						<label class="maneuver-btn" class:active={accurateAttack > 0}>
-							Accurate
-							<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={accurateAttack} />
-						</label>
-						<label class="maneuver-btn" class:active={defensiveAttack > 0}>
-							Defensive
-							<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={defensiveAttack} />
-						</label>
-						<button class="maneuver-reset" onclick={resetManeuvers}>Reset</button>
-					</div>
-					<div class="maneuver-shift">
-						{allOutAttack + accurateAttack > 0 ? `Attack: +${allOutAttack + accurateAttack}` : ''}
-						{powerAttack + defensiveAttack > 0 ? ` / ` : ''}
-						{powerAttack + accurateAttack > 0 ? '' : ''}
-						{allOutAttack + defensiveAttack > 0 ? `Defense: -${allOutAttack + defensiveAttack}` : ''}
-						{powerAttack > 0 ? `DC: +${powerAttack}` : ''}
-						{accurateAttack > 0 ? `DC: -${accurateAttack}` : ''}
-					</div>
-				</div>
-
-				<div class="attacks-list">
-				<div class="atk-hdr-row">
-					<span class="atk-hdr">Action</span>
-					<span class="atk-hdr">Bonus</span>
-					<span class="atk-hdr">Resist</span>
-					<span class="atk-hdr">DC</span>
-				</div>
-				{#each attackActions as atk}
-					<AttackActionCard attack={atk} />
-				{/each}
-			</div>
-		</ComicPanel>
-		{/snippet}
-		{#snippet editForm()}
-			<DamageTrackEditor {damagePenaltyDisplay} bind:staggered bind:incapacitated bind:dying {applyDamage} {healDamage} {incrementDying} {resetCombatState} />
-			{#if selectableEffects.length > 0}
-				<div class="edit-select-attacks">
-					<span class="maneuver-hdr">Select Combat Attacks</span>
-					<div class="atk-select-list">
-						{#each selectableEffects as se}
-							<label class="atk-select-item" class:active={se.effect._showInCombat}>
-								<input type="checkbox" checked={se.effect._showInCombat} onchange={() => se.effect._showInCombat = !se.effect._showInCombat} />
-								<span class="atk-select-name">{se.powerName} — {se.effectName}</span>
+					<div class="maneuver-bar">
+						<span class="maneuver-hdr">Maneuvers</span>
+						<div class="maneuver-row">
+							<label class="maneuver-btn" class:active={allOutAttack > 0}>
+								All-out
+								<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={allOutAttack} />
 							</label>
-							<div class="atk-bonus-row">
-								<span class="atk-bonus-label">Atk+</span>
-								<input type="number" class="atk-bonus-input" bind:value={se.effect.manualAtkBonus} placeholder="0" />
-								<span class="atk-bonus-label">Rank+</span>
-								<input type="number" class="atk-bonus-input" bind:value={se.effect.manualRankBonus} placeholder="0" />
-							</div>
+							<label class="maneuver-btn" class:active={powerAttack > 0}>
+								Power
+								<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={powerAttack} />
+							</label>
+							<label class="maneuver-btn" class:active={accurateAttack > 0}>
+								Accurate
+								<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={accurateAttack} />
+							</label>
+							<label class="maneuver-btn" class:active={defensiveAttack > 0}>
+								Defensive
+								<input type="number" class="maneuver-input" min="0" max={MANEUVER_LIMIT} bind:value={defensiveAttack} />
+							</label>
+							<button class="maneuver-reset" onclick={resetManeuvers}>Reset</button>
+						</div>
+						<div class="maneuver-shift">
+							{allOutAttack + accurateAttack > 0 ? `Attack: +${allOutAttack + accurateAttack}` : ''}
+							{powerAttack + defensiveAttack > 0 ? ` / ` : ''}
+							{powerAttack + accurateAttack > 0 ? '' : ''}
+							{allOutAttack + defensiveAttack > 0 ? `Defense: -${allOutAttack + defensiveAttack}` : ''}
+							{powerAttack > 0 ? `DC: +${powerAttack}` : ''}
+							{accurateAttack > 0 ? `DC: -${accurateAttack}` : ''}
+						</div>
+					</div>
+
+					<div class="attacks-list">
+						<div class="atk-hdr-row">
+							<span class="atk-hdr">Action</span>
+							<span class="atk-hdr">Bonus</span>
+							<span class="atk-hdr">Resist</span>
+							<span class="atk-hdr">DC</span>
+						</div>
+						{#each attackActions as atk}
+							<AttackActionCard attack={atk} />
 						{/each}
 					</div>
 				</div>
-{/if}
-			<div class="combat-edit-note">Combat state is session-only and resets on page reload.</div>
-		{/snippet}
-	</EditableWrapper>
+			{/snippet}
+			{#snippet edit()}
+				<div>
+					<DamageTrackEditor {damagePenaltyDisplay} bind:staggered bind:incapacitated bind:dying {applyDamage} {healDamage} {incrementDying} {resetCombatState} />
+					{#if selectableEffects.length > 0}
+						<div class="edit-select-attacks">
+							<span class="maneuver-hdr">Select Combat Attacks</span>
+							<div class="atk-select-list">
+								{#each selectableEffects as se}
+									<label class="atk-select-item" class:active={se.effect._showInCombat}>
+										<input type="checkbox" checked={se.effect._showInCombat} onchange={() => se.effect._showInCombat = !se.effect._showInCombat} />
+										<span class="atk-select-name">{se.powerName} — {se.effectName}</span>
+									</label>
+									<div class="atk-bonus-row">
+										<span class="atk-bonus-label">Atk+</span>
+										<input type="number" class="atk-bonus-input" bind:value={se.effect.manualAtkBonus} placeholder="0" />
+										<span class="atk-bonus-label">Rank+</span>
+										<input type="number" class="atk-bonus-input" bind:value={se.effect.manualRankBonus} placeholder="0" />
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/if}
+					<div class="combat-edit-note">Combat state is session-only and resets on page reload.</div>
+				</div>
+			{/snippet}
+		</EditableSectionCard>
 	</div>
 
 	<div class="all-view">
@@ -801,7 +633,7 @@
 				{#if key === 'skills'}
 				<EditableWrapper title="Skills" isEditable={true} onSave={async () => {}}>
 					{#snippet children()}
-					<ComicPanel header="&#9733; Skills" color="yellow">
+					<ComicPanel header="★ Skills" color="yellow">
 						<SkillTable skills={draft.skills ?? []} />
 					</ComicPanel>
 					{/snippet}
@@ -812,7 +644,7 @@
 				{:else if key === 'advantages'}
 				<EditableWrapper title="Advantages" isEditable={true} onSave={async () => {}}>
 					{#snippet children()}
-					<ComicPanel header="&#9733; Advantages" color="dark">
+					<ComicPanel header="★ Advantages" color="dark">
 						{#each draft.advantages ?? [] as adv, i}
 							<div class="advantage-row">
 								<div class="advantage-bullet">&#9656;</div>
@@ -829,7 +661,7 @@
 				{:else if key === 'equipment'}
 				<EditableWrapper title="Equipment" isEditable={true} onSave={async () => {}}>
 					{#snippet children()}
-					<ComicPanel header="&#9733; Equipment" color="blue">
+					<ComicPanel header="★ Equipment" color="blue">
 						<div class="ep-bar">
 							<span class="ep-label">EP {draft.equipmentPool.epSpent} / {draft.equipmentPool.totalEpAllowed}</span>
 						</div>
@@ -845,7 +677,7 @@
 						{/each}
 						<hr class="divider" />
 						<div class="ep-bar" style="margin-top:6px;">
-							<span class="ep-label">&#9733; Headquarters</span>
+							<span class="ep-label">★ Headquarters</span>
 						</div>
 						{#each draft.headquarters ?? [] as hq, i}
 							<div class="hq-row">
@@ -883,7 +715,7 @@
 				{:else if key === 'powers'}
 				<EditableWrapper title="Powers" isEditable={true} onSave={async () => {}}>
 					{#snippet children()}
-					<ComicPanel header="&#9733; Powers" color="blue">
+					<ComicPanel header="★ Powers" color="blue">
 						{#each draft.powers ?? [] as power}
 							<PowerDisplayCard {power} />
 						{/each}
@@ -902,7 +734,7 @@
 
 	<EditableWrapper title="Complications" isEditable={true} onSave={async () => {}}>
 		{#snippet children()}
-		<ComicPanel header="&#9733; Notes &amp; Complications" color="yellow">
+		<ComicPanel header="★ Notes &amp; Complications" color="yellow">
 			{#each draft.complications ?? [] as comp, i}
 				<div class="complication-row">
 					<div class="comp-badge">{comp.type}</div>
@@ -920,7 +752,7 @@
 
 	<div class="signature-band" style="margin-top: 16px;">
 		<div class="sig-dots"></div>
-		<span style="position: relative; z-index: 1;">&#9733; UNOFFICIAL MUTANTS &amp; MASTERMINDS · CHARACTER SHEET · POWER LEVEL {draft.powerLevel} &#9733;</span>
+		<span style="position: relative; z-index: 1;">★ UNOFFICIAL MUTANTS &amp; MASTERMINDS · CHARACTER SHEET · POWER LEVEL {draft.powerLevel} ★</span>
 	</div>
 </div>
 {/if}

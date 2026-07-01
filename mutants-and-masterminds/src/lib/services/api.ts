@@ -167,13 +167,14 @@ export interface MinionStatBlock {
 
 export interface PowerEffect {
 	effectName: string;
-	effectType: string;
+	effectType?: string;
 	rank: number;
 	baseCostPerRank: number;
 	modifiers: PowerModifier[];
 	calculatedCost: number;
 	isPrimary: boolean;
 	isSummon: boolean;
+	baseEffect?: string;
 	summonExtension?: SummonExtension;
 	resistance?: ResistanceType;
 
@@ -212,6 +213,8 @@ export interface Power {
 	effects: PowerEffect[];
 	alternateEffects: AlternateEffect[];
 	totalPowerCost: number;
+	_deviceType?: DeviceType;
+	_embeddedPowers?: Power[];
 }
 
 export interface Device {

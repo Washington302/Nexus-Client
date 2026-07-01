@@ -17,7 +17,7 @@
 		{#each cards as card}
 			<a href={card.href} class="dash-card">
 				<div class="dash-card-header">
-					<span class="dash-card-icon">&#9733;</span>
+					<span class="dash-card-icon">★</span>
 					<span class="dash-card-label">{card.label}</span>
 				</div>
 				<p class="dash-card-desc">{card.desc}</p>
@@ -26,7 +26,7 @@
 		{/each}
 	</div>
 
-	<ComicPanel header="&#9733; Quick Stats" color="dark">
+	<ComicPanel header="★ Quick Stats" color="dark">
 		<div class="stats-grid">
 			<div class="stat-item">
 				<div class="stat-number">{session.characters.length}</div>
@@ -51,7 +51,7 @@
 
 	<div class="signature-band" style="margin-top:16px;">
 		<div class="sig-dots"></div>
-		<span style="position:relative;z-index:1;">&#9733; UNOFFICIAL MUTANTS &amp; MASTERMINDS · DASHBOARD &#9733;</span>
+		<span style="position:relative;z-index:1;">★ UNOFFICIAL MUTANTS &amp; MASTERMINDS · DASHBOARD ★</span>
 	</div>
 </div>
 

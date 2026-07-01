@@ -8,7 +8,7 @@
 <div class="page">
 	<SplashHeader title="Hero" highlight="Profile" subtitle="Your account details" />
 
-	<ComicPanel header="&#9733; Account Info" color="blue">
+	<ComicPanel header="★ Account Info" color="blue">
 		{#if session.userId}
 			<div class="profile-field">
 				<div class="field-label">User ID</div>
@@ -29,7 +29,7 @@
 		{/if}
 	</ComicPanel>
 
-	<ComicPanel header="&#9733; Theme Customizer" color="dark">
+	<ComicPanel header="★ Theme Customizer" color="dark">
 		<p class="theme-intro">Customize the look and feel of your character manager. Changes save automatically.</p>
 		<ThemeCustomizer />
 	</ComicPanel>
@@ -38,7 +38,7 @@
 
 	<div class="signature-band" style="margin-top:16px;">
 		<div class="sig-dots"></div>
-		<span style="position:relative;z-index:1;">&#9733; UNOFFICIAL MUTANTS &amp; MASTERMINDS · PROFILE &#9733;</span>
+		<span style="position:relative;z-index:1;">★ UNOFFICIAL MUTANTS &amp; MASTERMINDS · PROFILE ★</span>
 	</div>
 </div>
 

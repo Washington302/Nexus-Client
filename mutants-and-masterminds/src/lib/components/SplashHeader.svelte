@@ -12,7 +12,7 @@
 
 <div class="splash-header">
 	<div class="dots-bg"></div>
-	<div class="splash-eyebrow">&#9733; Character Sheet &#9733;</div>
+	<div class="splash-eyebrow">★ Character Sheet ★</div>
 	<div class="splash-title">{title}{#if highlight} <span>{highlight}</span>{/if}</div>
 	<div class="splash-sub">{subtitle}</div>
 </div>

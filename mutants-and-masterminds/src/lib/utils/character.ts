@@ -1,4 +1,4 @@
-import type { ResistanceType } from '$lib/services/api';
+import type { AlternateEffect, PowerEffect, PowerModifier, ResistanceType } from '$lib/services/api';
 
 export function abilityMod(val: number): number {
 	return val;
@@ -67,6 +67,188 @@ export function powerTotalCost(effects: any[], alternateEffects: any[]): number 
 		return Math.max(sum, altActive);
 	}, 0);
 	return Math.max(active, alts) + (alternateEffects?.length ?? 0);
+}
+
+export function computeDeviceCost(power: any, embeddedPowers: any[] = power?._embeddedPowers ?? []): { raw: number; discount: number; final: number } {
+	const raw = (embeddedPowers ?? []).reduce((sum: number, ep: any) => sum + (ep.totalPowerCost ?? 0), 0);
+	let discount = 0;
+	if (raw <= 5) {
+		discount = power?._deviceType === 'EASILY_REMOVABLE' ? 4 : 2;
+	} else {
+		const perFive = Math.ceil(raw / 5);
+		discount = power?._deviceType === 'EASILY_REMOVABLE' ? perFive * 2 : perFive;
+	}
+	return { raw, discount, final: Math.max(0, raw - discount) };
+}
+
+export function createDefaultEffect(isPrimary = false): PowerEffect {
+	return {
+		effectName: '',
+		baseEffect: '',
+		isPrimary,
+		rank: 1,
+		baseCostPerRank: 2,
+		modifiers: [],
+		calculatedCost: 0,
+		isSummon: false,
+		manualAtkBonus: 0,
+		manualRankBonus: 0,
+	};
+}
+
+export function createDefaultAlternateEffect(): AlternateEffect {
+	return {
+		powerId: crypto.randomUUID(),
+		name: '',
+		description: '',
+		descriptors: [],
+		arrayType: 'ALTERNATE',
+		costPerRank: 0,
+		currentAllocatedRank: 0,
+		effects: [],
+	};
+}
+
+export function createDefaultModifier(): PowerModifier {
+	return { name: '', type: 'EXTRA', costModifier: 1, isFlat: false };
+}
+
+export function calcPower(power: any): void {
+	power.totalPowerCost = powerTotalCost(power.effects, power.alternateEffects);
+	for (const e of power.effects ?? []) {
+		if (e.effectName?.toLowerCase() === 'summon') e.isSummon = true;
+		e.calculatedCost = effectCost(e);
+		if (e.isSummon) {
+			if (!e.summonExtension) {
+				e.summonExtension = { summonRank: e.rank, minionPpBudget: e.rank * 15 };
+			}
+			e.summonExtension.summonRank = e.rank;
+			e.summonExtension.minionPpBudget = e.rank * 15;
+			if (!e.summonExtension.minionStatBlock) {
+				e.summonExtension.minionStatBlock = createDefaultMinionStatblock(e.rank);
+			}
+		}
+	}
+	for (const alt of power.alternateEffects ?? []) {
+		alt.costPerRank = (alt.effects ?? []).reduce((sum: number, e: any) => sum + perRankCost(e), 0);
+		alt.currentAllocatedRank = alt.effects[0]?.rank ?? 0;
+		for (const e of alt.effects ?? []) {
+			if (e.effectName?.toLowerCase() === 'summon') e.isSummon = true;
+			e.calculatedCost = effectCost(e);
+			if (e.isSummon) {
+				if (!e.summonExtension) {
+					e.summonExtension = { summonRank: e.rank, minionPpBudget: e.rank * 15 };
+				}
+				e.summonExtension.summonRank = e.rank;
+				e.summonExtension.minionPpBudget = e.rank * 15;
+				if (!e.summonExtension.minionStatBlock) {
+					e.summonExtension.minionStatBlock = createDefaultMinionStatblock(e.rank);
+				}
+			}
+		}
+	}
+}
+
+export function recomputeCharacterCosts(draft: any): void {
+	if (!draft) return;
+	ensureDefaults(draft);
+	for (const p of draft.powers ?? []) {
+		if (p._deviceType) {
+			for (const ep of p._embeddedPowers ?? []) calcPower(ep);
+			const deviceCost = computeDeviceCost(p, p._embeddedPowers ?? []);
+			p.totalPowerCost = deviceCost.final;
+		} else {
+			calcPower(p);
+		}
+	}
+	const abiKeys = ['strength','stamina','agility','dexterity','fighting','intellect','awareness','presence'] as const;
+	let totalAbiPP = 0;
+	for (const key of abiKeys) {
+		const base = draft.abilities?.[key + 'BaseRank'] ?? 0;
+		const mod = draft.abilities?.[key + 'CostModifier'] ?? 0;
+		const enh = draft.abilities?.[key + 'EnhancedRank'] ?? 0;
+		draft.abilities[key + 'FinalValue'] = base + enh;
+		totalAbiPP += Math.max(0, base) * (2 + mod);
+	}
+	draft.spentAbilities = totalAbiPP;
+	const abilityMap: Record<string, string> = { STRENGTH:'strength', STAMINA:'stamina', AGILITY:'agility', DEXTERITY:'dexterity', FIGHTING:'fighting', INTELLECT:'intellect', AWARENESS:'awareness', PRESENCE:'presence' };
+	let totalSkillRanks = 0;
+	for (const skill of draft.skills ?? []) {
+		const abiKey = abilityMap[skill.keyAbility] ?? 'agility';
+		const abiVal = draft.abilities?.[abiKey + 'FinalValue'] ?? 0;
+		skill.finalBonus = (skill.ranks ?? 0) + abilityMod(abiVal) + (skill.modifier ?? 0);
+		totalSkillRanks += (skill.ranks ?? 0);
+	}
+	draft.spentSkills = Math.ceil(totalSkillRanks / 2);
+	const hqs = draft.headquarters ?? [];
+	for (const hq of hqs) {
+		const dsCost = (hq.defenseSystems ?? []).reduce((sum: number, ds: any) => sum + (ds.totalPowerCost ?? 0), 0);
+		hq.totalEpCost = Math.round((hq.sizeCost ?? 0) + (hq.toughnessCost ?? 0) + dsCost);
+	}
+	const itemsCost = (draft.equipmentPool?.items ?? []).reduce((sum: number, item: any) => sum + (item.epCost ?? 0), 0);
+	const hqCost = hqs.reduce((sum: number, hq: any) => sum + (hq.totalEpCost ?? 0), 0);
+	if (draft.equipmentPool) draft.equipmentPool.epSpent = Math.round(itemsCost + hqCost);
+	draft.spentPowers = (draft.powers ?? []).reduce((sum: number, power: any) => sum + (power.totalPowerCost ?? 0), 0);
+	draft.totalSpent = (draft.spentAbilities ?? 0) + (draft.spentDefenses ?? 0) + (draft.spentSkills ?? 0) + (draft.spentAdvantages ?? 0) + (draft.spentPowers ?? 0);
+}
+
+export function prepareCharacterPayloadForSave(draft: any): any {
+	const payload = JSON.parse(JSON.stringify(draft));
+	delete payload.createdAt;
+	delete payload.updatedAt;
+	for (const skill of (payload.skills || [])) {
+		if (typeof skill.ppCost !== 'number') skill.ppCost = 0;
+	}
+	if (typeof payload.spentAbilities !== 'number') payload.spentAbilities = 0;
+	if (typeof payload.totalSpent !== 'number') payload.totalSpent = 0;
+	if (payload.equipmentPool) {
+		if (typeof payload.equipmentPool.epSpent !== 'number') payload.equipmentPool.epSpent = 0;
+		if (typeof payload.equipmentPool.totalEpAllowed !== 'number') payload.equipmentPool.totalEpAllowed = 0;
+	}
+	for (const hq of (payload.headquarters || [])) {
+		if (typeof hq.totalEpCost !== 'number') hq.totalEpCost = 0;
+	}
+	if (payload.abilities) {
+		for (const key of Object.keys(payload.abilities)) {
+			if (typeof payload.abilities[key] === 'object') delete payload.abilities[key];
+		}
+	}
+	if (payload.defenses) {
+		for (const key of Object.keys(payload.defenses)) {
+			if (typeof payload.defenses[key] === 'object') delete payload.defenses[key];
+		}
+	}
+	for (const power of (payload.powers || [])) {
+		normalizePowerForSave(power);
+	}
+	const devices: any[] = [];
+	const regularPowers: any[] = [];
+	for (const power of (payload.powers || [])) {
+		if (power._deviceType) {
+			const embeddedPowers = (power._embeddedPowers || []).map((ep: any) => {
+				normalizePowerForSave(ep);
+				delete ep._deviceType;
+				delete ep._embeddedPowers;
+				return ep;
+			});
+			const { raw, discount, final } = computeDeviceCost(power, embeddedPowers);
+			devices.push({
+				deviceId: power.powerId,
+				name: power.name,
+				deviceType: power._deviceType,
+				embeddedPowers,
+				rawCombinedCost: raw,
+				pointDiscount: discount,
+				finalDeviceCost: final,
+			});
+		} else {
+			regularPowers.push(power);
+		}
+	}
+	payload.powers = regularPowers;
+	payload.devices = devices;
+	payload.spentPowers = regularPowers.reduce((sum: number, power: any) => sum + (power.totalPowerCost ?? 0), 0) + devices.reduce((sum: number, device: any) => sum + (device.finalDeviceCost ?? 0), 0);
+	return payload;
 }
 
 export function abiVal(abilities: any, key: string): number { return abilities?.[key + 'FinalValue'] ?? 0; }

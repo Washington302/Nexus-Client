@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { EquipmentPool, PowerEffect } from '$lib/services/api';
+	import ModifierRow from './ModifierRow.svelte';
+	import { effectCost } from '$lib/utils/character';
 
 	let { equipmentPool }: { equipmentPool: EquipmentPool } = $props();
 
@@ -41,16 +43,7 @@
 	}
 
 	function calcEffectCost(e: PowerEffect): number {
-		let perRank = e.baseCostPerRank ?? 2;
-		let flat = 0;
-		for (const m of e.modifiers ?? []) {
-			if (m.isFlat) {
-				flat += m.type === 'FLAW' ? -m.costModifier : m.costModifier;
-			} else {
-				perRank += m.type === 'FLAW' ? -m.costModifier : m.costModifier;
-			}
-		}
-		return perRank * (e.rank ?? 0) + flat;
+		return effectCost(e);
 	}
 </script>
 
@@ -102,19 +95,7 @@
 								<button class="remove-btn small" onclick={() => removeEffect(i, ei)}>&#10005;</button>
 							</div>
 							{#each effect.modifiers ?? [] as mod, mi}
-								<div class="mod-row">
-									<input type="text" class="mod-name-input" bind:value={mod.name} placeholder="Modifier" />
-									<select class="mod-type-select" bind:value={mod.type}>
-										<option value="EXTRA">Extra</option>
-										<option value="FLAW">Flaw</option>
-									</select>
-									<input type="number" class="tiny-input" bind:value={mod.costModifier} min="0" />
-									<label class="flat-label">
-										<input type="checkbox" bind:checked={mod.isFlat} />
-										Flat
-									</label>
-									<button class="remove-btn small" onclick={() => removeModifier(i, ei, mi)}>&#10005;</button>
-								</div>
+								<ModifierRow modifier={mod} onRemove={() => removeModifier(i, ei, mi)} />
 							{/each}
 							<button class="add-small-btn" onclick={() => addModifier(i, ei)}>+ Modifier</button>
 						</div>

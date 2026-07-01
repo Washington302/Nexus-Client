@@ -2,7 +2,7 @@
 	import type { DefensesBlock } from '$lib/services/api';
 
 	let {
-		defenses
+		defenses = $bindable()
 	}: {
 		defenses: DefensesBlock
 	} = $props();

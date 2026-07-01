@@ -1,19 +1,15 @@
 <script lang="ts">
 	import EffectEditor from './EffectEditor.svelte';
 	import AlternateEffectEditor from './AlternateEffectEditor.svelte';
+	import { computeDeviceCost, createDefaultAlternateEffect, createDefaultEffect } from '$lib/utils/character';
 
-	let { power }: { power: any } = $props();
+	let {
+		power,
+		allowNestedSummon = true,
+	}: { power: any; allowNestedSummon?: boolean } = $props();
 
 	function calcDeviceCost(p: any): { raw: number; discount: number; final: number } {
-		const raw = (p._embeddedPowers ?? []).reduce((s: number, ep: any) => s + (ep.totalPowerCost ?? 0), 0);
-		let discount = 0;
-		if (raw <= 5) {
-			discount = p._deviceType === 'EASILY_REMOVABLE' ? 4 : 2;
-		} else {
-			const perFive = Math.ceil(raw / 5);
-			discount = p._deviceType === 'EASILY_REMOVABLE' ? perFive * 2 : perFive;
-		}
-		return { raw, discount, final: Math.max(0, raw - discount) };
+		return computeDeviceCost(p, p._embeddedPowers ?? []);
 	}
 
 	function addEmbeddedPower() {
@@ -33,11 +29,7 @@
 	}
 
 	function addEffect(effects: any[]) {
-		effects.push({
-			effectName: '', baseEffect: '', isPrimary: effects.length === 0,
-			rank: 1, baseCostPerRank: 2, modifiers: [], calculatedCost: 0, isSummon: false,
-			manualAtkBonus: 0, manualRankBonus: 0,
-		});
+		effects.push(createDefaultEffect(effects.length === 0));
 	}
 
 	function removeEffect(effects: any[], ei: number) {
@@ -45,10 +37,7 @@
 	}
 
 	function addAlternateEffect(ep: any) {
-		ep.alternateEffects.push({
-			powerId: crypto.randomUUID(), name: '', description: '', descriptors: [],
-			arrayType: 'ALTERNATE', costPerRank: 0, currentAllocatedRank: 0, effects: [],
-		});
+		ep.alternateEffects.push(createDefaultAlternateEffect());
 	}
 
 	function removeAlternateEffect(ep: any, ai: number) {
@@ -85,7 +74,7 @@
 					<div class="effects-section">
 						<div class="effects-head">{ep.isArray ? 'Active Slot Effects' : 'Effects'}</div>
 						{#each ep.effects as effect, eei}
-							<EffectEditor effect={effect} onRemove={() => removeEffect(ep.effects, eei)} />
+							<EffectEditor effect={effect} onRemove={() => removeEffect(ep.effects, eei)} {allowNestedSummon} />
 						{/each}
 						<button class="add-effect-btn" onclick={() => addEffect(ep.effects)}>+ Effect</button>
 					</div>
@@ -93,7 +82,7 @@
 						<div class="alt-section">
 							<div class="alt-effects-head">Alternate Effects</div>
 							{#each ep.alternateEffects as alt, ai}
-								<AlternateEffectEditor alt={alt} onRemove={() => removeAlternateEffect(ep, ai)} />
+								<AlternateEffectEditor alt={alt} onRemove={() => removeAlternateEffect(ep, ai)} {allowNestedSummon} />
 							{/each}
 							<button class="add-alt-btn" onclick={() => addAlternateEffect(ep)}>+ Alternate Effect</button>
 						</div>

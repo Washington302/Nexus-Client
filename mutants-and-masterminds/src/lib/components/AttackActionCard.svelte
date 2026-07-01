@@ -7,6 +7,7 @@
 		resistanceDC: number;
 		range: string;
 		descriptors: string[];
+		notes?: string;
 	}
 
 	let { attack }: { attack: AttackAction } = $props();

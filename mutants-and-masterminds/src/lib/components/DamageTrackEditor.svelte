@@ -1,5 +1,5 @@
 <script lang="ts">
-	let { damagePenaltyDisplay, staggered, incapacitated, dying, applyDamage, healDamage, incrementDying, resetCombatState }:
+	let { damagePenaltyDisplay, staggered = $bindable(), incapacitated = $bindable(), dying = $bindable(), applyDamage, healDamage, incrementDying, resetCombatState }:
 		{ damagePenaltyDisplay: string; staggered: boolean; incapacitated: boolean; dying: number; applyDamage: (n: number) => void; healDamage: (n: number) => void; incrementDying: () => void; resetCombatState: () => void } = $props();
 </script>
 

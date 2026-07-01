@@ -3,9 +3,17 @@
 	import EffectEditor from './EffectEditor.svelte';
 	import AlternateEffectEditor from './AlternateEffectEditor.svelte';
 	import DeviceSectionEditor from './DeviceSectionEditor.svelte';
-	import { createDefaultMinionStatblock } from '$lib/utils/character';
+	import { createDefaultAlternateEffect, createDefaultEffect } from '$lib/utils/character';
 
-	let { power, onRemove }: { power: Power; onRemove: () => void } = $props();
+	let {
+		power,
+		onRemove,
+		allowNestedSummon = true,
+	}: {
+		power: Power;
+		onRemove: () => void;
+		allowNestedSummon?: boolean;
+	} = $props();
 
 	let collapsed = $state(false);
 
@@ -24,20 +32,13 @@
 	function toggleArray() { power.isArray = !power.isArray; }
 
 	function addEffect() {
-		power.effects.push({
-			effectName: '', baseEffect: '', isPrimary: power.effects.length === 0,
-			rank: 1, baseCostPerRank: 2, modifiers: [], calculatedCost: 0, isSummon: false,
-			manualAtkBonus: 0, manualRankBonus: 0,
-		});
+		power.effects.push(createDefaultEffect(power.effects.length === 0));
 	}
 
 	function removeEffect(ei: number) { power.effects.splice(ei, 1); }
 
 	function addAlternateEffect() {
-		power.alternateEffects.push({
-			powerId: crypto.randomUUID(), name: '', description: '', descriptors: [],
-			arrayType: 'ALTERNATE', costPerRank: 0, currentAllocatedRank: 0, effects: [],
-		});
+		power.alternateEffects.push(createDefaultAlternateEffect());
 	}
 
 	function removeAlternateEffect(ai: number) { power.alternateEffects.splice(ai, 1); }
@@ -72,14 +73,14 @@
 		</div>
 
 		{#if power._deviceType}
-			<DeviceSectionEditor {power} />
+			<DeviceSectionEditor {power} {allowNestedSummon} />
 		{/if}
 
 		<div class="effects-section">
 			<div class="effects-head">{power.isArray ? 'Active Slot Effects' : 'Effects'}</div>
 			{#if !power._deviceType}
 				{#each power.effects as effect, ei}
-					<EffectEditor effect={effect} onRemove={() => removeEffect(ei)} />
+					<EffectEditor effect={effect} onRemove={() => removeEffect(ei)} {allowNestedSummon} />
 				{/each}
 				<button class="add-effect-btn" onclick={addEffect}>+ Effect</button>
 			{/if}
@@ -89,7 +90,7 @@
 			<div class="alt-effects-section">
 				<div class="alt-effects-head">Alternate Effects</div>
 				{#each power.alternateEffects as alt, ai}
-					<AlternateEffectEditor alt={alt} onRemove={() => removeAlternateEffect(ai)} />
+					<AlternateEffectEditor alt={alt} onRemove={() => removeAlternateEffect(ai)} {allowNestedSummon} />
 				{/each}
 				<button class="add-alt-btn" onclick={addAlternateEffect}>+ Alternate Effect</button>
 			</div>

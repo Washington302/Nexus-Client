@@ -94,14 +94,14 @@
 
 	<div class="signature-band" style="margin-top:16px;">
 		<div class="sig-dots"></div>
-		<span style="position:relative;z-index:1;">&#9733; {characters.length} HERO{(characters.length !== 1 ? 'ES' : '')} IN YOUR ROSTER &#9733;</span>
+		<span style="position:relative;z-index:1;">★ {characters.length} HERO{(characters.length !== 1 ? 'ES' : '')} IN YOUR ROSTER ★</span>
 	</div>
 </div>
 
 {#if showNewChar}
 	<div class="modal-overlay" onclick={() => (showNewChar = false)} onkeydown={(e) => e.key === 'Escape' && (showNewChar = false)} role="presentation">
 		<div class="modal-box" onclick={(e) => e.stopPropagation()} role="dialog" tabindex="-1" onkeydown={(e) => e.key === 'Escape' && (showNewChar = false)}>
-			<h2 class="modal-title">&#9733; New Hero &#9733;</h2>
+			<h2 class="modal-title">★ New Hero ★</h2>
 			{#if createError}
 				<div class="modal-error">{createError}</div>
 			{/if}
