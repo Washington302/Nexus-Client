@@ -44,8 +44,12 @@
 	function calcDeviceCost(power: any): { raw: number; discount: number; final: number } {
 		const raw = (power._embeddedPowers ?? []).reduce((s: number, ep: any) => s + (ep.totalPowerCost ?? 0), 0);
 		let discount = 0;
-		const perFive = Math.ceil(raw / 5);
-		discount = power._deviceType === 'EASILY_REMOVABLE' ? perFive * 2 : perFive;
+		if (raw <= 5) {
+			discount = power._deviceType === 'EASILY_REMOVABLE' ? 4 : 2;
+		} else {
+			const perFive = Math.ceil(raw / 5);
+			discount = power._deviceType === 'EASILY_REMOVABLE' ? perFive * 2 : perFive;
+		}
 		return { raw, discount, final: Math.max(0, raw - discount) };
 	}
 

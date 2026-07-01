@@ -132,14 +132,20 @@
 				if (p._deviceType) {
 					for (const ep of (p._embeddedPowers ?? [])) calcPowerInit(ep);
 					const raw = (p._embeddedPowers ?? []).reduce((s: number, ep: any) => s + (ep.totalPowerCost ?? 0), 0);
-					const perFive = Math.ceil(raw / 5);
-					const discount = p._deviceType === 'EASILY_REMOVABLE' ? perFive * 2 : perFive;
+					let discount = 0;
+					if (raw <= 5) {
+						discount = p._deviceType === 'EASILY_REMOVABLE' ? 4 : 2;
+					} else {
+						const perFive = Math.ceil(raw / 5);
+						discount = p._deviceType === 'EASILY_REMOVABLE' ? perFive * 2 : perFive;
+					}
 					p.totalPowerCost = Math.max(0, raw - discount);
 				} else {
 					calcPowerInit(p);
 				}
 			}
 			}
+			d.spentPowers = (d.powers ?? []).reduce((sum: number, p: any) => sum + (p.totalPowerCost ?? 0), 0);
 			// Auto-compute ability PP cost
 			const abiKeys = ['strength','stamina','agility','dexterity','fighting','intellect','awareness','presence'] as const;
 			let totalAbiPP = 0;
@@ -153,15 +159,14 @@
 			d.spentAbilities = totalAbiPP;
 			// Auto-compute skill bonuses and costs
 			const ABIL_MAP: Record<string, string> = { STRENGTH:'strength', STAMINA:'stamina', AGILITY:'agility', DEXTERITY:'dexterity', FIGHTING:'fighting', INTELLECT:'intellect', AWARENESS:'awareness', PRESENCE:'presence' };
-			let totalSkillPP = 0;
+			let totalSkillRanks = 0;
 			for (const s of (d.skills ?? [])) {
 				const abiKey = ABIL_MAP[s.keyAbility] ?? 'agility';
 				const abiVal = (d.abilities as any)?.[abiKey + 'FinalValue'] ?? 0;
 				s.finalBonus = (s.ranks ?? 0) + abilityMod(abiVal) + (s.modifier ?? 0);
-				s.ppCost = Math.ceil((s.ranks ?? 0) / 2);
-				totalSkillPP += s.ppCost;
+				totalSkillRanks += (s.ranks ?? 0);
 			}
-			d.spentSkills = totalSkillPP;
+			d.spentSkills = Math.ceil(totalSkillRanks / 2);
 			// Auto-compute equipment costs
 			const hqs = d.headquarters ?? [];
 			for (const hq of hqs) {
@@ -203,15 +208,14 @@
 		draft.spentAbilities = totalAbiPP;
 		// Auto-compute skill bonuses and costs
 		const ABIL_MAP: Record<string, string> = { STRENGTH:'strength', STAMINA:'stamina', AGILITY:'agility', DEXTERITY:'dexterity', FIGHTING:'fighting', INTELLECT:'intellect', AWARENESS:'awareness', PRESENCE:'presence' };
-		let totalSkillPP = 0;
+		let totalSkillRanks = 0;
 		for (const s of (draft.skills ?? [])) {
 			const abiKey = ABIL_MAP[s.keyAbility] ?? 'agility';
 			const abiVal = (draft.abilities as any)?.[abiKey + 'FinalValue'] ?? 0;
 			s.finalBonus = (s.ranks ?? 0) + abilityMod(abiVal) + (s.modifier ?? 0);
-			s.ppCost = Math.ceil((s.ranks ?? 0) / 2);
-			totalSkillPP += s.ppCost;
+			totalSkillRanks += (s.ranks ?? 0);
 		}
-		draft.spentSkills = totalSkillPP;
+		draft.spentSkills = Math.ceil(totalSkillRanks / 2);
 		// Auto-compute equipment costs
 		const hqs = draft.headquarters ?? [];
 		for (const hq of hqs) {
@@ -221,6 +225,7 @@
 		const itemsCost = (draft.equipmentPool?.items ?? []).reduce((s: number, i: any) => s + (i.epCost ?? 0), 0);
 		const hqCost = hqs.reduce((s: number, hq: any) => s + (hq.totalEpCost ?? 0), 0);
 		if (draft.equipmentPool) draft.equipmentPool.epSpent = Math.round(itemsCost + hqCost);
+		draft.spentPowers = (draft.powers ?? []).reduce((sum: number, p: any) => sum + (p.totalPowerCost ?? 0), 0);
 		draft.totalSpent = (draft.spentAbilities ?? 0) + (draft.spentDefenses ?? 0) + (draft.spentSkills ?? 0) + (draft.spentAdvantages ?? 0) + (draft.spentPowers ?? 0);
 	});
 
@@ -590,7 +595,7 @@
 					if (rawCost <= 5) {
 						discount = p._deviceType === 'EASILY_REMOVABLE' ? 4 : 2;
 					} else {
-						const perFive = Math.floor(rawCost / 5);
+						const perFive = Math.ceil(rawCost / 5);
 						discount = p._deviceType === 'EASILY_REMOVABLE' ? perFive * 2 : perFive;
 					}
 					devices.push({
@@ -608,6 +613,7 @@
 			}
 			payload.powers = regularPowers;
 			payload.devices = devices;
+			payload.spentPowers = regularPowers.reduce((sum: number, p: any) => sum + (p.totalPowerCost ?? 0), 0) + devices.reduce((sum: number, d: any) => sum + (d.finalDeviceCost ?? 0), 0);
 			const updated = await api.character.update(draft.id, payload);
 			if (session.activeCharacter) {
 				Object.assign(session.activeCharacter, updated);
@@ -853,17 +859,6 @@
 								<div class="hq-features">{#each hq.features as f}<span class="feature-badge">{f}</span>{/each}</div>
 {/if}
 
-<style>
-	.all-view :global(.panel-body) {
-		max-height: 400px;
-		overflow-y: auto;
-		scrollbar-width: none;
-		-ms-overflow-style: none;
-	}
-	.all-view :global(.panel-body::-webkit-scrollbar) {
-		display: none;
-	}
-</style>
 							{#if hq.defenseSystems?.length}
 								<div class="def-systems">
 									<span class="def-sys-header">Defense Systems:</span>
@@ -873,17 +868,6 @@
 </div>
 {/if}
 
-<style>
-	.all-view :global(.panel-body) {
-		max-height: 400px;
-		overflow-y: auto;
-		scrollbar-width: none;
-		-ms-overflow-style: none;
-	}
-	.all-view :global(.panel-body::-webkit-scrollbar) {
-		display: none;
-	}
-</style>
 							{#if i < draft.headquarters.length - 1}<hr class="divider" />{/if}
 						{:else}
 							<div class="empty-state">No headquarters</div>
