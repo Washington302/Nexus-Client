@@ -89,35 +89,3 @@
 	<button class="add-btn" onclick={add}>+ Add Headquarters</button>
 </div>
 
-<style>
-	.editor-grid { display:flex; flex-direction:column; gap:8px; }
-	.hq-block { display:flex; flex-direction:column; gap:6px; padding:8px; border:1.5px dashed var(--border); }
-	.hq-header-row { display:flex; align-items:center; gap:8px; }
-	.hq-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-	.field { display:flex; flex-direction:column; gap:2px; }
-	.field-label { font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.06em; }
-	.name-input { flex:1; padding:5px 8px; border:2px solid var(--border); font-family:'Nunito',sans-serif; font-size:12px; color:var(--ink); background:var(--newsprint); outline:none; }
-	.name-input:focus { border-color:var(--primary); }
-	.text-input { padding:4px 8px; border:2px solid var(--border); font-family:'Nunito',sans-serif; font-size:11px; color:var(--ink); background:var(--newsprint); outline:none; width:100%; box-sizing:border-box; }
-	.text-input:focus { border-color:var(--primary); }
-	.num-input { width:100%; padding:4px 6px; border:2px solid var(--border); font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; color:var(--ink); background:var(--newsprint); text-align:center; outline:none; box-sizing:border-box; }
-	.num-input:focus { border-color:var(--primary); }
-	.sel-input { padding:4px 6px; border:2px solid var(--border); font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; color:var(--ink); background:var(--newsprint); outline:none; }
-	.sel-input:focus { border-color:var(--primary); }
-	.desc-input { width:100%; padding:4px 8px; border:2px solid var(--border); font-family:'Nunito',sans-serif; font-size:11px; color:var(--ink); background:var(--newsprint); outline:none; resize:vertical; min-height:40px; box-sizing:border-box; }
-	.desc-input:focus { border-color:var(--primary); }
-	.feat-row { display:flex; align-items:center; gap:4px; margin-bottom:2px; }
-	.ds-row { display:flex; align-items:center; gap:6px; margin-bottom:2px; padding:2px 4px; background:color-mix(in srgb, var(--panel-bg) 60%, transparent); border:1.5px solid var(--border); }
-	.ds-name { flex:1; font-family:'Nunito',sans-serif; font-size:11px; font-weight:600; color:var(--ink); }
-	.ds-pp { font-family:'Oswald',sans-serif; font-size:12px; font-weight:700; color:var(--accent); }
-	.ds-actions { display:flex; gap:4px; margin-top:2px; }
-	.edit-small-btn { background:var(--panel-bg); border:1.5px solid var(--border); color:var(--accent); font-family:'Oswald',sans-serif; font-size:12px; font-weight:700; padding:3px 8px; cursor:pointer; letter-spacing:0.04em; }
-	.edit-small-btn:hover { background:var(--primary); color:white; }
-	.inline-editor { padding:8px; border:1.5px solid var(--border); margin-top:4px; background:color-mix(in srgb, var(--panel-bg) 50%, transparent); }
-	.remove-btn { background:var(--danger); border:2px solid var(--border); color:white; width:26px; height:26px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0; }
-	.remove-btn.small { width:20px; height:20px; font-size:12px; }
-	.add-small-btn { background:var(--primary); border:2px solid var(--border); color:white; font-family:'Oswald',sans-serif; font-size:12px; font-weight:700; padding:3px 8px; cursor:pointer; align-self:flex-start; letter-spacing:0.04em; }
-	.add-btn { background:var(--primary); border:2px solid var(--border); color:white; font-family:'Oswald',sans-serif; font-size:12px; font-weight:700; padding:6px 12px; cursor:pointer; align-self:flex-start; letter-spacing:0.04em; }
-	.check-row { display:flex; align-items:center; gap:6px; font-family:'Nunito',sans-serif; font-size:12px; color:var(--ink); cursor:pointer; }
-	.sum-display { font-family:'Bangers',cursive; font-size:16px; color:var(--primary); padding:2px 0; }
-</style>

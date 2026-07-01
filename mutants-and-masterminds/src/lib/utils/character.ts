@@ -1,5 +1,33 @@
+import type { ResistanceType } from '$lib/services/api';
+
 export function abilityMod(val: number): number {
 	return val;
+}
+
+export function effectResistance(e: { effectName?: string; resistance?: ResistanceType; modifiers?: Array<{ name?: string }> }): ResistanceType {
+	if (e.resistance) return e.resistance;
+	const name = (e.effectName ?? '').toLowerCase();
+	const modNames = (e.modifiers ?? []).map((m: any) => (m.name ?? '').toLowerCase());
+	const isDamaging = name.includes('damage') || modNames.some((n: string) => n.includes('damaging'));
+	if (name.includes('affliction')) return 'WILL_FORTITUDE';
+	if (isDamaging) return 'TOUGHNESS';
+	if (name.includes('move')) return 'STRENGTH_DODGE';
+	if (name.includes('nullify') || name.includes('weaken')) return 'FORTITUDE';
+	return 'DODGE';
+}
+
+export function resistanceLabel(r: ResistanceType): string {
+	const labels: Record<ResistanceType, string> = {
+		TOUGHNESS: 'Toughness',
+		DODGE: 'Dodge',
+		FORTITUDE: 'Fortitude',
+		WILL: 'Will',
+		WILL_FORTITUDE: 'Will / Fortitude',
+		STRENGTH_DODGE: 'Strength / Dodge',
+		PARRY: 'Parry',
+		NONE: 'None',
+	};
+	return labels[r] ?? 'Dodge';
 }
 
 export function abilityModStr(val: number): string {
@@ -89,6 +117,8 @@ export function initNormalizePower(p: any) {
 	if ('array' in p && !('isArray' in p)) p.isArray = p.array;
 	delete p.array;
 	for (const e of (p.effects ?? [])) {
+		if (typeof e.manualAtkBonus !== 'number') e.manualAtkBonus = 0;
+		if (typeof e.manualRankBonus !== 'number') e.manualRankBonus = 0;
 		if ('primary' in e && !('isPrimary' in e)) e.isPrimary = e.primary;
 		delete e.primary;
 		for (const m of (e.modifiers ?? [])) {
@@ -103,6 +133,8 @@ export function initNormalizePower(p: any) {
 		if (typeof a.currentAllocatedRank !== 'number') a.currentAllocatedRank = 0;
 		if (typeof a.costPerRank !== 'number') a.costPerRank = 0;
 		for (const e of (a.effects ?? [])) {
+			if (typeof e.manualAtkBonus !== 'number') e.manualAtkBonus = 0;
+			if (typeof e.manualRankBonus !== 'number') e.manualRankBonus = 0;
 			if ('primary' in e && !('isPrimary' in e)) e.isPrimary = e.primary;
 			delete e.primary;
 			for (const m of (e.modifiers ?? [])) {

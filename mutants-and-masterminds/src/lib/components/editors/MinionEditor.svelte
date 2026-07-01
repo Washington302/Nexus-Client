@@ -14,6 +14,12 @@
 	let collapsedPowers = $state<Record<number, boolean>>({});
 	let collapsedEffects = $state<Record<string, boolean>>({});
 
+	$effect(() => {
+		if (!minion.combatState) {
+			minion.combatState = { conditions: [], damage: 0, dying: 0, staggered: false, accumulatedToughnessPenalty: 0, activeConditions: [] };
+		}
+	});
+
 	function togglePower(pi: number) {
 		collapsedPowers = { ...collapsedPowers, [pi]: !collapsedPowers[pi] };
 	}
@@ -46,6 +52,7 @@
 			modifiers: [],
 			calculatedCost: 0,
 			isSummon: false,
+			manualAtkBonus: 0, manualRankBonus: 0,
 		});
 	}
 
@@ -78,6 +85,25 @@
 	<div class="mini-section">
 		<div class="mini-section-label">Advantages</div>
 		<AdvantagesEditor advantages={minion.advantages} />
+	</div>
+	<div class="mini-section">
+		<div class="mini-section-label">Combat State</div>
+		<div class="combat-state-editor">
+			<div class="cs-row">
+				<label class="cs-lbl">Damage</label>
+				<input type="number" class="cs-input" bind:value={minion.combatState.damage} min="0" />
+				<label class="cs-lbl">Penalty</label>
+				<input type="number" class="cs-input" bind:value={minion.combatState.accumulatedToughnessPenalty} min="0" />
+			</div>
+			<div class="cs-row">
+				<label class="cs-lbl">Dying</label>
+				<input type="number" class="cs-input" bind:value={minion.combatState.dying} min="0" max="3" />
+				<label class="cs-check">
+					<input type="checkbox" checked={minion.combatState.staggered} onchange={() => minion.combatState.staggered = !minion.combatState.staggered} />
+					Staggered
+				</label>
+			</div>
+		</div>
 	</div>
 	<div class="mini-section">
 		<div class="mini-section-label">Powers</div>
@@ -130,35 +156,3 @@
 	</div>
 </div>
 
-<style>
-	.minion-editor { display:flex; flex-direction:column; gap:10px; }
-	.mini-section { border:2px solid var(--border); padding:10px; background:color-mix(in srgb, var(--panel-bg) 40%, transparent); }
-	.mini-section-label { font-family:'Oswald',sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent); margin-bottom:6px; }
-	.mini-power-card { border:1.5px solid var(--border); margin-bottom:4px; background:color-mix(in srgb, var(--panel-bg) 60%, transparent); }
-	.mini-power-header { display:flex; align-items:center; gap:4px; padding:4px 6px; cursor:pointer; }
-	.mini-power-name { flex:1; padding:3px 6px; border:1.5px solid var(--border); font-family:'Nunito',sans-serif; font-size:12px; color:var(--ink); background:var(--newsprint); outline:none; }
-	.mini-power-name:focus { border-color:var(--secondary); }
-	.mini-desc { width:100%; padding:4px 6px; border:1.5px solid var(--border); font-family:'Nunito',sans-serif; font-size:11px; color:var(--ink); background:var(--newsprint); outline:none; resize:vertical; box-sizing:border-box; margin-top:2px; }
-	.mini-desc:focus { border-color:var(--secondary); }
-	.mini-effects { padding:4px 6px 6px; }
-	.mini-effects-head { font-family:'Oswald',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--primary); margin-bottom:3px; }
-	.mini-effect-card { border:1.5px solid var(--border); margin-bottom:3px; background:color-mix(in srgb, var(--panel-bg) 80%, transparent); }
-	.mini-effect-header { display:flex; align-items:center; gap:3px; padding:3px 5px; cursor:pointer; }
-	.mini-effect-input { flex:1; padding:2px 5px; border:1.5px solid var(--border); font-family:'Nunito',sans-serif; font-size:11px; color:var(--ink); background:var(--newsprint); outline:none; min-width:0; }
-	.mini-effect-input:focus { border-color:var(--secondary); }
-	.mini-num { width:50px; padding:2px 4px; border:1.5px solid var(--border); font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; color:var(--ink); background:var(--newsprint); outline:none; text-align:center; }
-	.mini-num:focus { border-color:var(--secondary); }
-	.mini-mods { padding:3px 5px 5px 14px; }
-	.mini-mod-row { display:flex; align-items:center; gap:3px; margin-bottom:2px; }
-	.mini-mod-input { flex:1; padding:2px 5px; border:1.5px solid var(--border); font-family:'Nunito',sans-serif; font-size:10px; color:var(--ink); background:var(--newsprint); outline:none; min-width:0; }
-	.mini-mod-input:focus { border-color:var(--secondary); }
-	.mini-mod-type { padding:2px; border:1.5px solid var(--border); font-family:'Oswald',sans-serif; font-size:10px; font-weight:700; color:var(--ink); background:var(--newsprint); outline:none; }
-	.mini-num-sm { width:40px; padding:2px 4px; border:1.5px solid var(--border); font-family:'Oswald',sans-serif; font-size:10px; font-weight:700; color:var(--ink); background:var(--newsprint); outline:none; text-align:center; }
-	.mini-flat { font-family:'Oswald',sans-serif; font-size:9px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:2px; white-space:nowrap; }
-	.mini-flat input { margin:0; }
-	.mini-remove-btn { background:var(--danger); border:none; color:white; font-family:'Oswald',sans-serif; font-size:10px; font-weight:700; cursor:pointer; padding:1px 7px; line-height:1; flex-shrink:0; }
-	.mini-remove-btn.sm { font-size:8px; padding:1px 5px; }
-	.mini-add-btn { background:var(--primary); border:2px solid var(--border); color:white; font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; cursor:pointer; padding:4px 10px; margin-top:2px; text-transform:uppercase; letter-spacing:0.05em; }
-	.mini-sm-btn { background:var(--secondary); border:1.5px solid var(--border); color:white; font-family:'Oswald',sans-serif; font-size:9px; font-weight:700; cursor:pointer; padding:2px 8px; margin-top:2px; }
-	.collapse-icon { font-size:8px; color:var(--accent); flex-shrink:0; }
-</style>

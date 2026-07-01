@@ -57,6 +57,7 @@ export type DefenseType = 'DODGE' | 'PARRY' | 'FORTITUDE' | 'WILL' | 'TOUGHNESS'
 export type ModifierType = 'EXTRA' | 'FLAW';
 export type ArrayType = 'ALTERNATE' | 'DYNAMIC';
 export type DeviceType = 'REMOVABLE' | 'EASILY_REMOVABLE';
+export type ResistanceType = 'TOUGHNESS' | 'DODGE' | 'FORTITUDE' | 'WILL' | 'WILL_FORTITUDE' | 'STRENGTH_DODGE' | 'PARRY' | 'NONE';
 
 export interface AbilitiesBlock {
 	strengthBaseRank: number;
@@ -174,10 +175,13 @@ export interface PowerEffect {
 	isPrimary: boolean;
 	isSummon: boolean;
 	summonExtension?: SummonExtension;
+	resistance?: ResistanceType;
 
 	// Active state flags
 	_showInCombat?: boolean;
 	_isThrownWeapon?: boolean;
+	manualAtkBonus?: number;
+	manualRankBonus?: number;
 }
 
 export interface CombatState {

@@ -51,14 +51,3 @@
 	<div class="note">Remaining: <strong>{draft.totalAllowed - totalSpent}</strong> PP</div>
 </div>
 
-<style>
-	.editor-grid { display:flex; flex-direction:column; gap:8px; }
-	.field-row { display:flex; align-items:center; gap:10px; }
-	.field-label { font-family:'Oswald',sans-serif; font-size:15px; font-weight:600; color:var(--ink); width:140px; flex-shrink:0; }
-	.field-input { flex:1; padding:6px 8px; border:2px solid var(--border); font-family:'Oswald',sans-serif; font-size:16px; font-weight:700; color:var(--ink); background:var(--newsprint); outline:none; }
-	.field-input:focus { border-color:var(--primary); }
-	.field-value { flex:1; font-family:'Oswald',sans-serif; font-size:16px; font-weight:700; color:var(--primary); padding:6px 8px; }
-	.divider { border:none; border-top:2px solid var(--border); margin:2px 0; }
-	.cat-head { font-family:'Oswald',sans-serif; font-size:15px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.06em; }
-	.note { font-family:'Nunito',sans-serif; font-size:14px; color:var(--accent); }
-</style>

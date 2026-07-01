@@ -48,14 +48,3 @@
 	{/each}
 </div>
 
-<style>
-	.editor-grid { display:flex; flex-direction:column; gap:6px; }
-	.field-row { display:flex; align-items:center; gap:8px; }
-	.field-label { font-family:'Oswald',sans-serif; font-size:14px; font-weight:600; color:var(--ink); width:80px; flex-shrink:0; }
-	.field-input { width:60px; padding:4px 6px; border:2px solid var(--border); font-family:'Oswald',sans-serif; font-size:14px; font-weight:700; color:var(--ink); background:var(--newsprint); text-align:center; outline:none; }
-	.field-input:focus { border-color:var(--primary); }
-	.final-val { font-family:'Nunito',sans-serif; font-size:13px; color:var(--accent); min-width:24px; text-align:center; }
-	.pp-cost { font-family:'Bangers',cursive; font-size:14px; color:var(--primary); min-width:40px; text-align:right; }
-	.enh-label { font-family:'Oswald',sans-serif; font-size:13px; color:var(--accent); padding:0 1px; }
-	.enh-input { width:40px; border-color:var(--secondary) !important; }
-</style>
