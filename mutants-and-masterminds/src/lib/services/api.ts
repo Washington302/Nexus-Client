@@ -329,6 +329,7 @@ export const api = {
 				body: JSON.stringify(data),
 			}),
 		get: (id: string) => request<MnmCharacter>(`/api/v1/mnm/characters/${id}`),
+		getPublic: (id: string) => request<MnmCharacter>(`/api/v1/mnm/characters/${id}/share`),
 		myCharacters: () => request<MnmCharacter[]>('/api/v1/mnm/characters'),
 		update: (id: string, data: MnmCharacter) =>
 			request<MnmCharacter>(`/api/v1/mnm/characters/${id}`, {
