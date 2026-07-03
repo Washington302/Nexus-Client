@@ -1,4 +1,6 @@
 const TOKEN_KEY = 'mnm_token';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
+
 
 function getToken(): string | null {
 	if (typeof localStorage === 'undefined') return null;
@@ -17,6 +19,8 @@ export function clearToken(): void {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 	const token = getToken();
+	  const fullUrl = path.startsWith('http') ? path : `${API_BASE}${path}`;
+
 	const headers: Record<string, string> = {
 		...(options.headers as Record<string, string>),
 	};
