@@ -1,4 +1,4 @@
-import type { AlternateEffect, PowerEffect, PowerModifier, ResistanceType } from '$lib/services/api';
+import type { AlternateEffect, PowerEffect, PowerModifier, ResistanceType, MinionStatBlock } from '$lib/services/api';
 
 export function abilityMod(val: number): number {
 	return val;
@@ -363,7 +363,7 @@ export function normalizePowerForSave(p: any) {
 	}
 }
 
-export function createDefaultMinionStatblock(rank: number) {
+export function createDefaultMinionStatblock(rank: number): MinionStatBlock {
 	return {
 		name: '', powerLevel: rank,
 		abilities: {

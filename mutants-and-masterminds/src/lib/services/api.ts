@@ -17,7 +17,9 @@ export function clearToken(): void {
 	setToken(null);
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(path: string, options?: RequestInit): Promise<T>;
+async function request<T>(path: string, options: RequestInit, allow404: true): Promise<T | null>;
+async function request<T>(path: string, options: RequestInit = {}, allow404 = false): Promise<T | null> {
 	const token = getToken();
 	const fullUrl = path.startsWith('http') ? path : `${API_BASE}${path}`;
 
@@ -35,6 +37,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 		const reason = err instanceof Error ? err.message : String(err);
 		throw new Error(`API currently down, please wait. (${reason})`);
 	}
+	if (allow404 && res.status === 404) return null;
 	if (!res.ok) {
 		const body = await res.text().catch(() => '');
 		throw new Error(body || `Request failed: ${res.status}`);
@@ -278,6 +281,7 @@ export interface Complication {
 export interface MnmCharacter {
 	id: string;
 	userId: string;
+	campaignId?: string;
 	name: string;
 	powerLevel: number;
 	identity: IdentityType;
@@ -312,6 +316,49 @@ export interface CreateCharacterRequest {
 	name: string;
 	powerLevel: number;
 	description?: string;
+	campaignId?: string;
+}
+
+export type CampaignRole = 'OWNER' | 'STORYTELLER' | 'PLAYER' | 'SPECTATOR';
+
+export interface CampaignMember {
+	userId: string;
+	displayName: string;
+	role: CampaignRole;
+}
+
+export interface Campaign {
+	id: string;
+	name: string;
+	gameSystem: string;
+	ownerUserId: string;
+	members: CampaignMember[];
+	createdAt: string;
+	updatedAt: string;
+	// MUTANTS_AND_MASTERMINDS-specific fields (present when gameSystem === 'MUTANTS_AND_MASTERMINDS')
+	powerLevel?: number;
+	setting?: string;
+}
+
+export interface CreateCampaignPayload {
+	name: string;
+	gameSystem: 'MUTANTS_AND_MASTERMINDS';
+	powerLevel: number;
+	setting?: string;
+}
+
+export interface CampaignNpc {
+	id: string;
+	campaignId: string;
+	name: string;
+	statBlock: MinionStatBlock;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface UserLookupResult {
+	id: string;
+	username: string;
 }
 
 export const api = {
@@ -337,6 +384,13 @@ export const api = {
 		get: (id: string) => request<MnmCharacter>(`/api/v1/mnm/characters/${id}`),
 		getPublic: (id: string) => request<MnmCharacter>(`/api/v1/mnm/characters/${id}/share`),
 		myCharacters: () => request<MnmCharacter[]>('/api/v1/mnm/characters'),
+		byCampaign: async (campaignId: string): Promise<MnmCharacter[]> => {
+			try {
+				return await request<MnmCharacter[]>(`/api/v1/mnm/characters?campaignId=${encodeURIComponent(campaignId)}`);
+			} catch {
+				return [];
+			}
+		},
 		update: (id: string, data: MnmCharacter) =>
 			request<MnmCharacter>(`/api/v1/mnm/characters/${id}`, {
 				method: 'PUT',
@@ -344,5 +398,45 @@ export const api = {
 			}),
 		delete: (id: string) =>
 			request<void>(`/api/v1/mnm/characters/${id}`, { method: 'DELETE' }),
+	},
+	campaign: {
+		create: (data: CreateCampaignPayload) =>
+			request<Campaign>('/api/v1/campaigns', {
+				method: 'POST',
+				body: JSON.stringify(data),
+			}),
+		myCampaigns: async (): Promise<Campaign[]> => {
+			const campaigns = await request<Campaign[]>('/api/v1/campaigns');
+			return campaigns.filter((c) => c.gameSystem === 'MUTANTS_AND_MASTERMINDS');
+		},
+		get: (id: string) => request<Campaign>(`/api/v1/campaigns/${id}`),
+		delete: (id: string) =>
+			request<void>(`/api/v1/campaigns/${id}`, { method: 'DELETE' }),
+		addMember: (id: string, member: CampaignMember) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/members`, {
+				method: 'POST',
+				body: JSON.stringify(member),
+			}),
+		removeMember: (id: string, userId: string) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/members/${userId}`, { method: 'DELETE' }),
+	},
+	npc: {
+		list: (campaignId: string) => request<CampaignNpc[]>(`/api/v1/campaigns/${campaignId}/npcs`),
+		create: (campaignId: string, data: { name: string; statBlock: MinionStatBlock }) =>
+			request<CampaignNpc>(`/api/v1/campaigns/${campaignId}/npcs`, {
+				method: 'POST',
+				body: JSON.stringify(data),
+			}),
+		update: (campaignId: string, npcId: string, data: { name: string; statBlock: MinionStatBlock }) =>
+			request<CampaignNpc>(`/api/v1/campaigns/${campaignId}/npcs/${npcId}`, {
+				method: 'PUT',
+				body: JSON.stringify(data),
+			}),
+		delete: (campaignId: string, npcId: string) =>
+			request<void>(`/api/v1/campaigns/${campaignId}/npcs/${npcId}`, { method: 'DELETE' }),
+	},
+	users: {
+		lookupByEmail: (email: string) =>
+			request<UserLookupResult>(`/api/v1/users/lookup?email=${encodeURIComponent(email)}`, {}, true),
 	},
 };
