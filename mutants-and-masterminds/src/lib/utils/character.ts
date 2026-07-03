@@ -56,7 +56,7 @@ export function effectCost(e: { baseCostPerRank?: number; rank?: number; modifie
 }
 
 export function perRankCost(e: { baseCostPerRank?: number; modifiers?: Array<{ isFlat: boolean; type: string; costModifier: number }> }): number {
-	let perRank = e.baseCostPerRank ?? 2;
+	let perRank = e.baseCostPerRank ?? 1;
 	for (const m of e.modifiers ?? []) {
 		if (!m.isFlat) {
 			perRank += m.type === 'FLAW' ? -m.costModifier : m.costModifier;
@@ -92,7 +92,7 @@ export function createDefaultEffect(isPrimary = false): PowerEffect {
 		baseEffect: '',
 		isPrimary,
 		rank: 1,
-		baseCostPerRank: 2,
+		baseCostPerRank: 1,
 		modifiers: [],
 		calculatedCost: 0,
 		isSummon: false,
