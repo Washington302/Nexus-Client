@@ -430,16 +430,14 @@
 		return list;
 	});
 
-	function shareCharacter() {
-		if (!draft) return;
-		const json = JSON.stringify(draft);
-		const encoded = btoa(encodeURIComponent(json));
-		const url = `${window.location.origin}/share/${encoded}`;
-		navigator.clipboard.writeText(url).then(() => {
-			shareCopied = true;
-			setTimeout(() => shareCopied = false, 2000);
-		});
-	}
+function shareCharacter() {
+	if (!draft) return;
+	const url = `${window.location.origin}/share/${draft.id}`;
+	navigator.clipboard.writeText(url).then(() => {
+		shareCopied = true;
+		setTimeout(() => shareCopied = false, 2000);
+	});
+}
 
 	async function saveCharacter() {
 		if (!draft) return;
