@@ -12,6 +12,11 @@ interface LaboratoriesDocument {
 }
 
 const TOKEN_KEY = 'nexus_token';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
+console.log('=== ENV DEBUG ===');
+console.log('VITE_API_BASE from import.meta.env:', import.meta.env.VITE_API_BASE);
+console.log('Final API_BASE used:', API_BASE);
+console.log('=== ENV DEBUG END ===');
 
 function getToken(): string | null {
   if (typeof localStorage === 'undefined') return null;
@@ -30,6 +35,7 @@ export function clearToken(): void {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
+  const fullUrl = path.startsWith('http') ? path : `${API_BASE}${path}`;
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),
   };
@@ -37,7 +43,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (options.body && typeof options.body === 'string' && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   }
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(fullUrl, { ...options, headers });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(body || `Request failed: ${res.status}`);
