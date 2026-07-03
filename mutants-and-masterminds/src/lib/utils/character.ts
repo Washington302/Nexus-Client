@@ -36,7 +36,7 @@ export function abilityModStr(val: number): string {
 	if (mod < 0) return String(mod);
 	return '0';
 }
-
+ 
 export function effectCost(e: { baseCostPerRank?: number; rank?: number; modifiers?: Array<{ isFlat: boolean; type: string; costModifier: number }> }): number {
 	let perRank = e.baseCostPerRank ?? 1;
 	let flat = 0;
