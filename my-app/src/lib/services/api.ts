@@ -13,10 +13,7 @@ interface LaboratoriesDocument {
 
 const TOKEN_KEY = 'nexus_token';
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
-console.log('=== ENV DEBUG ===');
-console.log('VITE_API_BASE from import.meta.env:', import.meta.env.VITE_API_BASE);
-console.log('Final API_BASE used:', API_BASE);
-console.log('=== ENV DEBUG END ===');
+
 
 function getToken(): string | null {
   if (typeof localStorage === 'undefined') return null;

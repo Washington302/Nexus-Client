@@ -19,7 +19,7 @@ export function clearToken(): void {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 	const token = getToken();
-	  const fullUrl = path.startsWith('http') ? path : `${API_BASE}${path}`;
+	const fullUrl = path.startsWith('http') ? path : `${API_BASE}${path}`;
 
 	const headers: Record<string, string> = {
 		...(options.headers as Record<string, string>),
@@ -30,7 +30,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 	}
 	let res: Response;
 	try {
-		res = await fetch(path, { ...options, headers });
+		res = await fetch(fullUrl, { ...options, headers });
 	} catch {
 		throw new Error('API currently down, please wait.');
 	}
