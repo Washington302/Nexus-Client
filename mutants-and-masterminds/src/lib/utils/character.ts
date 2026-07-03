@@ -47,7 +47,12 @@ export function effectCost(e: { baseCostPerRank?: number; rank?: number; modifie
 			perRank += m.type === 'FLAW' ? -m.costModifier : m.costModifier;
 		}
 	}
-	return perRank * (e.rank ?? 0) + flat;
+	const rank = e.rank ?? 0;
+	// When flaws reduce the per-rank cost to 0 or below, the effect costs
+	// 1 point per (2 - perRank) ranks instead of being free (e.g. net rate
+	// 0 -> 1pt/2 ranks, net rate -1 -> 1pt/3 ranks).
+	const rankCost = perRank <= 0 ? Math.ceil(rank / (2 - perRank)) : perRank * rank;
+	return rankCost + flat;
 }
 
 export function perRankCost(e: { baseCostPerRank?: number; modifiers?: Array<{ isFlat: boolean; type: string; costModifier: number }> }): number {
@@ -168,7 +173,7 @@ export function recomputeCharacterCosts(draft: any): void {
 		const mod = draft.abilities?.[key + 'CostModifier'] ?? 0;
 		const enh = draft.abilities?.[key + 'EnhancedRank'] ?? 0;
 		draft.abilities[key + 'FinalValue'] = base + enh;
-		totalAbiPP += Math.max(0, base) * (2 + mod);
+		totalAbiPP += base * (2 + mod);
 	}
 	draft.spentAbilities = totalAbiPP;
 	const abilityMap: Record<string, string> = { STRENGTH:'strength', STAMINA:'stamina', AGILITY:'agility', DEXTERITY:'dexterity', FIGHTING:'fighting', INTELLECT:'intellect', AWARENESS:'awareness', PRESENCE:'presence' };

@@ -19,14 +19,16 @@
 		createError = null;
 		try {
 			const { api } = await import('$lib/services/api');
-			await api.character.create({
+			const created = await api.character.create({
 				name: newName,
 				powerLevel: newPowerLevel,
 				description: 'A new hero emerges!'
 			});
 			await loadActiveCharacter();
+			await setActiveCharacterById(created.id);
 			showNewChar = false;
 			newName = '';
+			goto('/character');
 		} catch (e) {
 			createError = (e as Error).message;
 		} finally {

@@ -753,6 +753,14 @@ function shareCharacter() {
 		<span style="position: relative; z-index: 1;">★ UNOFFICIAL MUTANTS &amp; MASTERMINDS · CHARACTER SHEET · POWER LEVEL {draft.powerLevel} ★</span>
 	</div>
 </div>
+{:else}
+<div class="comic-wrap">
+	<SplashHeader title="Unofficial " highlight="Mutants &amp; Masterminds" subtitle="Superhero Roleplaying · Character Sheet" />
+	<div class="prompt-card" style="text-align:center; margin-top:16px;">
+		<p style="margin-bottom:16px;">No active character. Create one to get started!</p>
+		<a href="/characters" class="comic-btn">Go to My Heroes</a>
+	</div>
+</div>
 {/if}
 
 <style>
