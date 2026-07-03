@@ -319,7 +319,7 @@ export interface CreateCharacterRequest {
 	campaignId?: string;
 }
 
-export type CampaignRole = 'OWNER' | 'STORYTELLER' | 'PLAYER' | 'SPECTATOR';
+export type CampaignRole = 'OWNER' | 'GM' | 'PLAYER' | 'SPECTATOR';
 
 export interface CampaignMember {
 	userId: string;
