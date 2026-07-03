@@ -31,8 +31,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 	let res: Response;
 	try {
 		res = await fetch(fullUrl, { ...options, headers });
-	} catch {
-		throw new Error('API currently down, please wait.');
+	} catch (err) {
+		const reason = err instanceof Error ? err.message : String(err);
+		throw new Error(`API currently down, please wait. (${reason})`);
 	}
 	if (!res.ok) {
 		const body = await res.text().catch(() => '');
@@ -165,7 +166,7 @@ export interface MinionStatBlock {
 	skills: Skill[];
 	advantages: Advantage[];
 	powers: Power[];
-	combatState: CombatState;
+	combatState: MinionCombatState;
 	totalPpSpent: number;
 }
 
@@ -189,11 +190,12 @@ export interface PowerEffect {
 	manualRankBonus?: number;
 }
 
-export interface CombatState {
+export interface MinionCombatState {
 	conditions: string[];
 	damage: number;
 	dying: number;
 	staggered: boolean;
+	accumulatedToughnessPenalty: number;
 }
 
 export interface AlternateEffect {

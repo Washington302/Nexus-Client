@@ -7,7 +7,7 @@
 
 	$effect(() => {
 		if (session.userId) {
-			goto('/characters');
+			goto('/dashboard');
 		}
 	});
 </script>

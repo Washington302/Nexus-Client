@@ -384,7 +384,7 @@ export function createDefaultMinionStatblock(rank: number) {
 			willAbilityBase:'AWARENESS', willPointsBought:0, willOtherModifiers:0, willFinalValue:0,
 		},
 		skills: [], advantages: [], powers: [],
-		combatState: { conditions: [], damage: 0, dying: 0, staggered: false, accumulatedToughnessPenalty: 0, activeConditions: [] },
+		combatState: { conditions: [], damage: 0, dying: 0, staggered: false, accumulatedToughnessPenalty: 0 },
 		totalPpSpent: 0,
 	};
 }

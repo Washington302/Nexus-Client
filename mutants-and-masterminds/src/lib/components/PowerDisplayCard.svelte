@@ -48,7 +48,7 @@
 						<div class="alt-effect-block">
 							<div class="alt-header">
 								<span class="alt-name">{alt.name}</span>
-								<span class="alt-meta">{alt.arrayType === 'DYNAMIC' ? 'Dynamic' : 'Alternate'} &middot; <strong>{alt.effects.reduce((s, e) => s + (e.calculatedCost ?? 0), 0)} PP</strong></span>
+								<span class="alt-meta">{alt.arrayType === 'DYNAMIC' ? 'Dynamic' : 'Alternate'} &middot; <strong>{alt.effects.reduce((s: number, e: any) => s + (e.calculatedCost ?? 0), 0)} PP</strong></span>
 							</div>
 							{#if alt.description}<div class="alt-desc">{alt.description}</div>{/if}
 							{#each alt.effects as effect}
@@ -95,13 +95,13 @@
 								<div class="minion-stat-row"><span class="minion-stat-lbl">STR</span><span class="minion-stat-val">{sb.abilities.strengthFinalValue}</span><span class="minion-stat-lbl">STA</span><span class="minion-stat-val">{sb.abilities.staminaFinalValue}</span><span class="minion-stat-lbl">AGL</span><span class="minion-stat-val">{sb.abilities.agilityFinalValue}</span><span class="minion-stat-lbl">DEX</span><span class="minion-stat-val">{sb.abilities.dexterityFinalValue}</span><span class="minion-stat-lbl">FGT</span><span class="minion-stat-val">{sb.abilities.fightingFinalValue}</span><span class="minion-stat-lbl">INT</span><span class="minion-stat-val">{sb.abilities.intellectFinalValue}</span><span class="minion-stat-lbl">AWE</span><span class="minion-stat-val">{sb.abilities.awarenessFinalValue}</span><span class="minion-stat-lbl">PRE</span><span class="minion-stat-val">{sb.abilities.presenceFinalValue}</span></div>
 								<div class="minion-stat-row"><span class="minion-stat-lbl">Dodge</span><span class="minion-stat-val">{sb.defenses.dodgeFinalValue}</span><span class="minion-stat-lbl">Parry</span><span class="minion-stat-val">{sb.defenses.parryFinalValue}</span><span class="minion-stat-lbl">Fort</span><span class="minion-stat-val">{sb.defenses.fortitudeFinalValue}</span><span class="minion-stat-lbl">Tough</span><span class="minion-stat-val">{sb.defenses.toughnessFinalValue}</span><span class="minion-stat-lbl">Will</span><span class="minion-stat-val">{sb.defenses.willFinalValue}</span></div>
 								{#if sb.skills?.length}
-									<div class="minion-stat-row"><span class="minion-stat-lbl">Skills</span><span class="minion-stat-skills">{sb.skills.map(s => s.skillName + (s.ranks ? ' ' + s.ranks : '')).join(', ')}</span></div>
+									<div class="minion-stat-row"><span class="minion-stat-lbl">Skills</span><span class="minion-stat-skills">{sb.skills.map((s: any) => s.skillName + (s.ranks ? ' ' + s.ranks : '')).join(', ')}</span></div>
 								{/if}
 								{#if sb.advantages?.length}
-									<div class="minion-stat-row"><span class="minion-stat-lbl">Adv</span><span class="minion-stat-skills">{sb.advantages.map(a => a.name + (a.ranks > 1 ? ' ' + a.ranks : '')).join(', ')}</span></div>
+									<div class="minion-stat-row"><span class="minion-stat-lbl">Adv</span><span class="minion-stat-skills">{sb.advantages.map((a: any) => a.name + (a.ranks > 1 ? ' ' + a.ranks : '')).join(', ')}</span></div>
 								{/if}
 								{#if sb.powers?.length}
-									<div class="minion-stat-row"><span class="minion-stat-lbl">Powers</span><span class="minion-stat-skills">{sb.powers.map(p => p.name).join(', ')}</span></div>
+									<div class="minion-stat-row"><span class="minion-stat-lbl">Powers</span><span class="minion-stat-skills">{sb.powers.map((p: any) => p.name).join(', ')}</span></div>
 								{/if}
 								<div class="minion-combat-state">
 									<span class="minion-combat-lbl">DMG</span>
@@ -123,7 +123,7 @@
 				<div class="alt-effect-block">
 					<div class="alt-header">
 						<span class="alt-name">{alt.name}</span>
-						<span class="alt-meta">{alt.arrayType === 'DYNAMIC' ? 'Dynamic' : 'Alternate'} &middot; <strong>{alt.effects.reduce((s, e) => s + (e.calculatedCost ?? 0), 0)} PP</strong></span>
+						<span class="alt-meta">{alt.arrayType === 'DYNAMIC' ? 'Dynamic' : 'Alternate'} &middot; <strong>{alt.effects.reduce((s: number, e: any) => s + (e.calculatedCost ?? 0), 0)} PP</strong></span>
 					</div>
 					{#if alt.description}<div class="alt-desc">{alt.description}</div>{/if}
 					{#each alt.effects as effect}

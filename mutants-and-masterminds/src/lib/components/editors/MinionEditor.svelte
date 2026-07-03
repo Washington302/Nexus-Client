@@ -14,7 +14,7 @@
 
 	$effect(() => {
 		if (!minion.combatState) {
-			minion.combatState = { conditions: [], damage: 0, dying: 0, staggered: false, accumulatedToughnessPenalty: 0, activeConditions: [] };
+			minion.combatState = { conditions: [], damage: 0, dying: 0, staggered: false, accumulatedToughnessPenalty: 0 };
 		}
 	});
 </script>

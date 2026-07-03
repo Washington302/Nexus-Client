@@ -14,7 +14,7 @@
 		error = null;
 		try {
 			await login(email, password);
-			goto('/characters');
+			goto('/dashboard');
 		} catch (e) {
 			error = (e as Error).message;
 		} finally {

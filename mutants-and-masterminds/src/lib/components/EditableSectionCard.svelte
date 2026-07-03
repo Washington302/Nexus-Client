@@ -11,10 +11,10 @@
 		edit,
 	}: {
 		title: string;
-		color: string;
+		color: 'red' | 'yellow' | 'blue' | 'dark';
 		headerIcon?: string;
-		view?: Snippet;
-		edit?: Snippet;
+		view: Snippet;
+		edit: Snippet;
 	} = $props();
 </script>
 

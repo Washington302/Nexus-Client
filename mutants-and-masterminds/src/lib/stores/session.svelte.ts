@@ -1,3 +1,4 @@
+import { goto } from '$app/navigation';
 import { api, setToken, clearToken } from '$lib/services/api';
 import { getCookie, setCookie, removeCookie } from '$lib/services/cookies';
 import type { MnmCharacter, UserProfile } from '$lib/services/api';
@@ -78,6 +79,25 @@ export async function login(email: string, password: string) {
 	} catch (e) {
 		session.error = (e as Error).message;
 		clearToken();
+		throw e;
+	} finally {
+		session.loading = false;
+	}
+}
+
+export async function register(username: string, email: string, password: string) {
+	session.loading = true;
+	session.error = null;
+	try {
+		const res = await api.auth.register(username, email, password);
+		if (!res.token) throw new Error(res.error ?? 'Registration failed');
+		setToken(res.token);
+		await loadSession();
+		await loadActiveCharacter();
+	} catch (e) {
+		session.error = (e as Error).message;
+		clearToken();
+		throw e;
 	} finally {
 		session.loading = false;
 	}
@@ -91,4 +111,5 @@ export async function logout() {
 	session.userId = null;
 	session.username = null;
 	session.email = null;
+	await goto('/');
 }

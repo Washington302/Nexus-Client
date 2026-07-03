@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { COMIC, FONT } from '$lib/constants';
-	import { api, setToken } from '$lib/services/api';
+	import { register } from '$lib/stores/session.svelte';
 	import { goto } from '$app/navigation';
 
 	let username = $state('');
@@ -19,10 +19,8 @@
 		}
 		loading = true;
 		try {
-			const res = await api.auth.register(username, email, password);
-			if (!res.token) throw new Error(res.error ?? 'Registration failed');
-			setToken(res.token);
-			goto('/characters');
+			await register(username, email, password);
+			goto('/dashboard');
 		} catch (e) {
 			error = (e as Error).message;
 		} finally {
