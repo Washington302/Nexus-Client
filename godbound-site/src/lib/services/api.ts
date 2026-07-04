@@ -300,10 +300,14 @@ export const api = {
 			}),
 		get: (id: string) => request<GodboundCharacter>(`/api/v1/godbound/characters/${id}`),
 		getPublic: (id: string) => request<GodboundCharacter>(`/api/v1/godbound/characters/${id}/share`),
-		myCharacters: () => request<GodboundCharacter[]>('/api/v1/godbound/characters'),
+		myCharacters: async (): Promise<GodboundCharacter[]> => {
+			const characters = await request<GodboundCharacter[]>('/api/v1/godbound/characters');
+			return characters.filter((c) => c.gameSystem === 'GODBOUND');
+		},
 		byCampaign: async (campaignId: string): Promise<GodboundCharacter[]> => {
 			try {
-				return await request<GodboundCharacter[]>(`/api/v1/godbound/characters?campaignId=${encodeURIComponent(campaignId)}`);
+				const characters = await request<GodboundCharacter[]>(`/api/v1/godbound/characters?campaignId=${encodeURIComponent(campaignId)}`);
+				return characters.filter((c) => c.gameSystem === 'GODBOUND');
 			} catch {
 				return [];
 			}

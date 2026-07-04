@@ -283,6 +283,7 @@ export interface MnmCharacter {
 	id: string;
 	userId: string;
 	campaignId?: string;
+	gameSystem?: string;
 	name: string;
 	powerLevel: number;
 	identity: IdentityType;
@@ -384,10 +385,14 @@ export const api = {
 			}),
 		get: (id: string) => request<MnmCharacter>(`/api/v1/mnm/characters/${id}`),
 		getPublic: (id: string) => request<MnmCharacter>(`/api/v1/mnm/characters/${id}/share`),
-		myCharacters: () => request<MnmCharacter[]>('/api/v1/mnm/characters'),
+		myCharacters: async (): Promise<MnmCharacter[]> => {
+			const characters = await request<MnmCharacter[]>('/api/v1/mnm/characters');
+			return characters.filter((c) => !c.gameSystem || c.gameSystem === 'MUTANTS_AND_MASTERMINDS');
+		},
 		byCampaign: async (campaignId: string): Promise<MnmCharacter[]> => {
 			try {
-				return await request<MnmCharacter[]>(`/api/v1/mnm/characters?campaignId=${encodeURIComponent(campaignId)}`);
+				const characters = await request<MnmCharacter[]>(`/api/v1/mnm/characters?campaignId=${encodeURIComponent(campaignId)}`);
+				return characters.filter((c) => !c.gameSystem || c.gameSystem === 'MUTANTS_AND_MASTERMINDS');
 			} catch {
 				return [];
 			}
