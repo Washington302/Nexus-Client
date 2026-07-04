@@ -36,12 +36,12 @@ export function abilityModStr(val: number): string {
 	if (mod < 0) return String(mod);
 	return '0';
 }
- 
-export function effectCost(e: { baseCostPerRank?: number; rank?: number; modifiers?: Array<{ flat: boolean; type: string; costModifier: number }> }): number {
+
+export function effectCost(e: { baseCostPerRank?: number; rank?: number; modifiers?: Array<{ isFlat: boolean; type: string; costModifier: number }> }): number {
 	let perRank = e.baseCostPerRank ?? 1;
 	let flat = 0;
 	for (const m of e.modifiers ?? []) {
-		if (m.flat) {
+		if (m.isFlat) {
 			flat += m.type === 'FLAW' ? -m.costModifier : m.costModifier;
 		} else {
 			perRank += m.type === 'FLAW' ? -m.costModifier : m.costModifier;
@@ -55,10 +55,10 @@ export function effectCost(e: { baseCostPerRank?: number; rank?: number; modifie
 	return rankCost + flat;
 }
 
-export function perRankCost(e: { baseCostPerRank?: number; modifiers?: Array<{ flat: boolean; type: string; costModifier: number }> }): number {
+export function perRankCost(e: { baseCostPerRank?: number; modifiers?: Array<{ isFlat: boolean; type: string; costModifier: number }> }): number {
 	let perRank = e.baseCostPerRank ?? 1;
 	for (const m of e.modifiers ?? []) {
-		if (!m.flat) {
+		if (!m.isFlat) {
 			perRank += m.type === 'FLAW' ? -m.costModifier : m.costModifier;
 		}
 	}
@@ -121,9 +121,9 @@ export function createDefaultModifier(): PowerModifier {
 export function calcPower(power: any): void {
 	power.totalPowerCost = powerTotalCost(power.effects, power.alternateEffects);
 	for (const e of power.effects ?? []) {
-		if (e.effectName?.toLowerCase() === 'summon') e.summon = true;
+		if (e.effectName?.toLowerCase() === 'summon') e.isSummon = true;
 		e.calculatedCost = effectCost(e);
-		if (e.summon) {
+		if (e.isSummon) {
 			if (!e.summonExtension) {
 				e.summonExtension = { summonRank: e.rank, minionPpBudget: e.rank * 15 };
 			}
@@ -138,9 +138,9 @@ export function calcPower(power: any): void {
 		alt.costPerRank = (alt.effects ?? []).reduce((sum: number, e: any) => sum + perRankCost(e), 0);
 		alt.currentAllocatedRank = alt.effects[0]?.rank ?? 0;
 		for (const e of alt.effects ?? []) {
-			if (e.effectName?.toLowerCase() === 'summon') e.summon = true;
+			if (e.effectName?.toLowerCase() === 'summon') e.isSummon = true;
 			e.calculatedCost = effectCost(e);
-			if (e.summon) {
+			if (e.isSummon) {
 				if (!e.summonExtension) {
 					e.summonExtension = { summonRank: e.rank, minionPpBudget: e.rank * 15 };
 				}
@@ -188,8 +188,7 @@ export function recomputeCharacterCosts(draft: any): void {
 	const hqs = draft.headquarters ?? [];
 	for (const hq of hqs) {
 		const dsCost = (hq.defenseSystems ?? []).reduce((sum: number, ds: any) => sum + (ds.totalPowerCost ?? 0), 0);
-		const featuresCost = (hq.features ?? []).length;
-		hq.totalEpCost = Math.round((hq.sizeCost ?? 0) + (hq.toughnessCost ?? 0) + featuresCost + dsCost);
+		hq.totalEpCost = Math.round((hq.sizeCost ?? 0) + (hq.toughnessCost ?? 0) + dsCost);
 	}
 	const itemsCost = (draft.equipmentPool?.items ?? []).reduce((sum: number, item: any) => sum + (item.epCost ?? 0), 0);
 	const hqCost = hqs.reduce((sum: number, hq: any) => sum + (hq.totalEpCost ?? 0), 0);
@@ -213,8 +212,6 @@ export function prepareCharacterPayloadForSave(draft: any): any {
 	}
 	for (const hq of (payload.headquarters || [])) {
 		if (typeof hq.totalEpCost !== 'number') hq.totalEpCost = 0;
-		// Backend models this as a primitive boolean, which rejects null.
-		hq.sharedTeamBase = !!hq.sharedTeamBase;
 	}
 	if (payload.abilities) {
 		for (const key of Object.keys(payload.abilities)) {
@@ -304,14 +301,16 @@ export function ensureDefaults(d: any): void {
 }
 
 export function initNormalizePower(p: any) {
-	if (typeof p.array !== 'boolean') p.array = false;
+	if ('array' in p && !('isArray' in p)) p.isArray = p.array;
+	delete p.array;
 	for (const e of (p.effects ?? [])) {
 		if (typeof e.manualAtkBonus !== 'number') e.manualAtkBonus = 0;
 		if (typeof e.manualRankBonus !== 'number') e.manualRankBonus = 0;
-		if (typeof e.primary !== 'boolean') e.primary = false;
-		if (typeof e.summon !== 'boolean') e.summon = false;
+		if ('primary' in e && !('isPrimary' in e)) e.isPrimary = e.primary;
+		delete e.primary;
 		for (const m of (e.modifiers ?? [])) {
-			if (typeof m.flat !== 'boolean') m.flat = false;
+			if ('flat' in m && !('isFlat' in m)) m.isFlat = m.flat;
+			delete m.flat;
 		}
 		if (e.summonExtension?.minionStatBlock?.powers) {
 			for (const mp of e.summonExtension.minionStatBlock.powers) initNormalizePower(mp);
@@ -323,10 +322,11 @@ export function initNormalizePower(p: any) {
 		for (const e of (a.effects ?? [])) {
 			if (typeof e.manualAtkBonus !== 'number') e.manualAtkBonus = 0;
 			if (typeof e.manualRankBonus !== 'number') e.manualRankBonus = 0;
-			if (typeof e.primary !== 'boolean') e.primary = false;
-			if (typeof e.summon !== 'boolean') e.summon = false;
+			if ('primary' in e && !('isPrimary' in e)) e.isPrimary = e.primary;
+			delete e.primary;
 			for (const m of (e.modifiers ?? [])) {
-				if (typeof m.flat !== 'boolean') m.flat = false;
+				if ('flat' in m && !('isFlat' in m)) m.isFlat = m.flat;
+				delete m.flat;
 			}
 			if (e.summonExtension?.minionStatBlock?.powers) {
 				for (const mp of e.summonExtension.minionStatBlock.powers) initNormalizePower(mp);
@@ -336,12 +336,15 @@ export function initNormalizePower(p: any) {
 }
 
 export function normalizePowerForSave(p: any) {
-	if (typeof p.array !== 'boolean') p.array = false;
+	delete p.array;
+	if (typeof p.isArray !== 'boolean') p.isArray = false;
 	for (const e of (p.effects || [])) {
-		if (typeof e.primary !== 'boolean') e.primary = false;
-		if (typeof e.summon !== 'boolean') e.summon = false;
+		delete e.primary;
+		if (typeof e.isPrimary !== 'boolean') e.isPrimary = false;
+		if (typeof e.isSummon !== 'boolean') e.isSummon = false;
 		for (const m of (e.modifiers || [])) {
-			if (typeof m.flat !== 'boolean') m.flat = false;
+			delete m.flat;
+			if (typeof m.isFlat !== 'boolean') m.isFlat = false;
 		}
 		if (e.summonExtension?.minionStatBlock?.powers) {
 			for (const mp of e.summonExtension.minionStatBlock.powers) normalizePowerForSave(mp);
@@ -351,10 +354,12 @@ export function normalizePowerForSave(p: any) {
 		if (typeof a.currentAllocatedRank !== 'number') a.currentAllocatedRank = 0;
 		if (typeof a.costPerRank !== 'number') a.costPerRank = 0;
 		for (const e of (a.effects || [])) {
-			if (typeof e.primary !== 'boolean') e.primary = false;
-			if (typeof e.summon !== 'boolean') e.summon = false;
+			delete e.primary;
+			if (typeof e.isPrimary !== 'boolean') e.isPrimary = false;
+			if (typeof e.isSummon !== 'boolean') e.isSummon = false;
 			for (const m of (e.modifiers || [])) {
-				if (typeof m.flat !== 'boolean') m.flat = false;
+				delete m.flat;
+				if (typeof m.isFlat !== 'boolean') m.isFlat = false;
 			}
 			if (e.summonExtension?.minionStatBlock?.powers) {
 				for (const mp of e.summonExtension.minionStatBlock.powers) normalizePowerForSave(mp);
