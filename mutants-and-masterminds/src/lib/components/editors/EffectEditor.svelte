@@ -57,12 +57,12 @@
 		{/each}
 		<button class="add-mod-btn" onclick={addModifier}>+ Modifier</button>
 	</div>
-	{#if effect.effectName?.toLowerCase() === 'summon' || effect.isSummon}
+	{#if effect.effectName?.toLowerCase() === 'summon' || effect.summon}
 		<label class="summon-toggle">
-			<input type="checkbox" bind:checked={effect.isSummon} />
+			<input type="checkbox" bind:checked={effect.summon} />
 			<span class="sm-label">Summon</span>
 		</label>
-		{#if effect.isSummon}
+		{#if effect.summon}
 			{@const summonRank = effect.rank}
 			{@const ppBudget = summonRank * 15}
 			<div class="summon-section">

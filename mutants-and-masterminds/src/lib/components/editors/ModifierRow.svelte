@@ -14,7 +14,7 @@
 			<input type="number" class="sm-input sm-input-sm" bind:value={modifier.costModifier} />
 		</div>
 		<label class="flat-toggle">
-			<input type="checkbox" checked={modifier.isFlat} onchange={() => modifier.isFlat = !modifier.isFlat} />
+			<input type="checkbox" checked={modifier.flat} onchange={() => modifier.flat = !modifier.flat} />
 			<span class="sm-label">Flat</span>
 		</label>
 		<button class="remove-btn sm" onclick={onRemove}>&#10005;</button>

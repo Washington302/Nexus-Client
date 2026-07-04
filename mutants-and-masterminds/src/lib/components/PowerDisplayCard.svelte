@@ -7,7 +7,7 @@
 <div class="power-row">
 	<div class="power-header">
 		<span class="power-name">{power.name}</span>
-		{#if power.isArray}<span class="array-badge">ARRAY</span>{/if}
+		{#if power.array}<span class="array-badge">ARRAY</span>{/if}
 		<PillBadge text="{power.totalPowerCost} PP" color="primary" />
 	</div>
 	{#if power.description}
@@ -22,27 +22,27 @@
 			<div class="embedded-power-display">
 				<div class="ep-header">
 					<span class="power-name">{ep.name}</span>
-					{#if ep.isArray}<span class="array-badge">ARRAY</span>{/if}
+					{#if ep.array}<span class="array-badge">ARRAY</span>{/if}
 					<span class="effect-detail"><strong>{ep.totalPowerCost} PP</strong></span>
 				</div>
-				{#if ep.isArray}
+				{#if ep.array}
 					<div class="array-slot active-slot">Active Slot</div>
 				{/if}
 				{#each ep.effects as effect}
 					<div class="effect-line">
 						<span class="effect-name">{effect.effectName}</span>
-						{#if effect.isSummon}<span class="summon-badge">Summon</span>{/if}
+						{#if effect.summon}<span class="summon-badge">Summon</span>{/if}
 						<span class="effect-detail">Rank {effect.rank} &middot; {effect.baseCostPerRank} PP/r &middot; <strong>{effect.calculatedCost} PP</strong></span>
 						{#if effect.modifiers?.length}
 							<div class="modifier-line">
 								{#each effect.modifiers as mod}
-									<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.isFlat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
+									<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.flat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
 								{/each}
 							</div>
 						{/if}
 					</div>
 				{/each}
-				{#if ep.isArray && ep.alternateEffects?.length}
+				{#if ep.array && ep.alternateEffects?.length}
 					<div class="alt-effects-divider">Alternate Effects</div>
 					{#each ep.alternateEffects as alt}
 						<div class="alt-effect-block">
@@ -58,7 +58,7 @@
 									{#if effect.modifiers?.length}
 										<div class="modifier-line">
 											{#each effect.modifiers as mod}
-												<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.isFlat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
+												<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.flat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
 											{/each}
 										</div>
 									{/if}
@@ -70,22 +70,22 @@
 			</div>
 		{/each}
 	{:else}
-		{#if power.isArray}
+		{#if power.array}
 			<div class="array-slot active-slot">Active Slot</div>
 		{/if}
 		{#each power.effects as effect}
 			<div class="effect-line">
 				<span class="effect-name">{effect.effectName}</span>
-				{#if effect.isSummon}<span class="summon-badge">Summon</span>{/if}
+				{#if effect.summon}<span class="summon-badge">Summon</span>{/if}
 				<span class="effect-detail">Rank {effect.rank} &middot; {effect.baseCostPerRank} PP/r &middot; <strong>{effect.calculatedCost} PP</strong></span>
 				{#if effect.modifiers?.length}
 					<div class="modifier-line">
 						{#each effect.modifiers as mod}
-							<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.isFlat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
+							<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.flat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
 						{/each}
 					</div>
 				{/if}
-				{#if effect.isSummon && effect.summonExtension}
+				{#if effect.summon && effect.summonExtension}
 					<div class="summon-block">
 						<div class="summon-info">Summon Rank {effect.summonExtension.summonRank} &middot; {effect.summonExtension.minionPpBudget} PP Minion</div>
 						{#if effect.summonExtension.minionStatBlock}
@@ -117,7 +117,7 @@
 				{/if}
 			</div>
 		{/each}
-		{#if power.isArray && power.alternateEffects?.length}
+		{#if power.array && power.alternateEffects?.length}
 			<div class="alt-effects-divider">Alternate Effects</div>
 			{#each power.alternateEffects as alt}
 				<div class="alt-effect-block">
@@ -133,7 +133,7 @@
 							{#if effect.modifiers?.length}
 								<div class="modifier-line">
 									{#each effect.modifiers as mod}
-										<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.isFlat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
+										<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.flat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
 									{/each}
 								</div>
 							{/if}

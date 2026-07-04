@@ -152,7 +152,7 @@ export interface PowerModifier {
 	name: string;
 	type: ModifierType;
 	costModifier: number;
-	isFlat: boolean;
+	flat: boolean;
 	description?: string;
 }
 
@@ -181,8 +181,8 @@ export interface PowerEffect {
 	baseCostPerRank: number;
 	modifiers: PowerModifier[];
 	calculatedCost: number;
-	isPrimary: boolean;
-	isSummon: boolean;
+	primary: boolean;
+	summon: boolean;
 	baseEffect?: string;
 	summonExtension?: SummonExtension;
 	resistance?: ResistanceType;
@@ -218,7 +218,7 @@ export interface Power {
 	name: string;
 	description: string;
 	descriptors: string[];
-	isArray: boolean;
+	array: boolean;
 	maxPpPool: number;
 	effects: PowerEffect[];
 	alternateEffects: AlternateEffect[];
@@ -261,7 +261,7 @@ export interface Headquarters {
 	features: string[];
 	defenseSystems: Power[];
 	totalEpCost: number;
-	isSharedTeamBase: boolean;
+	sharedTeamBase: boolean;
 }
 
 export interface Condition {

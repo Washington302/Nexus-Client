@@ -203,7 +203,7 @@
 						name: dv.name,
 						description: '',
 						descriptors: [],
-						isArray: false,
+						array: false,
 						maxPpPool: 0,
 						effects: [],
 						alternateEffects: [],
@@ -431,7 +431,7 @@
 							<div class="hq-row">
 								<div class="hq-name">{hq.name}</div>
 								<div class="hq-cost">{hq.totalEpCost} EP</div>
-								{#if hq.isSharedTeamBase}<span class="shared-badge">Team Base</span>{/if}
+								{#if hq.sharedTeamBase}<span class="shared-badge">Team Base</span>{/if}
 							</div>
 							<div class="hq-detail">{hq.sizeCategory} &middot; Toughness {hq.toughnessValue}</div>
 							{#if hq.description}<div class="hq-desc">{hq.description}</div>{/if}

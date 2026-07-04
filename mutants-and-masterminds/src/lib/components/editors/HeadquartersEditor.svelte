@@ -15,7 +15,7 @@
 			name: '', location: '', description: '',
 			sizeCategory: 'SMALL', sizeCost: 0, toughnessValue: 0, toughnessCost: 0,
 			features: [], defenseSystems: [],
-			totalEpCost: 0, isSharedTeamBase: false,
+			totalEpCost: 0, sharedTeamBase: false,
 		});
 	}
 
@@ -33,7 +33,7 @@
 
 	function addDefenseSystem(hq: Headquarters) {
 		hq.defenseSystems.push({
-			powerId: crypto.randomUUID(), name: '', description: '', descriptors: [], isArray: false, maxPpPool: 0,
+			powerId: crypto.randomUUID(), name: '', description: '', descriptors: [], array: false, maxPpPool: 0,
 			effects: [], alternateEffects: [], totalPowerCost: 0,
 		});
 	}
@@ -83,7 +83,7 @@
 			</div>
 			{/if}
 		</div>
-		<label class="check-row"><input type="checkbox" bind:checked={hq.isSharedTeamBase} /><span>Shared team base</span></label>
+		<label class="check-row"><input type="checkbox" bind:checked={hq.sharedTeamBase} /><span>Shared team base</span></label>
 	</div>
 	{/each}
 	<button class="add-btn" onclick={add}>+ Add Headquarters</button>

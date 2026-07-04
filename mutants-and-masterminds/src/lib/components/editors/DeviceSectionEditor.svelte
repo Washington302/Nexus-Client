@@ -16,7 +16,7 @@
 		if (!power._embeddedPowers) power._embeddedPowers = [];
 		power._embeddedPowers.push({
 			powerId: crypto.randomUUID(), name: '', description: '', descriptors: [],
-			isArray: false, maxPpPool: 0, effects: [], alternateEffects: [], totalPowerCost: 0,
+			array: false, maxPpPool: 0, effects: [], alternateEffects: [], totalPowerCost: 0,
 		});
 	}
 
@@ -25,7 +25,7 @@
 	}
 
 	function toggleArray(ep: any) {
-		ep.isArray = !ep.isArray;
+		ep.array = !ep.array;
 	}
 
 	function addEffect(effects: any[]) {
@@ -65,20 +65,20 @@
 				<div class="embedded-header">
 					<input type="text" class="power-name-input" bind:value={ep.name} placeholder="Embedded power name" />
 					<label class="array-toggle">
-						<input type="checkbox" checked={ep.isArray} onchange={() => toggleArray(ep)} />
+						<input type="checkbox" checked={ep.array} onchange={() => toggleArray(ep)} />
 						<span class="array-label">Array</span>
 					</label>
 					<button class="remove-btn sm" onclick={() => removeEmbeddedPower(ei)}>&#10005;</button>
 				</div>
 				<div class="embedded-effects">
 					<div class="effects-section">
-						<div class="effects-head">{ep.isArray ? 'Active Slot Effects' : 'Effects'}</div>
+						<div class="effects-head">{ep.array ? 'Active Slot Effects' : 'Effects'}</div>
 						{#each ep.effects as effect, eei}
 							<EffectEditor effect={effect} onRemove={() => removeEffect(ep.effects, eei)} {depth} />
 						{/each}
 						<button class="add-effect-btn" onclick={() => addEffect(ep.effects)}>+ Effect</button>
 					</div>
-					{#if ep.isArray}
+					{#if ep.array}
 						<div class="alt-section">
 							<div class="alt-effects-head">Alternate Effects</div>
 							{#each ep.alternateEffects as alt, ai}

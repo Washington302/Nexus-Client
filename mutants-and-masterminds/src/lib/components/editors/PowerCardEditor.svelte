@@ -29,7 +29,7 @@
 		}
 	}
 
-	function toggleArray() { power.isArray = !power.isArray; }
+	function toggleArray() { power.array = !power.array; }
 
 	function addEffect() {
 		power.effects.push(createDefaultEffect(power.effects.length === 0));
@@ -49,7 +49,7 @@
 		<span class="collapse-icon">{collapsed ? '\u25B6' : '\u25BC'}</span>
 		<input type="text" class="power-name-input" bind:value={power.name} placeholder="Power name" onclick={(e) => e.stopPropagation()} />
 		<label class="array-toggle" onclick={(e) => e.stopPropagation()}>
-			<input type="checkbox" checked={power.isArray} onchange={toggleArray} />
+			<input type="checkbox" checked={power.array} onchange={toggleArray} />
 			<span class="array-label">Array</span>
 		</label>
 		<label class="device-toggle" onclick={(e) => e.stopPropagation()}>
@@ -77,7 +77,7 @@
 		{/if}
 
 		<div class="effects-section">
-			<div class="effects-head">{power.isArray ? 'Active Slot Effects' : 'Effects'}</div>
+			<div class="effects-head">{power.array ? 'Active Slot Effects' : 'Effects'}</div>
 			{#if !power._deviceType}
 				{#each power.effects as effect, ei}
 					<EffectEditor effect={effect} onRemove={() => removeEffect(ei)} {depth} />
@@ -86,7 +86,7 @@
 			{/if}
 		</div>
 
-		{#if power.isArray}
+		{#if power.array}
 			<div class="alt-effects-section">
 				<div class="alt-effects-head">Alternate Effects</div>
 				{#each power.alternateEffects as alt, ai}

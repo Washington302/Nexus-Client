@@ -25,7 +25,7 @@
 		const effects = equipmentPool.items[itemIdx].embeddedEffects ??= [];
 		effects.push({
 			effectName: '', baseEffect: '', rank: 0, baseCostPerRank: 1,
-			modifiers: [], calculatedCost: 0, isPrimary: true, isSummon: false,
+			modifiers: [], calculatedCost: 0, primary: true, summon: false,
 		});
 	}
 
@@ -35,7 +35,7 @@
 
 	function addModifier(itemIdx: number, effIdx: number) {
 		const mods = equipmentPool.items[itemIdx].embeddedEffects![effIdx].modifiers ??= [];
-		mods.push({ name: '', type: 'EXTRA', costModifier: 1, isFlat: false });
+		mods.push({ name: '', type: 'EXTRA', costModifier: 1, flat: false });
 	}
 
 	function removeModifier(itemIdx: number, effIdx: number, mIdx: number) {
