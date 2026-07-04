@@ -322,14 +322,14 @@
 				<span class="stat-hint">Stat values lead every module</span>
 			</div>
 			<div class="stat-row-8">
-				<StatBubble value={char.abilities?.strengthFinalValue ?? 0} label="STR" color="danger" />
-				<StatBubble value={char.abilities?.staminaFinalValue ?? 0} label="STA" color="default" />
-				<StatBubble value={char.abilities?.agilityFinalValue ?? 0} label="AGL" color="default" />
-				<StatBubble value={char.abilities?.dexterityFinalValue ?? 0} label="DEX" color="default" />
-				<StatBubble value={char.abilities?.fightingFinalValue ?? 0} label="FGT" color="success" />
-				<StatBubble value={char.abilities?.intellectFinalValue ?? 0} label="INT" color="secondary" />
-				<StatBubble value={char.abilities?.awarenessFinalValue ?? 0} label="AWE" color="default" />
-				<StatBubble value={char.abilities?.presenceFinalValue ?? 0} label="PRE" color="default" />
+				<StatBubble value={char.abilities?.strengthFinalValue ?? 0} label="STR" color="danger" absent={char.abilities?.strengthAbsent ?? false} />
+				<StatBubble value={char.abilities?.staminaFinalValue ?? 0} label="STA" color="default" absent={char.abilities?.staminaAbsent ?? false} />
+				<StatBubble value={char.abilities?.agilityFinalValue ?? 0} label="AGL" color="default" absent={char.abilities?.agilityAbsent ?? false} />
+				<StatBubble value={char.abilities?.dexterityFinalValue ?? 0} label="DEX" color="default" absent={char.abilities?.dexterityAbsent ?? false} />
+				<StatBubble value={char.abilities?.fightingFinalValue ?? 0} label="FGT" color="success" absent={char.abilities?.fightingAbsent ?? false} />
+				<StatBubble value={char.abilities?.intellectFinalValue ?? 0} label="INT" color="secondary" absent={char.abilities?.intellectAbsent ?? false} />
+				<StatBubble value={char.abilities?.awarenessFinalValue ?? 0} label="AWE" color="default" absent={char.abilities?.awarenessAbsent ?? false} />
+				<StatBubble value={char.abilities?.presenceFinalValue ?? 0} label="PRE" color="default" absent={char.abilities?.presenceAbsent ?? false} />
 			</div>
 		</div>
 	</ComicPanel>

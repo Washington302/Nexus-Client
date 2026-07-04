@@ -524,14 +524,14 @@ function shareCharacter() {
 					<span class="stat-hint">Stat values lead every module</span>
 				</div>
 				<div class="stat-row-8">
-					<StatBubble value={draft.abilities?.strengthFinalValue ?? 0} label="STR" color="danger" />
-					<StatBubble value={draft.abilities?.staminaFinalValue ?? 0} label="STA" color="default" />
-					<StatBubble value={draft.abilities?.agilityFinalValue ?? 0} label="AGL" color="default" />
-					<StatBubble value={draft.abilities?.dexterityFinalValue ?? 0} label="DEX" color="default" />
-					<StatBubble value={draft.abilities?.fightingFinalValue ?? 0} label="FGT" color="success" />
-					<StatBubble value={draft.abilities?.intellectFinalValue ?? 0} label="INT" color="secondary" />
-					<StatBubble value={draft.abilities?.awarenessFinalValue ?? 0} label="AWE" color="default" />
-					<StatBubble value={draft.abilities?.presenceFinalValue ?? 0} label="PRE" color="default" />
+					<StatBubble value={draft.abilities?.strengthFinalValue ?? 0} label="STR" color="danger" absent={draft.abilities?.strengthAbsent ?? false} />
+					<StatBubble value={draft.abilities?.staminaFinalValue ?? 0} label="STA" color="default" absent={draft.abilities?.staminaAbsent ?? false} />
+					<StatBubble value={draft.abilities?.agilityFinalValue ?? 0} label="AGL" color="default" absent={draft.abilities?.agilityAbsent ?? false} />
+					<StatBubble value={draft.abilities?.dexterityFinalValue ?? 0} label="DEX" color="default" absent={draft.abilities?.dexterityAbsent ?? false} />
+					<StatBubble value={draft.abilities?.fightingFinalValue ?? 0} label="FGT" color="success" absent={draft.abilities?.fightingAbsent ?? false} />
+					<StatBubble value={draft.abilities?.intellectFinalValue ?? 0} label="INT" color="secondary" absent={draft.abilities?.intellectAbsent ?? false} />
+					<StatBubble value={draft.abilities?.awarenessFinalValue ?? 0} label="AWE" color="default" absent={draft.abilities?.awarenessAbsent ?? false} />
+					<StatBubble value={draft.abilities?.presenceFinalValue ?? 0} label="PRE" color="default" absent={draft.abilities?.presenceAbsent ?? false} />
 				</div>
 			</div>
 		{/snippet}

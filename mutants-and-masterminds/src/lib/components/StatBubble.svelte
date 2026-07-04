@@ -2,11 +2,13 @@
 	let {
 		value = 0,
 		label = '',
-		color = 'default'
+		color = 'default',
+		absent = false
 	}: {
 		value: number
 		label: string
 		color?: 'danger' | 'success' | 'secondary' | 'default'
+		absent?: boolean
 	} = $props();
 
 	let numColor = $derived(() => {
@@ -20,7 +22,7 @@
 </script>
 
 <div class="stat-bubble">
-	<div class="stat-num" style="color: {numColor()}">{value}</div>
+	<div class="stat-num" style="color: {numColor()}">{absent ? '—' : value}</div>
 	<div class="stat-lbl">{label}</div>
 </div>
 
