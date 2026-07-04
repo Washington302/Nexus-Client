@@ -65,6 +65,12 @@ export function perRankCost(e: { baseCostPerRank?: number; modifiers?: Array<{ f
 	return perRank;
 }
 
+export function perRankCostLabel(e: { baseCostPerRank?: number; modifiers?: Array<{ flat: boolean; type: string; costModifier: number }> }): string {
+	const rate = perRankCost(e);
+	if (rate >= 1) return `${rate} PP/rank`;
+	return `1 PP / ${2 - rate} ranks`;
+}
+
 export function powerTotalCost(effects: any[], alternateEffects: any[]): number {
 	const active = (effects ?? []).reduce((sum: number, e: any) => sum + effectCost(e), 0);
 	const alts = (alternateEffects ?? []).reduce((sum: number, a: any) => {

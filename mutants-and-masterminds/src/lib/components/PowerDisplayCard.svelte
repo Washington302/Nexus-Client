@@ -1,5 +1,6 @@
 <script lang="ts">
 	import PillBadge from './PillBadge.svelte';
+	import { perRankCostLabel } from '$lib/utils/character';
 
 	let { power }: { power: any } = $props();
 </script>
@@ -32,7 +33,7 @@
 					<div class="effect-line">
 						<span class="effect-name">{effect.effectName}</span>
 						{#if effect.summon}<span class="summon-badge">Summon</span>{/if}
-						<span class="effect-detail">Rank {effect.rank} &middot; {effect.baseCostPerRank} PP/r &middot; <strong>{effect.calculatedCost} PP</strong></span>
+						<span class="effect-detail">Rank {effect.rank} &middot; {perRankCostLabel(effect)} &middot; <strong>{effect.calculatedCost} PP</strong></span>
 						{#if effect.modifiers?.length}
 							<div class="modifier-line">
 								{#each effect.modifiers as mod}
@@ -54,7 +55,7 @@
 							{#each alt.effects as effect}
 								<div class="effect-line">
 									<span class="effect-name">{effect.effectName}</span>
-									<span class="effect-detail">Rank {effect.rank} &middot; {effect.baseCostPerRank} PP/r &middot; <strong>{effect.calculatedCost} PP</strong></span>
+									<span class="effect-detail">Rank {effect.rank} &middot; {perRankCostLabel(effect)} &middot; <strong>{effect.calculatedCost} PP</strong></span>
 									{#if effect.modifiers?.length}
 										<div class="modifier-line">
 											{#each effect.modifiers as mod}
@@ -77,7 +78,7 @@
 			<div class="effect-line">
 				<span class="effect-name">{effect.effectName}</span>
 				{#if effect.summon}<span class="summon-badge">Summon</span>{/if}
-				<span class="effect-detail">Rank {effect.rank} &middot; {effect.baseCostPerRank} PP/r &middot; <strong>{effect.calculatedCost} PP</strong></span>
+				<span class="effect-detail">Rank {effect.rank} &middot; {perRankCostLabel(effect)} &middot; <strong>{effect.calculatedCost} PP</strong></span>
 				{#if effect.modifiers?.length}
 					<div class="modifier-line">
 						{#each effect.modifiers as mod}
@@ -129,7 +130,7 @@
 					{#each alt.effects as effect}
 						<div class="effect-line">
 							<span class="effect-name">{effect.effectName}</span>
-							<span class="effect-detail">Rank {effect.rank} &middot; {effect.baseCostPerRank} PP/r &middot; <strong>{effect.calculatedCost} PP</strong></span>
+							<span class="effect-detail">Rank {effect.rank} &middot; {perRankCostLabel(effect)} &middot; <strong>{effect.calculatedCost} PP</strong></span>
 							{#if effect.modifiers?.length}
 								<div class="modifier-line">
 									{#each effect.modifiers as mod}
