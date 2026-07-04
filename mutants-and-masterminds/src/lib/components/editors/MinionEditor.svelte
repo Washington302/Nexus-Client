@@ -7,9 +7,11 @@
 	import PowersEditor from './PowersEditor.svelte';
 
 	let {
-		minion
+		minion,
+		depth = 0,
 	}: {
-		minion: MinionStatBlock
+		minion: MinionStatBlock;
+		depth?: number;
 	} = $props();
 
 	$effect(() => {
@@ -57,7 +59,7 @@
 	</div>
 	<div class="mini-section">
 		<div class="mini-section-label">Powers</div>
-		<PowersEditor powers={minion.powers} allowNestedSummon={false} />
+		<PowersEditor powers={minion.powers} depth={depth} />
 	</div>
 </div>
 

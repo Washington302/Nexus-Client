@@ -5,10 +5,10 @@
 
 	let {
 		powers,
-		allowNestedSummon = true,
+		depth = 0,
 	}: {
 		powers: Power[];
-		allowNestedSummon?: boolean;
+		depth?: number;
 	} = $props();
 
 	$effect(() => {
@@ -62,7 +62,7 @@
 
 <div class="editor-grid">
 	{#each powers as power, i}
-		<PowerCardEditor {power} onRemove={() => removePower(i)} {allowNestedSummon} />
+		<PowerCardEditor {power} onRemove={() => removePower(i)} {depth} />
 	{/each}
 	<div class="add-row">
 		<button class="add-btn" onclick={addPower}>+ Add Power</button>

@@ -3,14 +3,16 @@
 	import MinionEditor from './MinionEditor.svelte';
 	import { createDefaultModifier } from '$lib/utils/character';
 
+	const MAX_SUMMON_DEPTH = 10;
+
 	let {
 		effect,
 		onRemove,
-		allowNestedSummon = true,
+		depth = 0,
 	}: {
 		effect: any;
 		onRemove: () => void;
-		allowNestedSummon?: boolean;
+		depth?: number;
 	} = $props();
 
 	function addModifier() {
@@ -42,7 +44,7 @@
 		</select>
 		<div class="effect-meta">
 			<label class="sm-label">Rank</label>
-			<input type="number" class="sm-input sm-input-sm" bind:value={effect.rank} />
+			<input type="number" class="sm-input sm-input-sm" bind:value={effect.rank} min="0" />
 			<label class="sm-label">PP/r</label>
 			<input type="number" class="sm-input sm-input-sm" bind:value={effect.baseCostPerRank} />
 		</div>
@@ -67,17 +69,21 @@
 				<div class="summon-head">Minion &middot; PL {summonRank} &middot; {ppBudget} PP</div>
 				{#if effect.summonExtension}
 					{@const se = effect.summonExtension}
+					{@const isHeroic = (effect.modifiers ?? []).some((m: any) => (m.name ?? '').toLowerCase() === 'heroic')}
+					{@const canEditMinion = depth === 0 || (isHeroic && depth < MAX_SUMMON_DEPTH)}
 					<input type="text" class="summon-name-input"
 						value={se.minionStatBlock?.name ?? ''}
 						oninput={(e) => { const v = (e.target as HTMLInputElement).value; if (se.minionStatBlock) se.minionStatBlock.name = v; }}
 						placeholder="Minion name" />
-					{#if allowNestedSummon}
+					{#if canEditMinion}
 						<button class="edit-minion-btn" onclick={() => { (se as any)._expanded = !(se as any)._expanded; }} type="button">{(se as any)._expanded ? 'Collapse Minion' : 'Edit Minion'}</button>
 						{#if (se as any)._expanded && se.minionStatBlock}
-							<div class="minion-expanded"><MinionEditor minion={se.minionStatBlock} /></div>
+							<div class="minion-expanded"><MinionEditor minion={se.minionStatBlock} depth={depth + 1} /></div>
 						{/if}
+					{:else if !isHeroic}
+						<div class="summon-note">This minion can't have its own summonable minions (requires the Heroic extra).</div>
 					{:else}
-						<div class="summon-note">Minions can't have their own summonable minions.</div>
+						<div class="summon-note">Maximum summon nesting depth ({MAX_SUMMON_DEPTH}) reached.</div>
 					{/if}
 				{/if}
 			</div>

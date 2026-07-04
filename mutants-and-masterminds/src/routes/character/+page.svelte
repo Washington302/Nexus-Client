@@ -127,6 +127,15 @@
 		recomputeCharacterCosts(draft);
 	});
 
+	let prevPowerLevel: number | null = null;
+	$effect(() => {
+		if (!draft) return;
+		if (prevPowerLevel !== null && draft.powerLevel !== prevPowerLevel) {
+			draft.totalAllowed = draft.powerLevel * 15;
+		}
+		prevPowerLevel = draft.powerLevel;
+	});
+
 
 	// ── Conditions & Maneuvers State ──
 	type ConditionKey = 'vulnerable' | 'defenseless' | 'impaired' | 'disabled' | 'hindered' | 'dazed' | 'stunned' | 'fatigued' | 'exhausted' | 'incapacitated';

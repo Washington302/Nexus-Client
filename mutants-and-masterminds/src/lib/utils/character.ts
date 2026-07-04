@@ -188,7 +188,8 @@ export function recomputeCharacterCosts(draft: any): void {
 	const hqs = draft.headquarters ?? [];
 	for (const hq of hqs) {
 		const dsCost = (hq.defenseSystems ?? []).reduce((sum: number, ds: any) => sum + (ds.totalPowerCost ?? 0), 0);
-		hq.totalEpCost = Math.round((hq.sizeCost ?? 0) + (hq.toughnessCost ?? 0) + dsCost);
+		const featuresCost = (hq.features ?? []).length;
+		hq.totalEpCost = Math.round((hq.sizeCost ?? 0) + (hq.toughnessCost ?? 0) + featuresCost + dsCost);
 	}
 	const itemsCost = (draft.equipmentPool?.items ?? []).reduce((sum: number, item: any) => sum + (item.epCost ?? 0), 0);
 	const hqCost = hqs.reduce((sum: number, hq: any) => sum + (hq.totalEpCost ?? 0), 0);
@@ -212,6 +213,8 @@ export function prepareCharacterPayloadForSave(draft: any): any {
 	}
 	for (const hq of (payload.headquarters || [])) {
 		if (typeof hq.totalEpCost !== 'number') hq.totalEpCost = 0;
+		// Backend models this as a primitive boolean, which rejects null.
+		hq.isSharedTeamBase = !!hq.isSharedTeamBase;
 	}
 	if (payload.abilities) {
 		for (const key of Object.keys(payload.abilities)) {

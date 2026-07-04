@@ -24,7 +24,7 @@
 	function addEffect(itemIdx: number) {
 		const effects = equipmentPool.items[itemIdx].embeddedEffects ??= [];
 		effects.push({
-			effectName: '', baseEffect: '', rank: 0, baseCostPerRank: 2,
+			effectName: '', baseEffect: '', rank: 0, baseCostPerRank: 1,
 			modifiers: [], calculatedCost: 0, isPrimary: true, isSummon: false,
 		});
 	}

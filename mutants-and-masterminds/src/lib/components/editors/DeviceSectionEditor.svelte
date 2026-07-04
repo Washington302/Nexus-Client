@@ -5,8 +5,8 @@
 
 	let {
 		power,
-		allowNestedSummon = true,
-	}: { power: any; allowNestedSummon?: boolean } = $props();
+		depth = 0,
+	}: { power: any; depth?: number } = $props();
 
 	function calcDeviceCost(p: any): { raw: number; discount: number; final: number } {
 		return computeDeviceCost(p, p._embeddedPowers ?? []);
@@ -74,7 +74,7 @@
 					<div class="effects-section">
 						<div class="effects-head">{ep.isArray ? 'Active Slot Effects' : 'Effects'}</div>
 						{#each ep.effects as effect, eei}
-							<EffectEditor effect={effect} onRemove={() => removeEffect(ep.effects, eei)} {allowNestedSummon} />
+							<EffectEditor effect={effect} onRemove={() => removeEffect(ep.effects, eei)} {depth} />
 						{/each}
 						<button class="add-effect-btn" onclick={() => addEffect(ep.effects)}>+ Effect</button>
 					</div>
@@ -82,7 +82,7 @@
 						<div class="alt-section">
 							<div class="alt-effects-head">Alternate Effects</div>
 							{#each ep.alternateEffects as alt, ai}
-								<AlternateEffectEditor alt={alt} onRemove={() => removeAlternateEffect(ep, ai)} {allowNestedSummon} />
+								<AlternateEffectEditor alt={alt} onRemove={() => removeAlternateEffect(ep, ai)} {depth} />
 							{/each}
 							<button class="add-alt-btn" onclick={() => addAlternateEffect(ep)}>+ Alternate Effect</button>
 						</div>

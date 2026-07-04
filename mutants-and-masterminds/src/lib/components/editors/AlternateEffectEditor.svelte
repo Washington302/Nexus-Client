@@ -5,11 +5,11 @@
 	let {
 		alt,
 		onRemove,
-		allowNestedSummon = true,
+		depth = 0,
 	}: {
 		alt: any;
 		onRemove: () => void;
-		allowNestedSummon?: boolean;
+		depth?: number;
 	} = $props();
 
 	function addEffect() {
@@ -44,7 +44,7 @@
 	</div>
 	<div class="alt-effects-list">
 		{#each alt.effects as effect, ei}
-			<EffectEditor effect={effect} onRemove={() => removeEffect(ei)} />
+			<EffectEditor effect={effect} onRemove={() => removeEffect(ei)} {depth} />
 		{/each}
 		<button class="add-effect-btn" onclick={addEffect}>+ Effect</button>
 	</div>

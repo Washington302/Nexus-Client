@@ -153,6 +153,7 @@ export interface PowerModifier {
 	type: ModifierType;
 	costModifier: number;
 	isFlat: boolean;
+	description?: string;
 }
 
 export interface SummonExtension {

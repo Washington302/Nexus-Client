@@ -8,11 +8,11 @@
 	let {
 		power,
 		onRemove,
-		allowNestedSummon = true,
+		depth = 0,
 	}: {
 		power: Power;
 		onRemove: () => void;
-		allowNestedSummon?: boolean;
+		depth?: number;
 	} = $props();
 
 	let collapsed = $state(false);
@@ -73,14 +73,14 @@
 		</div>
 
 		{#if power._deviceType}
-			<DeviceSectionEditor {power} {allowNestedSummon} />
+			<DeviceSectionEditor {power} {depth} />
 		{/if}
 
 		<div class="effects-section">
 			<div class="effects-head">{power.isArray ? 'Active Slot Effects' : 'Effects'}</div>
 			{#if !power._deviceType}
 				{#each power.effects as effect, ei}
-					<EffectEditor effect={effect} onRemove={() => removeEffect(ei)} {allowNestedSummon} />
+					<EffectEditor effect={effect} onRemove={() => removeEffect(ei)} {depth} />
 				{/each}
 				<button class="add-effect-btn" onclick={addEffect}>+ Effect</button>
 			{/if}
@@ -90,7 +90,7 @@
 			<div class="alt-effects-section">
 				<div class="alt-effects-head">Alternate Effects</div>
 				{#each power.alternateEffects as alt, ai}
-					<AlternateEffectEditor alt={alt} onRemove={() => removeAlternateEffect(ai)} {allowNestedSummon} />
+					<AlternateEffectEditor alt={alt} onRemove={() => removeAlternateEffect(ai)} {depth} />
 				{/each}
 				<button class="add-alt-btn" onclick={addAlternateEffect}>+ Alternate Effect</button>
 			</div>
