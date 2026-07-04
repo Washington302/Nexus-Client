@@ -24,7 +24,8 @@
 		const base = (abilities[field.baseKey] as number) ?? 0;
 		const mod = (abilities[field.costKey] as number) ?? 0;
 		const absent = (abilities[field.absentKey] as boolean) ?? false;
-		if (absent) return mod;
+		// Lacking an ability entirely is a flat -10 PP, regardless of rank.
+		if (absent) return -10;
 		return base >= 0 ? base * (BASE_PP_PER_RANK + mod) : Math.max(base, -5) * BASE_PP_PER_RANK;
 	}
 
@@ -35,19 +36,28 @@
 			(abilities as any)[f.finalKey] = base + enh;
 		}
 	});
+
+	function toggleAbsent(field: typeof abiKeys[number]) {
+		const absent = (abilities[field.absentKey] as boolean) ?? false;
+		(abilities as any)[field.costKey] = absent ? -10 : 0;
+	}
 </script>
 
 <div class="editor-grid">
 	{#each abiKeys as f}
 		<div class="field-row">
 			<label class="field-label">{f.label}</label>
-			<input type="number" class="field-input" bind:value={abilities[f.baseKey]} disabled={abilities[f.absentKey] as boolean} />
-			<span class="enh-label">+</span>
-			<input type="number" class="field-input enh-input" bind:value={abilities[f.enhKey]} disabled={abilities[f.absentKey] as boolean} />
-			<span class="final-val">={abilities[f.finalKey]}</span>
+			{#if abilities[f.absentKey]}
+				<span class="final-val absent-dash">—</span>
+			{:else}
+				<input type="number" class="field-input" bind:value={abilities[f.baseKey]} />
+				<span class="enh-label">+</span>
+				<input type="number" class="field-input enh-input" bind:value={abilities[f.enhKey]} />
+				<span class="final-val">={abilities[f.finalKey]}</span>
+			{/if}
 			<span class="pp-cost">{calcPP(f)} PP</span>
 			<label class="absent-label">
-				<input type="checkbox" bind:checked={abilities[f.absentKey] as boolean} />
+				<input type="checkbox" bind:checked={abilities[f.absentKey] as boolean} onchange={() => toggleAbsent(f)} />
 				Absent
 			</label>
 		</div>

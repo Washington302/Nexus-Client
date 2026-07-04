@@ -256,8 +256,6 @@
 	}
 
 	function getToughnessFinal(): { value: number; immune: boolean } {
-		const absent = abiAbsent('stamina');
-		if (absent) return { value: 0, immune: true };
 		let base = abiMod('stamina') + defPointsBought('toughness') + defensiveRollRanks() + (activeDefensePowerMods.has('toughness') ? defOtherMods('toughness') : 0);
 		if (activeConditions.has('impaired')) base -= 2;
 		if (activeConditions.has('disabled')) base -= 5;

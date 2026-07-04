@@ -175,7 +175,9 @@ export function recomputeCharacterCosts(draft: any): void {
 		const absent = draft.abilities?.[key + 'Absent'] ?? false;
 		draft.abilities[key + 'FinalValue'] = base + enh;
 		if (absent) {
-			totalAbiPP += mod;
+			// Lacking an ability entirely is a flat -10 PP, regardless of rank.
+			draft.abilities[key + 'CostModifier'] = -10;
+			totalAbiPP += -10;
 		} else {
 			totalAbiPP += base >= 0 ? base * (2 + mod) : Math.max(base, -5) * 2;
 		}
@@ -273,7 +275,6 @@ export function getDefenseFinal(abilities: any, defenses: any, key: string, abil
 }
 
 export function getToughnessFinal(abilities: any, defenses: any, advantages: any[]): { value: number; immune: boolean } {
-	if (abiAbsent(abilities, 'stamina')) return { value: 0, immune: true };
 	let defRoll = 0;
 	for (const a of advantages ?? []) {
 		if ((a.name ?? '').toLowerCase().includes('defensive roll')) defRoll += a.ranks ?? 0;
