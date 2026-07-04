@@ -1091,6 +1091,7 @@ select.input-demo { appearance:none; cursor:pointer; }
 .pp-cost { font-family:'Bangers',cursive; font-size:14px; color:var(--primary); min-width:40px; text-align:right; }
 .enh-label { font-family:'Oswald',sans-serif; font-size:13px; color:var(--accent); padding:0 1px; }
 .enh-input { width:40px; border-color:var(--secondary) !important; }
+.absent-label { display:flex; align-items:center; gap:4px; font-family:'Oswald',sans-serif; font-size:11px; color:var(--accent); white-space:nowrap; cursor:pointer; }
 
 /* ── DefensesEditor ── */
 .editor-grid.defenses { display:grid; grid-template-columns:1fr 1fr; gap:12px 20px; margin-bottom:8px; }
