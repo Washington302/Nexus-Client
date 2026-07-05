@@ -67,6 +67,7 @@ export function createDefaultRealmChange(): RealmChange {
 		complexity: 'Simple',
 		cost: 0,
 		status: 'draft',
+		spent: 0,
 	};
 }
 

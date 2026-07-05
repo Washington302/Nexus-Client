@@ -104,6 +104,14 @@
 		selectedSession.spoils.items = selectedSession.spoils.items.filter((_, idx) => idx !== i);
 	}
 
+	let newPostscript = $state('');
+	function appendPostscript() {
+		if (!selectedSession || !newPostscript.trim()) return;
+		const timestamp = new Date().toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+		selectedSession.postscripts = [...selectedSession.postscripts, `${timestamp} — ${newPostscript.trim()}`];
+		newPostscript = '';
+	}
+
 	async function handleSave() {
 		if (!draft) return;
 		saving = true;
@@ -169,7 +177,7 @@
 								<span class="session-number" class:current={s.id === selectedSessionId}>Session {s.number}</span>
 								<span class="session-number">{s.realDate}</span>
 							</div>
-							<div class="session-title-sm">{s.title}</div>
+							<div class="session-title-sm" class:current={s.id === selectedSessionId}>{s.title}</div>
 							{#if s.completedGoals.length}
 								<div style="font-size:12px; color:var(--gold-dim);">&#10022; {s.completedGoals.length} goal(s) completed</div>
 							{/if}
@@ -249,18 +257,18 @@
 
 							<div>
 								<div class="gb-panel-header">Divine Spoils</div>
-								<div style="display:flex; gap:8px; margin-bottom:8px;">
-									<div class="field-group" style="margin:0; flex:1;">
-										<label class="field-label" for="spoils-wealth">Wealth</label>
-										<input id="spoils-wealth" type="number" bind:value={selectedSession.spoils.wealth} class="gb-input" />
+								<div class="hp-grid" style="margin-bottom:12px;">
+									<div class="hp-box">
+										<div class="hp-box-label">Wealth</div>
+										<input type="number" class="hp-box-input" bind:value={selectedSession.spoils.wealth} />
 									</div>
-									<div class="field-group" style="margin:0; flex:1;">
-										<label class="field-label" for="spoils-dominion">Dominion</label>
-										<input id="spoils-dominion" type="number" bind:value={selectedSession.spoils.dominion} class="gb-input" />
+									<div class="hp-box">
+										<div class="hp-box-label">Dominion</div>
+										<input type="number" class="hp-box-input" bind:value={selectedSession.spoils.dominion} />
 									</div>
 								</div>
 								{#each selectedSession.spoils.items as item, i}
-									<span class="tag">{item} <button onclick={() => removeSpoilItem(i)} style="background:none; border:none; color:inherit; cursor:pointer;">✕</button></span>
+									<span class="tag">{item} <button onclick={() => removeSpoilItem(i)} class="tag-remove-btn">✕</button></span>
 								{/each}
 								<input
 									type="text"
@@ -278,14 +286,16 @@
 							<textarea bind:value={selectedSession.summary} class="gb-textarea" style="min-height:100px;"></textarea>
 						</div>
 
-						{#if selectedSession.postscripts.length}
-							<div style="margin-top:16px;">
-								<div class="gb-panel-header">Postscripts</div>
-								{#each selectedSession.postscripts as ps}
-									<div class="item-row"><span>{ps}</span></div>
-								{/each}
+						<div style="margin-top:16px;">
+							<div class="gb-panel-header">Scribe's Postscript</div>
+							{#each selectedSession.postscripts as ps}
+								<div class="item-row"><span>{ps}</span></div>
+							{/each}
+							<textarea bind:value={newPostscript} placeholder="Add further notes to the ledger..." class="gb-textarea" style="margin-top:8px;"></textarea>
+							<div style="display:flex; justify-content:flex-end; margin-top:10px;">
+								<button onclick={appendPostscript} disabled={!newPostscript.trim()} class="ledger-append-btn">Append to Ledger</button>
 							</div>
-						{/if}
+						</div>
 					</div>
 				{:else}
 					<div class="gb-panel"><p>No session selected. Create one above.</p></div>

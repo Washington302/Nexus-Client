@@ -369,6 +369,20 @@ a.roster-name:hover { color: var(--gold-bright); }
 }
 .gb-btn.danger:hover { background: oklch(0.3 0.06 25 / 0.55); }
 .gb-btn.block { width: 100%; text-align: center; }
+.ledger-append-btn {
+	background: none;
+	border: 1px solid var(--gold-dim);
+	color: var(--gold-bright);
+	border-radius: var(--radius);
+	padding: 8px 16px;
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	cursor: pointer;
+}
+.ledger-append-btn:hover { border-color: var(--gold); background: var(--surface-elevated); }
+.ledger-append-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Settings page ── */
 .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; align-items: start; }
@@ -763,6 +777,8 @@ a.roster-name:hover { color: var(--gold-bright); }
 .progress-bar-fill { height: 100%; background: var(--gold); }
 
 .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--surface-elevated); border: 1px solid var(--border); font-size: 11px; color: var(--muted-foreground); margin: 2px 4px 2px 0; }
+.tag-remove-btn { background: none; border: none; color: inherit; cursor: pointer; opacity: 0; transition: opacity 0.15s; padding: 0; margin-left: 2px; }
+.tag:hover .tag-remove-btn { opacity: 1; }
 
 /* ── Words of Creation (compact list, character sheet) ── */
 .word-list { display: flex; flex-direction: column; }
@@ -776,12 +792,13 @@ a.roster-name:hover { color: var(--gold-bright); }
 .gift-detail-meta { display: flex; gap: 8px; font-size: 11px; color: var(--muted-foreground); opacity: 0.7; }
 .gift-detail-desc { font-size: 12px; color: var(--muted-foreground); line-height: 1.5; }
 
-.session-list-item { padding: 10px 12px; border-radius: var(--radius); cursor: pointer; border: 1px solid transparent; margin-bottom: 6px; }
+.session-list-item { padding: 10px 12px; border-radius: var(--radius); cursor: pointer; border-left: 2px solid transparent; margin-bottom: 6px; }
 .session-list-item:hover { background: var(--surface); }
-.session-list-item.current { border-color: var(--gold-dim); background: var(--surface); }
+.session-list-item.current { border-left-color: var(--gold); background: var(--surface); }
 .session-number { font-size: 12px; color: var(--muted-foreground); }
 .session-number.current { color: var(--gold-bright); }
 .session-title-sm { font-family: var(--font-serif); font-size: 16px; }
+.session-title-sm.current { color: var(--gold-bright); }
 
 /* ── App shell (sidebar layout for character-scoped pages) ── */
 .app-shell { display: flex; align-items: flex-start; width: 100%; min-height: 100vh; }

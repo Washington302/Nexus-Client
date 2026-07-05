@@ -349,15 +349,6 @@ export interface CreateCampaignPayload {
 	setting?: string;
 }
 
-export interface CampaignNpc {
-	id: string;
-	campaignId: string;
-	name: string;
-	statBlock: MinionStatBlock;
-	createdAt: string;
-	updatedAt: string;
-}
-
 export interface UserLookupResult {
 	id: string;
 	username: string;
@@ -425,21 +416,6 @@ export const api = {
 			}),
 		removeMember: (id: string, userId: string) =>
 			request<Campaign>(`/api/v1/campaigns/${id}/members/${userId}`, { method: 'DELETE' }),
-	},
-	npc: {
-		list: (campaignId: string) => request<CampaignNpc[]>(`/api/v1/campaigns/${campaignId}/npcs`),
-		create: (campaignId: string, data: { name: string; statBlock: MinionStatBlock }) =>
-			request<CampaignNpc>(`/api/v1/campaigns/${campaignId}/npcs`, {
-				method: 'POST',
-				body: JSON.stringify(data),
-			}),
-		update: (campaignId: string, npcId: string, data: { name: string; statBlock: MinionStatBlock }) =>
-			request<CampaignNpc>(`/api/v1/campaigns/${campaignId}/npcs/${npcId}`, {
-				method: 'PUT',
-				body: JSON.stringify(data),
-			}),
-		delete: (campaignId: string, npcId: string) =>
-			request<void>(`/api/v1/campaigns/${campaignId}/npcs/${npcId}`, { method: 'DELETE' }),
 	},
 	users: {
 		lookupByEmail: (email: string) =>
