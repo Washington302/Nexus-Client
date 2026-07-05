@@ -34,6 +34,8 @@
 						<a href="/dashboard" class="dropdown-item">Dashboard</a>
 						<a href="/characters" class="dropdown-item">My Characters</a>
 						<a href="/campaigns" class="dropdown-item">My Campaigns</a>
+						<a href="/profile" class="dropdown-item">Profile</a>
+						<a href="/settings" class="dropdown-item">Settings</a>
 						<button onclick={logout} class="dropdown-item signout">Sign Out</button>
 					</div>
 				{/if}

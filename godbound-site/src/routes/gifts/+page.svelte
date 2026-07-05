@@ -2,6 +2,7 @@
 	import { session } from '$lib/stores/session.svelte';
 	import { api } from '$lib/services/api';
 	import type { GodboundCharacter, Gift } from '$lib/services/api';
+	import { gameRules } from '$lib/stores/gameRules.svelte';
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 
@@ -34,9 +35,24 @@
 		word.associatedGifts = word.gifts.length;
 	}
 
+	let effortNote = $state<string | null>(null);
+
 	function toggleGiftActive(wordIndex: number, gift: Gift) {
 		if (!draft) return;
-		gift.active = !gift.active;
+		const activating = !gift.active;
+		if (gameRules.trackEffortAutomatically && gift.effort !== 'None') {
+			if (activating) {
+				if (draft.resources.effort.free <= 0) {
+					effortNote = 'Not enough free Effort to activate this Gift.';
+					return;
+				}
+				draft.resources.effort.free -= 1;
+			} else {
+				draft.resources.effort.free = Math.min(draft.resources.effort.total, draft.resources.effort.free + 1);
+			}
+			effortNote = null;
+		}
+		gift.active = activating;
 		const word = draft.words[wordIndex];
 		word.activeGifts = word.gifts.filter((g) => g.active).length;
 	}
@@ -136,6 +152,10 @@
 	{:else}
 		<SplashHeader title="Divine" highlight="Gifts" subtitle="The manifestations of your celestial Words in the mortal realm" />
 
+		{#if effortNote}
+			<p class="error-box">{effortNote}</p>
+		{/if}
+
 		<SaveBar {saving} {saveError} {saveSuccess} onSave={handleSave} />
 
 		<div class="stat-card" style="margin-bottom:16px;">
@@ -191,29 +211,39 @@
 			</div>
 			{#each draft.words as word, wi}
 				{#each word.gifts as gift, gi}
-					<div class="item-row" style="flex-direction:column; align-items:stretch; gap:8px;">
-						<div style="display:flex; gap:8px;">
-							<input type="text" bind:value={gift.name} placeholder="Gift Name" class="gb-input" style="flex:2;" />
-							<span class="gift-meta" style="align-self:center;">{word.name} &bull; {gift.tier}</span>
+					<div class="gift-detail-card">
+						<button onclick={() => removeGift(wi, gi)} class="gift-detail-delete" aria-label="Remove Gift">✕</button>
+						<div class="gift-detail-name-col">
+							<input type="text" bind:value={gift.name} placeholder="Gift Name" class="gift-detail-name-input" />
+							<div class="gift-detail-caption">
+								{word.name}
+								<span>&bull;</span>
+								<select bind:value={gift.tier} class="gift-detail-tier-select">
+									<option value="Lesser">Lesser</option>
+									<option value="Greater">Greater</option>
+								</select>
+							</div>
 						</div>
-						<div style="display:flex; gap:8px;">
-							<select bind:value={gift.tier} class="gb-select" style="flex:1;">
-								<option value="Lesser">Lesser</option>
-								<option value="Greater">Greater</option>
-							</select>
-							<select bind:value={gift.type} class="gb-select" style="flex:1;">
+						<div>
+							<label class="field-label" style="margin:0 0 4px;" for="gift-type-{gift.id}">Type</label>
+							<select id="gift-type-{gift.id}" bind:value={gift.type} class="gb-select" style="width:100%;">
 								{#each ['Action', '(Smite)Action', 'Constant', 'On Turn', 'Instant', '(Smite)Instant'] as type}
 									<option value={type}>{type}</option>
 								{/each}
 							</select>
-							<select bind:value={gift.effort} class="gb-select" style="flex:1;">
+						</div>
+						<div>
+							<label class="field-label" style="margin:0 0 4px;" for="gift-effort-{gift.id}">Effort</label>
+							<select id="gift-effort-{gift.id}" bind:value={gift.effort} class="gb-select" style="width:100%;">
 								{#each ['None', 'Scene', 'Day', 'Committed'] as effort}
 									<option value={effort}>{effort}</option>
 								{/each}
 							</select>
-							<button onclick={() => removeGift(wi, gi)} class="delete-btn">✕</button>
 						</div>
-						<textarea bind:value={gift.description} placeholder="Effect Description" class="gb-textarea"></textarea>
+						<div>
+							<label class="field-label" style="margin:0 0 4px;" for="gift-desc-{gift.id}">Effect Description</label>
+							<textarea id="gift-desc-{gift.id}" bind:value={gift.description} placeholder="Effect Description" class="gb-textarea gift-detail-desc"></textarea>
+						</div>
 					</div>
 				{/each}
 			{/each}

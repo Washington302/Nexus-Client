@@ -92,6 +92,11 @@ export interface Facts {
 	relationship: string;
 }
 
+export interface Fact {
+	id: string;
+	description: string;
+}
+
 export interface Weapon {
 	description: string;
 	attr?: string;
@@ -221,6 +226,7 @@ export interface GodboundCharacter {
 	player?: string;
 	description?: string;
 	portraitUrl?: string;
+	isPublic?: boolean;
 	gameSystem: string;
 	goal: string;
 	level: number;
@@ -228,6 +234,7 @@ export interface GodboundCharacter {
 	attributes: Attributes;
 	savingThrows: SavingThrows;
 	facts: Facts;
+	additionalFacts: Fact[];
 	weapons: Weapon[];
 	armor: Armor;
 	frayDie: string;
@@ -333,6 +340,8 @@ export const api = {
 		get: (id: string) => request<Campaign>(`/api/v1/campaigns/${id}`),
 		delete: (id: string) =>
 			request<void>(`/api/v1/campaigns/${id}`, { method: 'DELETE' }),
+		join: (id: string) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/join`, { method: 'POST' }),
 		addMember: (id: string, member: CampaignMember) =>
 			request<Campaign>(`/api/v1/campaigns/${id}/members`, {
 				method: 'POST',

@@ -1,4 +1,4 @@
-import type { Weapon, Gift, Word, InfluenceProject, RealmChange, Session, NPC, DivineGoal } from '$lib/services/api';
+import type { Weapon, Gift, Word, InfluenceProject, RealmChange, Session, NPC, DivineGoal, Fact } from '$lib/services/api';
 
 const REALM_SCALE_COST: Record<string, number> = { Point: 1, Village: 2, City: 6, Nation: 12, World: 24 };
 const REALM_COMPLEXITY_MULT: Record<string, number> = { Simple: 1, Plausible: 2, Difficult: 4, Improbable: 8, Impossible: 16 };
@@ -23,6 +23,10 @@ export function realmChangeCost(scale: string, complexity: string): number {
 
 export function createDefaultWeapon(): Weapon {
 	return { description: '', attr: '', atk: '', dmg: '' };
+}
+
+export function createDefaultFact(): Fact {
+	return { id: crypto.randomUUID(), description: '' };
 }
 
 export function createDefaultGift(wordName?: string): Gift {

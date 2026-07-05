@@ -5,6 +5,8 @@
 	import { session } from '$lib/stores/session.svelte';
 	import SiteNav from '$lib/components/SiteNav.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import '$lib/stores/theme.svelte';
+	import '$lib/stores/preferences.svelte';
 
 	let { children } = $props();
 
@@ -17,6 +19,10 @@
 		return CHARACTER_SCOPED_PREFIXES.some((p) => pathname.startsWith(p));
 	}
 
+	function isStandaloneRoute(pathname: string) {
+		return pathname === '/character/print';
+	}
+
 	$effect(() => {
 		if (!session.loading && !session.userId && !isPublicRoute(page.url.pathname)) {
 			goto('/');
@@ -24,7 +30,9 @@
 	});
 </script>
 
-{#if isCharacterScoped(page.url.pathname)}
+{#if isStandaloneRoute(page.url.pathname)}
+	{@render children()}
+{:else if isCharacterScoped(page.url.pathname)}
 	<div class="app-shell">
 		<Sidebar />
 		<main>

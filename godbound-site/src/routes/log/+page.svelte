@@ -3,6 +3,7 @@
 	import { api } from '$lib/services/api';
 	import type { GodboundCharacter } from '$lib/services/api';
 	import { createDefaultSession, createDefaultNpc, createDefaultDivineGoal } from '$lib/utils/character';
+	import { gameRules } from '$lib/stores/gameRules.svelte';
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 
@@ -32,11 +33,23 @@
 		const s = createDefaultSession(draft.sessions.length + 1);
 		s.title = newSessionTitle;
 		s.realDate = newSessionDate;
+		s.current = true;
+		draft.sessions.forEach((existing) => (existing.current = false));
 		draft.sessions = [...draft.sessions, s];
 		selectedSessionId = s.id;
 		showNewSession = false;
 		newSessionTitle = '';
 		newSessionDate = '';
+	}
+
+	function endSession() {
+		if (!draft || !selectedSession) return;
+		const earned = selectedSession.spoils.dominion || 0;
+		const confirmed = confirm(`End "${selectedSession.title || 'this session'}" and add ${earned} Dominion to your pool?`);
+		if (!confirmed) return;
+		draft.resources.dominion.total += earned;
+		draft.resources.dominion.free += earned;
+		selectedSession.current = false;
 	}
 
 	let showNewGoal = $state(false);
@@ -197,10 +210,13 @@
 				{#if selectedSession}
 					<div class="gb-panel">
 						<input type="text" bind:value={selectedSession.title} class="gb-input" style="font-family:var(--font-serif); font-size:22px; background:none; border:none; padding:0; margin-bottom:8px;" />
-						<div style="display:flex; gap:16px; font-size:13px; color:var(--muted-foreground); margin-bottom:14px;">
+						<div style="display:flex; gap:16px; align-items:center; font-size:13px; color:var(--muted-foreground); margin-bottom:14px;">
 							<span>{selectedSession.realDate}</span>
 							<input type="text" bind:value={selectedSession.era} placeholder="Era" class="gb-input" style="width:140px;" />
 							<input type="text" bind:value={selectedSession.location} placeholder="Location" class="gb-input" style="width:160px;" />
+							{#if gameRules.enableDominionReminders && selectedSession.current}
+								<button onclick={endSession} class="gb-btn secondary" style="margin-left:auto;">End Session</button>
+							{/if}
 						</div>
 
 						<div class="card-grid">

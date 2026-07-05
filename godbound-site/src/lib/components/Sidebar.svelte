@@ -31,6 +31,7 @@
 		<a href="/campaigns" class="sidebar-nav-item" class:active={page.url.pathname.startsWith('/campaigns')}>Campaign</a>
 		<a href="/characters" class="sidebar-nav-item" class:active={page.url.pathname === '/characters'}>All Characters</a>
 		<a href="/dashboard" class="sidebar-nav-item" class:active={page.url.pathname === '/dashboard'}>Dashboard</a>
+		<a href="/settings" class="sidebar-nav-item" class:active={page.url.pathname === '/settings'}>Settings</a>
 	</nav>
 
 	<div class="sidebar-footer">
@@ -40,12 +41,13 @@
 	</div>
 
 	<div class="sidebar-footer">
-		<button class="sidebar-user-row" onclick={logout}>
+		<a href="/profile" class="sidebar-user-row">
 			<div class="sidebar-user-avatar">{session.username?.charAt(0).toUpperCase() ?? '?'}</div>
 			<div>
 				<p class="sidebar-user-name">{session.username}</p>
-				<p class="sidebar-user-sub">Sign Out</p>
+				<p class="sidebar-user-sub">View Profile</p>
 			</div>
-		</button>
+		</a>
+		<button class="sidebar-signout-btn" onclick={logout}>Sign Out</button>
 	</div>
 </aside>
