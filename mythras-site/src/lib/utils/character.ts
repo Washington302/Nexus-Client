@@ -26,6 +26,29 @@ export function computeBasePercent(formula: string, chars: Characteristics): num
 	return 0;
 }
 
+/** The seven characteristic abbreviations used in skill formulas, for dropdown editors. */
+export const CHARACTERISTIC_OPTIONS = ['STR', 'CON', 'SIZ', 'DEX', 'INT', 'POW', 'CHA'] as const;
+
+/** Splits a formula string ("STR+DEX" or "INT x2") into its two characteristic tokens. */
+export function parseFormula(formula: string): [string, string] {
+	const doubled = formula.match(/^(\w+)\s*x\s*2$/i);
+	if (doubled) {
+		const c = doubled[1].toUpperCase();
+		return [c, c];
+	}
+	const summed = formula.match(/^(\w+)\s*\+\s*(\w+)$/);
+	if (summed) {
+		return [summed[1].toUpperCase(), summed[2].toUpperCase()];
+	}
+	return ['STR', 'STR'];
+}
+
+/** Builds a formula string from two characteristic tokens picked via dropdowns. */
+export function buildFormula(char1: string, char2: string): string {
+	if (char1 === char2) return `${char1} x2`;
+	return `${char1}+${char2}`;
+}
+
 export interface SkillDefinition {
 	name: string;
 	professional: boolean;
@@ -108,8 +131,8 @@ export function recomputeSkill(skill: Skill, chars: Characteristics): void {
 	skill.total = skill.base + cultural + career + bonus;
 }
 
-function bracketIndex(sum: number): number {
-	return Math.max(0, Math.min(7, Math.floor((sum - 1) / 5)));
+function bracketIndex(sum: number, maxIndex = 7): number {
+	return Math.max(0, Math.min(maxIndex, Math.floor((sum - 1) / 5)));
 }
 
 const HIT_POINT_TABLE = {
@@ -150,13 +173,25 @@ export function computeActionPoints(intelligence: number, dex: number): number {
 	return 3 + Math.ceil((sum - 36) / 12);
 }
 
-const DAMAGE_MODIFIERS = ['-1d8', '-1d6', '-1D4', '-1D2', '+0', '+1D2', '+1D4', '+1D6'];
+const DAMAGE_MODIFIERS = [
+	'-1d8',
+	'-1d6',
+	'-1D4',
+	'-1D2',
+	'+0',
+	'+1D2',
+	'+1D4',
+	'+1D6',
+	'+1D8',
+	'+1D10',
+	'+1D12',
+	'+2D6'
+];
 
 export function computeDamageModifier(str: number, siz: number): string {
 	const sum = str + siz;
-	const idx = bracketIndex(sum);
-	if (sum > 40) return `+1D6 + ${Math.ceil((sum - 40) / 5)}D2`;
-	return DAMAGE_MODIFIERS[idx];
+	if (sum > 60) return `+2D6 + ${Math.ceil((sum - 60) / 5)}D2`;
+	return DAMAGE_MODIFIERS[bracketIndex(sum, 11)];
 }
 
 export function computeExperienceModifier(con: number): number {
@@ -177,19 +212,35 @@ export function computeLuckPoints(pow: number): number {
 	return 3 + Math.floor((pow - 13) / 6);
 }
 
-export function computeInitiativeBonus(intelligence: number, dex: number): number {
-	return Math.round((intelligence + dex) / 2);
+/** Strike Rank determines turn order in combat: FLOOR((DEX+INT)/2) per the Mythras corebook. */
+export function computeStrikeRank(intelligence: number, dex: number): number {
+	return Math.floor((intelligence + dex) / 2);
 }
 
+/** ENC a character can carry before incurring a skill penalty: STR+CON. Display-only —
+ * the backend has no field for this, so it's always recomputed rather than stored. */
+export function computeEncMax(str: number, con: number): number {
+	return str + con;
+}
+
+/** Points of ENC over the max, each costing -20% to relevant skills per the corebook. */
+export function computeEncPenalty(current: number, max: number): number {
+	return Math.max(0, Math.ceil(current - max));
+}
+
+/**
+ * Recomputes the attributes that have no "spend during play" concept (always a pure
+ * function of characteristics). actionPoints/luckPoints/magicPoints are intentionally
+ * NOT touched here — the backend only stores a single current value for each (no
+ * separate max), so overwriting them on every edit would erase manual adjustments
+ * made while playing (e.g. spending a luck point).
+ */
 export function recomputeDerivedAttributes(draft: MythrasCharacter): void {
 	const c = draft.characteristics;
-	draft.attributes.actionPoints = computeActionPoints(c.intelligence, c.dex);
 	draft.attributes.damageModifier = computeDamageModifier(c.str, c.siz);
 	draft.attributes.experienceModifier = computeExperienceModifier(c.con);
 	draft.attributes.healingRate = computeHealingRate(c.con);
-	draft.attributes.luckPoints = computeLuckPoints(c.pow);
-	draft.attributes.initiativeBonus = computeInitiativeBonus(c.intelligence, c.dex);
-	draft.attributes.magicPoints = c.pow;
+	draft.attributes.initiativeBonus = computeStrikeRank(c.intelligence, c.dex);
 	for (const loc of draft.hitLocations ?? []) {
 		const def = DEFAULT_HIT_LOCATIONS.find((d) => d.name === loc.name);
 		if (def) loc.maxHp = hitLocationMaxHp(def.location, c.con, c.siz);

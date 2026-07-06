@@ -1,18 +1,7 @@
 <script lang="ts">
-	import type { Characteristics, Skill } from '$lib/services/api';
-	import { recomputeSkill } from '$lib/utils/character';
+	import type { Skill } from '$lib/services/api';
 
-	let {
-		skills = [],
-		characteristics
-	}: {
-		skills: Skill[];
-		characteristics: Characteristics;
-	} = $props();
-
-	function onPointsChange(skill: Skill) {
-		recomputeSkill(skill, characteristics);
-	}
+	let { skills = [] }: { skills: Skill[] } = $props();
 </script>
 
 <div class="skill-header-row">
@@ -26,22 +15,10 @@
 	<div class="skill-row">
 		<div class="skill-name">{skill.name} <span style="opacity:0.6;">({skill.formula})</span></div>
 		<div class="skill-cell">{skill.base}</div>
-		<input
-			class="input-demo input-num"
-			type="number"
-			min="0"
-			max="15"
-			bind:value={skill.cultural}
-			oninput={() => onPointsChange(skill)}
-		/>
-		<input
-			class="input-demo input-num"
-			type="number"
-			min="0"
-			max="15"
-			bind:value={skill.career}
-			oninput={() => onPointsChange(skill)}
-		/>
+		<div class="skill-cell">{skill.cultural}</div>
+		<div class="skill-cell">{skill.career}</div>
 		<div class="skill-cell">{skill.total}%</div>
 	</div>
+{:else}
+	<div class="empty-hint">No skills yet.</div>
 {/each}

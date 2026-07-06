@@ -4,13 +4,17 @@
 		saveError,
 		saveSuccess,
 		autosaveDirty,
-		onSave
+		shareCopied,
+		onSave,
+		onShare
 	}: {
 		saving: boolean;
 		saveError: string | null;
 		saveSuccess: boolean;
 		autosaveDirty: boolean;
+		shareCopied: boolean;
 		onSave: () => void;
+		onShare: () => void;
 	} = $props();
 </script>
 
@@ -18,6 +22,9 @@
 	<div class="save-left">
 		<button onclick={onSave} disabled={saving} class="save-btn">
 			{saving ? 'Saving...' : 'Save Character'}
+		</button>
+		<button onclick={onShare} class="comic-btn secondary">
+			{shareCopied ? 'Link Copied!' : 'Share'}
 		</button>
 		{#if autosaveDirty}
 			<span class="autosave-indicator">&bull; Unsaved changes &mdash; autosave in 15s</span>

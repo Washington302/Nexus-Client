@@ -62,3 +62,8 @@
 	<div class="field-hdr">Description</div>
 	<input class="input-demo" bind:value={draft.description} />
 </div>
+<div class="field-group">
+	<label style="display:flex;align-items:center;gap:6px;font-size:13px;">
+		<input type="checkbox" bind:checked={draft.public} /> Public (shareable via link)
+	</label>
+</div>

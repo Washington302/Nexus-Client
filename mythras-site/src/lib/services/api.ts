@@ -253,6 +253,7 @@ export const api = {
 				body: JSON.stringify(data)
 			}),
 		get: (id: string) => request<MythrasCharacter>(`/api/v1/mythras/characters/${id}`),
+		getPublic: (id: string) => request<MythrasCharacter>(`/api/v1/mythras/characters/${id}/share`),
 		myCharacters: () => request<MythrasCharacter[]>('/api/v1/mythras/characters'),
 		update: (id: string, data: MythrasCharacter) =>
 			request<MythrasCharacter>(`/api/v1/mythras/characters/${id}`, {

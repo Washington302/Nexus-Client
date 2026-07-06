@@ -3,18 +3,26 @@
 	import { api } from '$lib/services/api';
 	import type { MythrasCharacter } from '$lib/services/api';
 	import { ensureDefaults, recomputeDerivedAttributes, prepareCharacterPayloadForSave } from '$lib/utils/character';
-	import CharacterSheetFront from '$lib/components/CharacterSheetFront.svelte';
-	import CharacterSheetBack from '$lib/components/CharacterSheetBack.svelte';
+	import CharacterSheet from '$lib/components/CharacterSheet.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 
 	let draft = $state<MythrasCharacter>(null!);
-	let activePage = $state<'front' | 'back'>('front');
 	let saving = $state(false);
 	let saveError = $state<string | null>(null);
 	let saveSuccess = $state(false);
 	let autosaveDirty = $state(false);
 	let originalSnapshot = $state<string | null>(null);
 	let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
+	let shareCopied = $state(false);
+
+	function shareCharacter() {
+		if (!draft) return;
+		const url = `${window.location.origin}/share/${draft.id}`;
+		navigator.clipboard.writeText(url).then(() => {
+			shareCopied = true;
+			setTimeout(() => (shareCopied = false), 2000);
+		});
+	}
 
 	function scheduleAutosave() {
 		if (autosaveTimer) clearTimeout(autosaveTimer);
@@ -94,21 +102,16 @@
 	</div>
 {:else}
 	<div class="page">
-		<div class="sheet-tabs">
-			<button class="sheet-tab" class:active={activePage === 'front'} onclick={() => (activePage = 'front')}
-				>Front</button
-			>
-			<button class="sheet-tab" class:active={activePage === 'back'} onclick={() => (activePage = 'back')}
-				>Back</button
-			>
-		</div>
+		<CharacterSheet {draft} />
 
-		{#if activePage === 'front'}
-			<CharacterSheetFront {draft} />
-		{:else}
-			<CharacterSheetBack {draft} />
-		{/if}
-
-		<SaveBar {saving} {saveError} {saveSuccess} {autosaveDirty} onSave={saveCharacter} />
+		<SaveBar
+			{saving}
+			{saveError}
+			{saveSuccess}
+			{autosaveDirty}
+			{shareCopied}
+			onSave={saveCharacter}
+			onShare={shareCharacter}
+		/>
 	</div>
 {/if}
