@@ -12,6 +12,12 @@
 			"runtimeExecutable": "npm",
 			"runtimeArgs": ["--prefix", "godbound-site", "run", "dev", "--", "--port", "5174"],
 			"port": 5174
+		},
+		{
+			"name": "mythras-site",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": ["--prefix", "mythras-site", "run", "dev", "--", "--port", "5174"],
+			"port": 5174
 		}
 	]
 }
