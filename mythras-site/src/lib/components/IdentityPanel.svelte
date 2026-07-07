@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { MythrasCharacter } from '$lib/services/api';
+	import { CULTURE_OPTIONS } from '$lib/utils/character';
 
 	let { draft }: { draft: MythrasCharacter } = $props();
 </script>
@@ -11,7 +12,12 @@
 <div class="grid-2">
 	<div class="field-group">
 		<div class="field-hdr">Culture</div>
-		<input class="input-demo" bind:value={draft.raceCulture} placeholder="e.g. Civilised" />
+		<select class="input-demo" bind:value={draft.raceCulture}>
+			<option value="">&mdash; Select &mdash;</option>
+			{#each CULTURE_OPTIONS as opt}
+				<option value={opt}>{opt}</option>
+			{/each}
+		</select>
 	</div>
 	<div class="field-group">
 		<div class="field-hdr">Career</div>

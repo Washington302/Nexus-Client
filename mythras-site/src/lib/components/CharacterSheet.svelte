@@ -11,6 +11,17 @@
 
 	let { draft, editable = true }: { draft: MythrasCharacter; editable?: boolean } = $props();
 
+	// Edit modals bind their inputs directly to `draft`, so changes apply as you type.
+	// Snapshot on open / restore on cancel is what makes the Cancel button actually cancel.
+	let editSnapshot: string | null = null;
+	function beginEdit() {
+		editSnapshot = JSON.stringify(draft);
+	}
+	function cancelEdit() {
+		if (editSnapshot) Object.assign(draft, JSON.parse(editSnapshot));
+		editSnapshot = null;
+	}
+
 	function totalEquipmentEnc(): number {
 		return draft.equipment.reduce((sum, e) => sum + (e.encumbrance ?? 0) * (e.quantity ?? 1), 0);
 	}
@@ -121,10 +132,52 @@
 			<div>{draft.career || '—'}</div>
 		</div>
 	</div>
-	<div class="field-group">
-		<div class="field-hdr">Homeland</div>
-		<div>{draft.homeland || '—'}</div>
+	<div class="grid-2">
+		<div class="field-group">
+			<div class="field-hdr">Player Name</div>
+			<div>{draft.player || '—'}</div>
+		</div>
+		<div class="field-group">
+			<div class="field-hdr">Homeland</div>
+			<div>{draft.homeland || '—'}</div>
+		</div>
 	</div>
+	<div class="grid-2">
+		<div class="field-group">
+			<div class="field-hdr">Gender</div>
+			<div>{draft.gender || '—'}</div>
+		</div>
+		<div class="field-group">
+			<div class="field-hdr">Age</div>
+			<div>{draft.age || '—'}</div>
+		</div>
+	</div>
+	<div class="grid-2">
+		<div class="field-group">
+			<div class="field-hdr">Height</div>
+			<div>{draft.height || '—'}</div>
+		</div>
+		<div class="field-group">
+			<div class="field-hdr">Weight</div>
+			<div>{draft.weight || '—'}</div>
+		</div>
+	</div>
+	<div class="grid-2">
+		<div class="field-group">
+			<div class="field-hdr">Handedness</div>
+			<div>{draft.handedness || '—'}</div>
+		</div>
+		<div class="field-group">
+			<div class="field-hdr">Social Class</div>
+			<div>{draft.socialClass || '—'}</div>
+		</div>
+	</div>
+	{#if draft.description}
+		<div class="field-group">
+			<div class="field-hdr">Description</div>
+			<div>{draft.description}</div>
+		</div>
+	{/if}
 {/snippet}
 
 {#snippet characteristicsView()}
@@ -155,146 +208,20 @@
 	</div>
 {/snippet}
 
-<ConditionBar {draft} {editable} />
+<ConditionBar {draft} {editable} onOpen={beginEdit} onCancel={cancelEdit} />
 
 <div class="front-top-grid">
-	<div class="front-left-col">
-		{#if editable}
-			<EditableSectionCard title="Identity" color="primary">
-				{#snippet view()}{@render identityView()}{/snippet}
-				{#snippet edit()}<IdentityPanel {draft} />{/snippet}
-			</EditableSectionCard>
-		{:else}
-			<Panel header="Identity" color="primary">{@render identityView()}</Panel>
-		{/if}
-
-		{#if editable}
-			<EditableSectionCard title="Languages" color="plain">
-				{#snippet view()}
-					{#each draft.languages as lang}
-						<div class="list-view-row">
-							<span class="list-view-name">{lang.name}{lang.nativeLanguage ? ' (Native)' : ''}</span>
-							<span class="list-view-value">{lang.percentage}%</span>
-						</div>
-					{:else}
-						<div class="empty-hint">No languages yet.</div>
-					{/each}
-				{/snippet}
-				{#snippet edit()}
-					{#each draft.languages as lang, i}
-						<div class="list-row">
-							<div class="list-row-fields" style="grid-template-columns: 1fr 60px auto;">
-								<input class="input-demo" bind:value={lang.name} placeholder="Language" />
-								<input class="input-demo input-num" type="number" bind:value={lang.percentage} />
-								<label style="display:flex;align-items:center;gap:4px;font-size:12px;">
-									<input type="checkbox" bind:checked={lang.nativeLanguage} /> Native
-								</label>
-							</div>
-							<button class="remove-row-btn" onclick={() => removeLanguage(i)}>&#10005;</button>
-						</div>
-					{:else}
-						<div class="empty-hint">No languages yet.</div>
-					{/each}
-					<button class="add-row-btn" onclick={addLanguage}>+ Add Language</button>
-				{/snippet}
-			</EditableSectionCard>
-		{:else}
-			<Panel header="Languages" color="plain">
-				{#each draft.languages as lang}
-					<div class="list-view-row">
-						<span class="list-view-name">{lang.name}{lang.nativeLanguage ? ' (Native)' : ''}</span>
-						<span class="list-view-value">{lang.percentage}%</span>
-					</div>
-				{:else}
-					<div class="empty-hint">No languages yet.</div>
-				{/each}
-			</Panel>
-		{/if}
-
-		{#if editable}
-			<EditableSectionCard title="Passions" color="plain">
-				{#snippet view()}
-					{#each draft.passions as passion}
-						<div class="list-view-row">
-							<span class="list-view-name">{passion.name}</span>
-							<span class="list-view-value">{passion.total}%</span>
-						</div>
-					{:else}
-						<div class="empty-hint">No passions yet.</div>
-					{/each}
-				{/snippet}
-				{#snippet edit()}
-					{#each draft.passions as passion, i}
-						<div class="list-row">
-							<div class="list-row-fields" style="grid-template-columns: 1fr 60px;">
-								<input class="input-demo" bind:value={passion.name} placeholder="Passion" />
-								<input class="input-demo input-num" type="number" bind:value={passion.total} />
-							</div>
-							<button class="remove-row-btn" onclick={() => removePassion(i)}>&#10005;</button>
-						</div>
-					{:else}
-						<div class="empty-hint">No passions yet.</div>
-					{/each}
-					<button class="add-row-btn" onclick={addPassion}>+ Add Passion</button>
-				{/snippet}
-			</EditableSectionCard>
-		{:else}
-			<Panel header="Passions" color="plain">
-				{#each draft.passions as passion}
-					<div class="list-view-row">
-						<span class="list-view-name">{passion.name}</span>
-						<span class="list-view-value">{passion.total}%</span>
-					</div>
-				{:else}
-					<div class="empty-hint">No passions yet.</div>
-				{/each}
-			</Panel>
-		{/if}
-
-		{#if editable}
-			<EditableSectionCard title="Cults &amp; Devotion" color="teal">
-				{#snippet view()}
-					{#each draft.cults as cult}
-						<div class="list-view-row">
-							<span class="list-view-name">{cult.name}</span>
-							<span class="list-view-value">{cult.devotionalPoolCurrent} / {cult.devotionalPoolMax}</span>
-						</div>
-					{:else}
-						<div class="empty-hint">No cult affiliations yet.</div>
-					{/each}
-				{/snippet}
-				{#snippet edit()}
-					{#each draft.cults as cult, i}
-						<div class="list-row">
-							<div class="list-row-fields" style="grid-template-columns: 1fr 60px 60px;">
-								<input class="input-demo" bind:value={cult.name} placeholder="Cult name" />
-								<input class="input-demo input-num" type="number" bind:value={cult.devotionalPoolCurrent} placeholder="Cur." />
-								<input class="input-demo input-num" type="number" bind:value={cult.devotionalPoolMax} placeholder="Max" />
-							</div>
-							<button class="remove-row-btn" onclick={() => removeCult(i)}>&#10005;</button>
-						</div>
-					{:else}
-						<div class="empty-hint">No cult affiliations yet.</div>
-					{/each}
-					<button class="add-row-btn" onclick={addCult}>+ Add Cult</button>
-				{/snippet}
-			</EditableSectionCard>
-		{:else}
-			<Panel header="Cults &amp; Devotion" color="teal">
-				{#each draft.cults as cult}
-					<div class="list-view-row">
-						<span class="list-view-name">{cult.name}</span>
-						<span class="list-view-value">{cult.devotionalPoolCurrent} / {cult.devotionalPoolMax}</span>
-					</div>
-				{:else}
-					<div class="empty-hint">No cult affiliations yet.</div>
-				{/each}
-			</Panel>
-		{/if}
-	</div>
+	{#if editable}
+		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Identity" color="primary">
+			{#snippet view()}{@render identityView()}{/snippet}
+			{#snippet edit()}<IdentityPanel {draft} />{/snippet}
+		</EditableSectionCard>
+	{:else}
+		<Panel header="Identity" color="primary">{@render identityView()}</Panel>
+	{/if}
 
 	{#if editable}
-		<EditableSectionCard title="Characteristics" color="primary">
+		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Characteristics" color="primary">
 			{#snippet view()}{@render characteristicsView()}{/snippet}
 			{#snippet edit()}<CharacteristicsEditor characteristics={draft.characteristics} />{/snippet}
 		</EditableSectionCard>
@@ -303,7 +230,7 @@
 	{/if}
 
 	{#if editable}
-		<EditableSectionCard title="Attributes" color="gold">
+		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Attributes" color="gold">
 			{#snippet view()}{@render attributesView()}{/snippet}
 			{#snippet edit()}<AttributesEditor attributes={draft.attributes} characteristics={draft.characteristics} />{/snippet}
 		</EditableSectionCard>
@@ -312,12 +239,138 @@
 	{/if}
 </div>
 
+<div class="front-top-grid">
+	{#if editable}
+		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Languages" color="plain">
+			{#snippet view()}
+				{#each draft.languages as lang}
+					<div class="list-view-row">
+						<span class="list-view-name">{lang.name}{lang.nativeLanguage ? ' (Native)' : ''}</span>
+						<span class="list-view-value">{lang.percentage}%</span>
+					</div>
+				{:else}
+					<div class="empty-hint">No languages yet.</div>
+				{/each}
+			{/snippet}
+			{#snippet edit()}
+				{#each draft.languages as lang, i}
+					<div class="list-row">
+						<div class="list-row-fields" style="grid-template-columns: 1fr 60px auto;">
+							<input class="input-demo" bind:value={lang.name} placeholder="Language" />
+							<input class="input-demo input-num" type="number" bind:value={lang.percentage} />
+							<label style="display:flex;align-items:center;gap:4px;font-size:12px;">
+								<input type="checkbox" bind:checked={lang.nativeLanguage} /> Native
+							</label>
+						</div>
+						<button class="remove-row-btn" onclick={() => removeLanguage(i)}>&#10005;</button>
+					</div>
+				{:else}
+					<div class="empty-hint">No languages yet.</div>
+				{/each}
+				<button class="add-row-btn" onclick={addLanguage}>+ Add Language</button>
+			{/snippet}
+		</EditableSectionCard>
+	{:else}
+		<Panel header="Languages" color="plain">
+			{#each draft.languages as lang}
+				<div class="list-view-row">
+					<span class="list-view-name">{lang.name}{lang.nativeLanguage ? ' (Native)' : ''}</span>
+					<span class="list-view-value">{lang.percentage}%</span>
+				</div>
+			{:else}
+				<div class="empty-hint">No languages yet.</div>
+			{/each}
+		</Panel>
+	{/if}
+
+	{#if editable}
+		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Passions" color="plain">
+			{#snippet view()}
+				{#each draft.passions as passion}
+					<div class="list-view-row">
+						<span class="list-view-name">{passion.name}</span>
+						<span class="list-view-value">{passion.total}%</span>
+					</div>
+				{:else}
+					<div class="empty-hint">No passions yet.</div>
+				{/each}
+			{/snippet}
+			{#snippet edit()}
+				{#each draft.passions as passion, i}
+					<div class="list-row">
+						<div class="list-row-fields" style="grid-template-columns: 1fr 60px;">
+							<input class="input-demo" bind:value={passion.name} placeholder="Passion" />
+							<input class="input-demo input-num" type="number" bind:value={passion.total} />
+						</div>
+						<button class="remove-row-btn" onclick={() => removePassion(i)}>&#10005;</button>
+					</div>
+				{:else}
+					<div class="empty-hint">No passions yet.</div>
+				{/each}
+				<button class="add-row-btn" onclick={addPassion}>+ Add Passion</button>
+			{/snippet}
+		</EditableSectionCard>
+	{:else}
+		<Panel header="Passions" color="plain">
+			{#each draft.passions as passion}
+				<div class="list-view-row">
+					<span class="list-view-name">{passion.name}</span>
+					<span class="list-view-value">{passion.total}%</span>
+				</div>
+			{:else}
+				<div class="empty-hint">No passions yet.</div>
+			{/each}
+		</Panel>
+	{/if}
+
+	{#if editable}
+		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Cults &amp; Devotion" color="teal">
+			{#snippet view()}
+				{#each draft.cults as cult}
+					<div class="list-view-row">
+						<span class="list-view-name">{cult.name}</span>
+						<span class="list-view-value">{cult.devotionalPoolCurrent} / {cult.devotionalPoolMax}</span>
+					</div>
+				{:else}
+					<div class="empty-hint">No cult affiliations yet.</div>
+				{/each}
+			{/snippet}
+			{#snippet edit()}
+				{#each draft.cults as cult, i}
+					<div class="list-row">
+						<div class="list-row-fields" style="grid-template-columns: 1fr 60px 60px;">
+							<input class="input-demo" bind:value={cult.name} placeholder="Cult name" />
+							<input class="input-demo input-num" type="number" bind:value={cult.devotionalPoolCurrent} placeholder="Cur." />
+							<input class="input-demo input-num" type="number" bind:value={cult.devotionalPoolMax} placeholder="Max" />
+						</div>
+						<button class="remove-row-btn" onclick={() => removeCult(i)}>&#10005;</button>
+					</div>
+				{:else}
+					<div class="empty-hint">No cult affiliations yet.</div>
+				{/each}
+				<button class="add-row-btn" onclick={addCult}>+ Add Cult</button>
+			{/snippet}
+		</EditableSectionCard>
+	{:else}
+		<Panel header="Cults &amp; Devotion" color="teal">
+			{#each draft.cults as cult}
+				<div class="list-view-row">
+					<span class="list-view-name">{cult.name}</span>
+					<span class="list-view-value">{cult.devotionalPoolCurrent} / {cult.devotionalPoolMax}</span>
+				</div>
+			{:else}
+				<div class="empty-hint">No cult affiliations yet.</div>
+			{/each}
+		</Panel>
+	{/if}
+</div>
+
 <div class="gear-split">
 	<div class="gear-col">
-		<SkillsPanel {draft} {editable} />
+		<SkillsPanel {draft} {editable} onOpen={beginEdit} onCancel={cancelEdit} />
 
 		{#if editable}
-			<EditableSectionCard title="Magic &amp; Abilities" color="teal">
+			<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Magic &amp; Abilities" color="teal">
 				{#snippet view()}
 					<p style="font-family:var(--font-body);font-size:13px;color:var(--on-surface);white-space:pre-wrap;">
 						{draft.magicAbilitiesNotes || '—'}
@@ -343,7 +396,7 @@
 
 	<div class="gear-col">
 		{#if editable}
-			<EditableSectionCard title="Equipment" color="plain">
+			<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Equipment" color="plain">
 				{#snippet view()}
 					{#each draft.equipment as item}
 						<div class="list-view-row">
@@ -400,7 +453,7 @@
 		{/if}
 
 		{#if editable}
-			<EditableSectionCard title="Combat Styles" color="plain">
+			<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Combat Styles" color="plain">
 				{#snippet view()}
 					{#each draft.combatStyles as style}
 						<div class="list-view-row">
@@ -441,7 +494,7 @@
 		{/if}
 
 		{#if editable}
-			<EditableSectionCard title="Melee Weapons &amp; Shields" color="plain">
+			<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Melee Weapons &amp; Shields" color="plain">
 				{#snippet view()}
 					{#each draft.meleeWeapons as weapon}
 						<div class="list-view-row">
@@ -490,7 +543,7 @@
 		{/if}
 
 		{#if editable}
-			<EditableSectionCard title="Ranged Weapons" color="plain">
+			<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Ranged Weapons" color="plain">
 				{#snippet view()}
 					{#each draft.rangedWeapons as weapon}
 						<div class="list-view-row">

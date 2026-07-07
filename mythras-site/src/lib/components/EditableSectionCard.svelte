@@ -7,16 +7,20 @@
 		title,
 		color,
 		view,
-		edit
+		edit,
+		onOpen,
+		onCancel
 	}: {
 		title: string;
 		color: 'primary' | 'gold' | 'teal' | 'plain';
 		view?: Snippet;
 		edit?: Snippet;
+		onOpen?: () => void;
+		onCancel?: () => void;
 	} = $props();
 </script>
 
-<EditableWrapper {title} isEditable={true} onSave={async () => {}}>
+<EditableWrapper {title} isEditable={true} onSave={async () => {}} {onOpen} {onCancel}>
 	{#snippet children()}
 		<Panel header={title} {color}>
 			{@render view?.()}

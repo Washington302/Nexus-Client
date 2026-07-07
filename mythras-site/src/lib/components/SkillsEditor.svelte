@@ -1,6 +1,11 @@
 <script lang="ts">
 	import type { MythrasCharacter, Skill } from '$lib/services/api';
-	import { CHARACTERISTIC_OPTIONS, parseFormula, buildFormula, recomputeSkill } from '$lib/utils/character';
+	import {
+		CHARACTERISTIC_OPTIONS,
+		parseFormula,
+		buildFormula,
+		recomputeSkill
+	} from '$lib/utils/character';
 
 	let { draft }: { draft: MythrasCharacter } = $props();
 
@@ -15,7 +20,7 @@
 	function addSkill() {
 		activeSkills().push({
 			name: '',
-			formula: 'STR+STR',
+			formula: buildFormula('STR', 'STR'),
 			professional: activeTab === 'professional',
 			base: 0,
 			cultural: 0,

@@ -16,19 +16,30 @@
 	let shareCopied = $state(false);
 
 	function shareCharacter() {
-		if (!draft) return;
+		if (!draft || !draft.public) return;
 		const url = `${window.location.origin}/share/${draft.id}`;
-		navigator.clipboard.writeText(url).then(() => {
-			shareCopied = true;
-			setTimeout(() => (shareCopied = false), 2000);
-		});
+		navigator.clipboard
+			.writeText(url)
+			.then(() => {
+				shareCopied = true;
+				setTimeout(() => (shareCopied = false), 2000);
+			})
+			.catch((e) => {
+				saveError = `Couldn't copy the link: ${(e as Error).message}`;
+			});
 	}
 
 	function scheduleAutosave() {
 		if (autosaveTimer) clearTimeout(autosaveTimer);
 		autosaveDirty = true;
 		autosaveTimer = setTimeout(() => {
-			if (draft && !saving) saveCharacter();
+			if (!draft) return;
+			if (saving) {
+				// A manual save is in flight; try again shortly instead of dropping the autosave.
+				scheduleAutosave();
+				return;
+			}
+			saveCharacter();
 		}, 15000);
 	}
 
@@ -42,14 +53,17 @@
 
 	$effect(() => {
 		const c = session.activeCharacter;
-		if (c) {
-			const d = JSON.parse(JSON.stringify(c));
-			ensureDefaults(d);
-			recomputeDerivedAttributes(d);
-			draft = d;
-			originalSnapshot = JSON.stringify(d);
-			autosaveDirty = false;
-		}
+		// Only rebuild the draft when switching to a different character. Without the id
+		// guard, the post-save Object.assign into session.activeCharacter re-triggers this
+		// effect and wipes any edits made while the save was in flight (including text
+		// being typed in an open edit modal, since autosave fires every 15s).
+		if (!c || c.id === draft?.id) return;
+		const d = JSON.parse(JSON.stringify(c));
+		ensureDefaults(d);
+		recomputeDerivedAttributes(d);
+		draft = d;
+		originalSnapshot = JSON.stringify(d);
+		autosaveDirty = false;
 	});
 
 	$effect(() => {
@@ -110,6 +124,7 @@
 			{saveSuccess}
 			{autosaveDirty}
 			{shareCopied}
+			shareEnabled={draft.public}
 			onSave={saveCharacter}
 			onShare={shareCharacter}
 		/>

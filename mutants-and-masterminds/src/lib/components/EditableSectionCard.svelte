@@ -9,16 +9,20 @@
 		headerIcon = '★',
 		view,
 		edit,
+		onOpen,
+		onCancel,
 	}: {
 		title: string;
 		color: 'red' | 'yellow' | 'blue' | 'dark';
 		headerIcon?: string;
 		view: Snippet;
 		edit: Snippet;
+		onOpen?: () => void;
+		onCancel?: () => void;
 	} = $props();
 </script>
 
-<EditableWrapper title={title} isEditable={true} onSave={async () => {}}>
+<EditableWrapper title={title} isEditable={true} onSave={async () => {}} {onOpen} {onCancel}>
 	{#snippet children()}
 		<ComicPanel header={`★ ${title}`} color={color}>
 			{@render view()}

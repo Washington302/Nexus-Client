@@ -1,4 +1,7 @@
 const TOKEN_KEY = 'mythras_token';
+// In dev the Vite proxy forwards /api to the backend; in production builds there is
+// no proxy, so requests must target the backend origin directly.
+const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || '';
 
 function getToken(): string | null {
 	if (typeof localStorage === 'undefined') return null;
@@ -26,7 +29,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 	}
 	let res: Response;
 	try {
-		res = await fetch(path, { ...options, headers });
+		res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 	} catch {
 		throw new Error('API currently down, please wait.');
 	}

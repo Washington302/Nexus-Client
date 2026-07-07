@@ -17,9 +17,16 @@
 	);
 
 	function copyShareLink() {
-		navigator.clipboard.writeText(shareUrl);
-		actionError = null;
-		actionNote = 'Share link copied to clipboard.';
+		navigator.clipboard
+			.writeText(shareUrl)
+			.then(() => {
+				actionError = null;
+				actionNote = 'Share link copied to clipboard.';
+			})
+			.catch((e) => {
+				actionNote = null;
+				actionError = `Couldn't copy the link: ${(e as Error).message}`;
+			});
 	}
 
 	let importInput: HTMLInputElement;

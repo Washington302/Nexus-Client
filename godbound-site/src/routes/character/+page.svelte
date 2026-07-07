@@ -12,7 +12,10 @@
 	let saveSuccess = $state(false);
 
 	$effect(() => {
-		if (session.activeCharacter && !draft) {
+		// Guard on id (not just truthiness) so switching the active character on /characters
+		// and coming back actually refreshes this page instead of showing the old draft —
+		// SvelteKit reuses this component instance since the route itself doesn't change.
+		if (session.activeCharacter && session.activeCharacter.id !== draft?.id) {
 			draft = JSON.parse(JSON.stringify(session.activeCharacter));
 		}
 	});

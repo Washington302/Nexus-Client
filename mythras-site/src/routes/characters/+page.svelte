@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { session, loadActiveCharacter, setActiveCharacterById } from '$lib/stores/session.svelte';
 	import PillBadge from '$lib/components/PillBadge.svelte';
+	import { CULTURE_OPTIONS } from '$lib/utils/character';
 
 	let showNewChar = $state(false);
 	let newName = $state('');
@@ -130,13 +131,12 @@
 			</div>
 			<div class="field-group">
 				<label for="new-culture" class="field-label">Culture</label>
-				<input
-					id="new-culture"
-					type="text"
-					bind:value={newCulture}
-					class="comic-input"
-					placeholder="e.g. Civilised"
-				/>
+				<select id="new-culture" bind:value={newCulture} class="comic-input">
+					<option value="">&mdash; Select &mdash;</option>
+					{#each CULTURE_OPTIONS as opt}
+						<option value={opt}>{opt}</option>
+					{/each}
+				</select>
 			</div>
 			<div class="field-group">
 				<label for="new-career" class="field-label">Career</label>

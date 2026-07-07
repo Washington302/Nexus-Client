@@ -5,6 +5,7 @@
 		saveSuccess,
 		autosaveDirty,
 		shareCopied,
+		shareEnabled = true,
 		onSave,
 		onShare
 	}: {
@@ -13,6 +14,7 @@
 		saveSuccess: boolean;
 		autosaveDirty: boolean;
 		shareCopied: boolean;
+		shareEnabled?: boolean;
 		onSave: () => void;
 		onShare: () => void;
 	} = $props();
@@ -23,7 +25,12 @@
 		<button onclick={onSave} disabled={saving} class="save-btn">
 			{saving ? 'Saving...' : 'Save Character'}
 		</button>
-		<button onclick={onShare} class="comic-btn secondary">
+		<button
+			onclick={onShare}
+			disabled={!shareEnabled}
+			class="comic-btn secondary"
+			title={shareEnabled ? '' : 'Mark this character Public in Identity to enable sharing'}
+		>
 			{shareCopied ? 'Link Copied!' : 'Share'}
 		</button>
 		{#if autosaveDirty}

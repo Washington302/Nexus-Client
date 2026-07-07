@@ -3,7 +3,17 @@
 	import EditableSectionCard from '$lib/components/EditableSectionCard.svelte';
 	import Panel from '$lib/components/Panel.svelte';
 
-	let { draft, editable = true }: { draft: MythrasCharacter; editable?: boolean } = $props();
+	let {
+		draft,
+		editable = true,
+		onOpen,
+		onCancel
+	}: {
+		draft: MythrasCharacter;
+		editable?: boolean;
+		onOpen?: () => void;
+		onCancel?: () => void;
+	} = $props();
 
 	const FATIGUE_STEPS: FatigueLevel[] = [
 		'Fresh',
@@ -76,17 +86,19 @@
 	</div>
 {/snippet}
 
-{#if editable}
-	<EditableSectionCard title="Condition" color="primary">
-		{#snippet view()}
+<div class="condition-bar-wrap">
+	{#if editable}
+		<EditableSectionCard {onOpen} {onCancel} title="Condition" color="primary">
+			{#snippet view()}
+				{@render conditionView()}
+			{/snippet}
+			{#snippet edit()}
+				{@render conditionEdit()}
+			{/snippet}
+		</EditableSectionCard>
+	{:else}
+		<Panel header="Condition" color="primary">
 			{@render conditionView()}
-		{/snippet}
-		{#snippet edit()}
-			{@render conditionEdit()}
-		{/snippet}
-	</EditableSectionCard>
-{:else}
-	<Panel header="Condition" color="primary">
-		{@render conditionView()}
-	</Panel>
-{/if}
+		</Panel>
+	{/if}
+</div>

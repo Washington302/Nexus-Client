@@ -5,7 +5,17 @@
 	import SkillTable from '$lib/components/SkillTable.svelte';
 	import SkillsEditor from '$lib/components/SkillsEditor.svelte';
 
-	let { draft, editable = true }: { draft: MythrasCharacter; editable?: boolean } = $props();
+	let {
+		draft,
+		editable = true,
+		onOpen,
+		onCancel
+	}: {
+		draft: MythrasCharacter;
+		editable?: boolean;
+		onOpen?: () => void;
+		onCancel?: () => void;
+	} = $props();
 
 	let activeTab = $state<'standard' | 'professional' | 'magical'>('standard');
 </script>
@@ -35,7 +45,7 @@
 {/snippet}
 
 {#if editable}
-	<EditableSectionCard title="Skills" color="plain">
+	<EditableSectionCard {onOpen} {onCancel} title="Skills" color="plain">
 		{#snippet view()}
 			{@render skillsView()}
 		{/snippet}

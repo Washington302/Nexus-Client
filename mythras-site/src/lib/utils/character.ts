@@ -29,6 +29,9 @@ export function computeBasePercent(formula: string, chars: Characteristics): num
 /** The seven characteristic abbreviations used in skill formulas, for dropdown editors. */
 export const CHARACTERISTIC_OPTIONS = ['STR', 'CON', 'SIZ', 'DEX', 'INT', 'POW', 'CHA'] as const;
 
+/** The four Mythras cultures, per the corebook's Culture Bonuses table. */
+export const CULTURE_OPTIONS = ['Barbarian', 'Civilised', 'Nomadic', 'Primitive'] as const;
+
 /** Splits a formula string ("STR+DEX" or "INT x2") into its two characteristic tokens. */
 export function parseFormula(formula: string): [string, string] {
 	const doubled = formula.match(/^(\w+)\s*x\s*2$/i);

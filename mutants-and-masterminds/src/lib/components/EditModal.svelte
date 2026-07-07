@@ -3,11 +3,13 @@
 		open = $bindable(false),
 		title = '',
 		onSave,
+		onCancel,
 		children
 	} = $props<{
 		open: boolean;
 		title: string;
 		onSave: () => Promise<void>;
+		onCancel?: () => void;
 		children?: any;
 	}>();
 
@@ -31,11 +33,12 @@
 		if (saving) return;
 		open = false;
 		error = null;
+		onCancel?.();
 	}
 </script>
 
 {#if open}
-	<div class="backdrop" onclick={handleClose} onkeydown={(e) => e.key === 'Escape' && handleClose()} aria-label="Close modal"></div>
+	<div class="backdrop" role="presentation" onclick={handleClose} onkeydown={(e) => e.key === 'Escape' && handleClose()} aria-label="Close modal"></div>
 
 	<div class="dialog" role="dialog" aria-modal="true" tabindex="0" onkeydown={(e) => e.key === 'Escape' && handleClose()}>
 		<div class="header">

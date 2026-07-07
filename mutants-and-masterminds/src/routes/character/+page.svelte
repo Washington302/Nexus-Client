@@ -27,6 +27,16 @@
 	import PowerPointsEditor from '$lib/components/editors/PowerPointsEditor.svelte';
 
 	let draft = $state<MnmCharacter>(null!);
+	// Edit modals bind their inputs directly to `draft`, so changes apply as you type.
+	// Snapshot on open / restore on cancel is what makes the Cancel button actually cancel.
+	let editSnapshot: string | null = null;
+	function beginEdit() {
+		editSnapshot = JSON.stringify(draft);
+	}
+	function cancelEdit() {
+		if (editSnapshot) Object.assign(draft, JSON.parse(editSnapshot));
+		editSnapshot = null;
+	}
 	let saving = $state(false);
 	let saveError = $state<string | null>(null);
 	let saveSuccess = $state(false);
@@ -62,9 +72,13 @@
 		if (autosaveTimer) clearTimeout(autosaveTimer);
 		autosaveDirty = true;
 		autosaveTimer = setTimeout(() => {
-			if (draft && !saving) {
-				saveCharacter();
+			if (!draft) return;
+			if (saving) {
+				// A manual save is in flight; try again shortly instead of dropping the autosave.
+				scheduleAutosave();
+				return;
 			}
+			saveCharacter();
 		}, 15000);
 	}
 
@@ -75,7 +89,11 @@
 
 	$effect(() => {
 		const c = session.activeCharacter;
-		if (c) {
+		// Only rebuild the draft when switching to a different character. Without the id
+		// guard, the post-save Object.assign into session.activeCharacter re-triggers this
+		// effect and wipes any edits made while the save was in flight (including text
+		// being typed in an open edit modal, since autosave fires every 15s).
+		if (c && c.id !== draft?.id) {
 			const d = JSON.parse(JSON.stringify(c));
 			ensureDefaults(d);
 
@@ -443,6 +461,8 @@ function shareCharacter() {
 	navigator.clipboard.writeText(url).then(() => {
 		shareCopied = true;
 		setTimeout(() => shareCopied = false, 2000);
+	}).catch((e) => {
+		saveError = `Couldn't copy the link: ${(e as Error).message}`;
 	});
 }
 
@@ -482,7 +502,7 @@ function shareCharacter() {
 			<IdentityPanel {draft} />
 		</ComicPanel>
 
-		<EditableSectionCard title="Power Points" color="dark">
+		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Power Points" color="dark">
 			{#snippet view()}
 				<div class="pp-display">
 					<div class="pp-ring">
@@ -516,7 +536,7 @@ function shareCharacter() {
 		</ComicPanel>
 	</div>
 
-	<EditableSectionCard title="Abilities" color="blue">
+	<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Abilities" color="blue">
 		{#snippet view()}
 			<div>
 				<div style="margin-bottom: 8px;">
@@ -541,7 +561,7 @@ function shareCharacter() {
 	</EditableSectionCard>
 
 	<div class="panel-grid">
-		<EditableSectionCard title="Defenses" color="blue">
+		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Defenses" color="blue">
 			{#snippet view()}
 				<DefensesDisplay {draft} {getDefenseFinal} {getToughnessFinal} {defOtherMods} {activeDefensePowerMods} {toggleDefensePowerMod} {plCaps} />
 			{/snippet}
@@ -550,7 +570,7 @@ function shareCharacter() {
 			{/snippet}
 		</EditableSectionCard>
 
-		<EditableSectionCard title="Combat" color="red">
+		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Combat" color="red">
 			{#snippet view()}
 				<div>
 					<div style="margin-bottom: 6px; display:flex; align-items:center; gap:12px;">
@@ -636,7 +656,7 @@ function shareCharacter() {
 		{#each priorityOrder as key, i}
 			<div class="section-wrap" class:full={i < 2} class:half={i >= 2}>
 				{#if key === 'skills'}
-				<EditableWrapper title="Skills" isEditable={true} onSave={async () => {}}>
+				<EditableWrapper title="Skills" isEditable={true} onSave={async () => {}} onOpen={beginEdit} onCancel={cancelEdit}>
 					{#snippet children()}
 					<ComicPanel header="★ Skills" color="yellow">
 						<SkillTable skills={draft.skills ?? []} />
@@ -647,7 +667,7 @@ function shareCharacter() {
 					{/snippet}
 				</EditableWrapper>
 				{:else if key === 'advantages'}
-				<EditableWrapper title="Advantages" isEditable={true} onSave={async () => {}}>
+				<EditableWrapper title="Advantages" isEditable={true} onSave={async () => {}} onOpen={beginEdit} onCancel={cancelEdit}>
 					{#snippet children()}
 					<ComicPanel header="★ Advantages" color="dark">
 						{#each draft.advantages ?? [] as adv, i}
@@ -664,7 +684,7 @@ function shareCharacter() {
 					{/snippet}
 				</EditableWrapper>
 				{:else if key === 'equipment'}
-				<EditableWrapper title="Equipment" isEditable={true} onSave={async () => {}}>
+				<EditableWrapper title="Equipment" isEditable={true} onSave={async () => {}} onOpen={beginEdit} onCancel={cancelEdit}>
 					{#snippet children()}
 					<ComicPanel header="★ Equipment" color="blue">
 						<div class="ep-bar">
@@ -718,7 +738,7 @@ function shareCharacter() {
 					{/snippet}
 				</EditableWrapper>
 				{:else if key === 'powers'}
-				<EditableWrapper title="Powers" isEditable={true} onSave={async () => {}}>
+				<EditableWrapper title="Powers" isEditable={true} onSave={async () => {}} onOpen={beginEdit} onCancel={cancelEdit}>
 					{#snippet children()}
 					<ComicPanel header="★ Powers" color="blue">
 						{#each draft.powers ?? [] as power}
@@ -737,7 +757,7 @@ function shareCharacter() {
 
 	<div class="complications-spacer"></div>
 
-	<EditableWrapper title="Complications" isEditable={true} onSave={async () => {}}>
+	<EditableWrapper title="Complications" isEditable={true} onSave={async () => {}} onOpen={beginEdit} onCancel={cancelEdit}>
 		{#snippet children()}
 		<ComicPanel header="★ Notes &amp; Complications" color="yellow">
 			{#each draft.complications ?? [] as comp, i}
