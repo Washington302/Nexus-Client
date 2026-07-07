@@ -8,7 +8,7 @@
 		onOpen,
 		onCancel,
 		children,
-		editForm,
+		editForm
 	} = $props<{
 		isEditable: boolean;
 		title: string;
@@ -32,11 +32,8 @@
 		<div class="click-area">
 			{@render children?.()}
 		</div>
-		<button
-			class="edit-btn"
-			onclick={openEditor}
-			aria-label="Edit {title}"
-		>&#9998;</button>
+		<button class="edit-btn" onclick={openEditor} aria-label="Edit {title}">&#9998;</button
+		>
 	</div>
 {:else}
 	{@render children?.()}
@@ -45,4 +42,3 @@
 <EditModal bind:open={editOpen} {title} {onSave} {onCancel}>
 	{@render editForm?.()}
 </EditModal>
-
