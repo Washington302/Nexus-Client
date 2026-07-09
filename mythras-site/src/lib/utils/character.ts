@@ -1,4 +1,10 @@
-import type { Characteristics, MythrasCharacter, Skill } from '$lib/services/api';
+import type { Characteristics, MythrasCharacter, ResourcePool, Skill } from '$lib/services/api';
+
+/** Coerces a legacy flat-number attribute (pre resource-pool migration) into a ResourcePool. */
+function normalizeResourcePool(value: ResourcePool | number | null | undefined): ResourcePool {
+	if (typeof value === 'number') return { current: value, max: value };
+	return value ?? { current: 0, max: 0 };
+}
 
 const CHAR_KEY_MAP: Record<string, keyof Characteristics> = {
 	STR: 'str',
@@ -128,9 +134,11 @@ export const MAGICAL_SKILLS: SkillDefinition[] = [
 /** Recomputes a skill's total from its formula + allocated points, capping each source at 15. */
 export function recomputeSkill(skill: Skill, chars: Characteristics): void {
 	skill.base = computeBasePercent(skill.formula, chars);
+	// Cultural and career allocation are capped at 15% per skill at character creation;
+	// experience (bonus) improvements accrue during play with no such cap.
 	const cultural = Math.min(15, skill.cultural ?? 0);
 	const career = Math.min(15, skill.career ?? 0);
-	const bonus = Math.min(15, skill.bonus ?? 0);
+	const bonus = skill.bonus ?? 0;
 	skill.total = skill.base + cultural + career + bonus;
 }
 
@@ -259,15 +267,22 @@ export function ensureDefaults(d: MythrasCharacter): void {
 	}
 	if (d.attributes == null) {
 		d.attributes = {
-			actionPoints: 2,
+			actionPoints: { current: 2, max: 2 },
 			damageModifier: '+0',
 			experienceModifier: 0,
 			healingRate: 2,
 			initiativeBonus: 10,
-			luckPoints: 2,
-			magicPoints: 10,
+			luckPoints: { current: 2, max: 2 },
+			magicPoints: { current: 10, max: 10 },
 			movementRate: 6
 		};
+	} else {
+		// Characters saved before the actionPoints/luckPoints/magicPoints resource-pool
+		// migration still come back from the API as flat numbers; coerce them so the
+		// rest of the app can assume the ResourcePool shape everywhere.
+		d.attributes.actionPoints = normalizeResourcePool(d.attributes.actionPoints);
+		d.attributes.luckPoints = normalizeResourcePool(d.attributes.luckPoints);
+		d.attributes.magicPoints = normalizeResourcePool(d.attributes.magicPoints);
 	}
 	if (d.wealth == null) {
 		d.wealth = { silverPieces: 0, incomePerDay: 0, incomePerWeek: 0, incomePerSeason: 0, incomePerYear: 0 };

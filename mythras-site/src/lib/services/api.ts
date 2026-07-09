@@ -77,14 +77,19 @@ export interface Characteristics {
 	cha: number;
 }
 
+export interface ResourcePool {
+	current: number;
+	max: number;
+}
+
 export interface Attributes {
-	actionPoints: number;
+	actionPoints: ResourcePool;
 	damageModifier: string;
 	experienceModifier: number;
 	healingRate: number;
 	initiativeBonus: number;
-	luckPoints: number;
-	magicPoints: number;
+	luckPoints: ResourcePool;
+	magicPoints: ResourcePool;
 	movementRate: number;
 }
 
