@@ -60,6 +60,17 @@
 	>
 </div>
 
+{#if activeSkills().length > 0}
+	<div class="skill-edit-header">
+		<span>Char 1</span>
+		<span>Char 2</span>
+		<span>Cult.</span>
+		<span>Career</span>
+		<span>Exp.</span>
+		<span>Total</span>
+	</div>
+{/if}
+
 {#each activeSkills() as skill, i}
 	{@const [char1, char2] = parseFormula(skill.formula)}
 	<div class="skill-edit-row">
@@ -85,7 +96,7 @@
 				max="15"
 				bind:value={skill.cultural}
 				oninput={() => onPointsChange(skill)}
-				title="Cultural points"
+				aria-label="Cultural points"
 			/>
 			<input
 				class="input-demo input-num"
@@ -94,7 +105,15 @@
 				max="15"
 				bind:value={skill.career}
 				oninput={() => onPointsChange(skill)}
-				title="Career points"
+				aria-label="Career points"
+			/>
+			<input
+				class="input-demo input-num"
+				type="number"
+				min="0"
+				bind:value={skill.bonus}
+				oninput={() => onPointsChange(skill)}
+				aria-label="Experience points"
 			/>
 			<span class="skill-edit-total">{skill.total}%</span>
 		</div>

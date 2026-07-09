@@ -11,6 +11,13 @@
 
 	let { draft, editable = true }: { draft: MythrasCharacter; editable?: boolean } = $props();
 
+	// Click-to-edit: which resource pool's "current" value is currently showing as an input.
+	let editingCurrentPool = $state<'actionPoints' | 'luckPoints' | 'magicPoints' | null>(null);
+	function focusOnMount(node: HTMLInputElement) {
+		node.focus();
+		node.select();
+	}
+
 	// Edit modals bind their inputs directly to `draft`, so changes apply as you type.
 	// Snapshot on open / restore on cancel is what makes the Cancel button actually cancel.
 	let editSnapshot: string | null = null;
@@ -194,9 +201,69 @@
 
 {#snippet attributesView()}
 	<div class="char-list">
-		<div class="char-row"><span class="char-row-label">Action Points</span><span class="char-row-value">{draft.attributes.actionPoints}</span></div>
-		<div class="char-row"><span class="char-row-label">Luck Points</span><span class="char-row-value">{draft.attributes.luckPoints}</span></div>
-		<div class="char-row"><span class="char-row-label">Magic Points</span><span class="char-row-value">{draft.attributes.magicPoints}</span></div>
+		<div class="char-row">
+			<span class="char-row-label">Action Points</span>
+			<span class="char-row-value">
+				{#if editable && editingCurrentPool === 'actionPoints'}
+					<input
+						class="input-demo input-num char-row-current"
+						type="number"
+						bind:value={draft.attributes.actionPoints.current}
+						onblur={() => (editingCurrentPool = null)}
+						use:focusOnMount
+					/>
+				{:else if editable}
+					<button class="char-row-current-btn" onclick={() => (editingCurrentPool = 'actionPoints')}
+						>{draft.attributes.actionPoints.current}</button
+					>
+				{:else}
+					{draft.attributes.actionPoints.current}
+				{/if}
+				/ {draft.attributes.actionPoints.max}
+			</span>
+		</div>
+		<div class="char-row">
+			<span class="char-row-label">Luck Points</span>
+			<span class="char-row-value">
+				{#if editable && editingCurrentPool === 'luckPoints'}
+					<input
+						class="input-demo input-num char-row-current"
+						type="number"
+						bind:value={draft.attributes.luckPoints.current}
+						onblur={() => (editingCurrentPool = null)}
+						use:focusOnMount
+					/>
+				{:else if editable}
+					<button class="char-row-current-btn" onclick={() => (editingCurrentPool = 'luckPoints')}
+						>{draft.attributes.luckPoints.current}</button
+					>
+				{:else}
+					{draft.attributes.luckPoints.current}
+				{/if}
+				/ {draft.attributes.luckPoints.max}
+			</span>
+		</div>
+		<div class="char-row">
+			<span class="char-row-label">Magic Points</span>
+			<span class="char-row-value">
+				{#if editable && editingCurrentPool === 'magicPoints'}
+					<input
+						class="input-demo input-num char-row-current"
+						type="number"
+						bind:value={draft.attributes.magicPoints.current}
+						onblur={() => (editingCurrentPool = null)}
+						use:focusOnMount
+					/>
+				{:else if editable}
+					<button class="char-row-current-btn" onclick={() => (editingCurrentPool = 'magicPoints')}
+						>{draft.attributes.magicPoints.current}</button
+					>
+				{:else}
+					{draft.attributes.magicPoints.current}
+				{/if}
+				/ {draft.attributes.magicPoints.max}
+			</span>
+		</div>
 		<div class="char-row"><span class="char-row-label">Damage Mod</span><span class="char-row-value">{draft.attributes.damageModifier}</span></div>
 		<div class="char-row"><span class="char-row-label">Healing Rate</span><span class="char-row-value">{draft.attributes.healingRate}</span></div>
 		<div class="char-row"><span class="char-row-label">Strike Rank</span><span class="char-row-value">{draft.attributes.initiativeBonus}</span></div>
@@ -243,6 +310,40 @@
 	{#if editable}
 		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Languages" color="plain">
 			{#snippet view()}
+				<div class="list-scroll-4">
+					{#each draft.languages as lang}
+						<div class="list-view-row">
+							<span class="list-view-name">{lang.name}{lang.nativeLanguage ? ' (Native)' : ''}</span>
+							<span class="list-view-value">{lang.percentage}%</span>
+						</div>
+					{:else}
+						<div class="empty-hint">No languages yet.</div>
+					{/each}
+				</div>
+			{/snippet}
+			{#snippet edit()}
+				<div class="list-scroll-4">
+					{#each draft.languages as lang, i}
+						<div class="list-row">
+							<div class="list-row-fields" style="grid-template-columns: 1fr 60px auto;">
+								<input class="input-demo" bind:value={lang.name} placeholder="Language" />
+								<input class="input-demo input-num" type="number" bind:value={lang.percentage} />
+								<label style="display:flex;align-items:center;gap:4px;font-size:12px;">
+									<input type="checkbox" bind:checked={lang.nativeLanguage} /> Native
+								</label>
+							</div>
+							<button class="remove-row-btn" onclick={() => removeLanguage(i)}>&#10005;</button>
+						</div>
+					{:else}
+						<div class="empty-hint">No languages yet.</div>
+					{/each}
+				</div>
+				<button class="add-row-btn" onclick={addLanguage}>+ Add Language</button>
+			{/snippet}
+		</EditableSectionCard>
+	{:else}
+		<Panel header="Languages" color="plain">
+			<div class="list-scroll-4">
 				{#each draft.languages as lang}
 					<div class="list-view-row">
 						<span class="list-view-name">{lang.name}{lang.nativeLanguage ? ' (Native)' : ''}</span>
@@ -251,41 +352,44 @@
 				{:else}
 					<div class="empty-hint">No languages yet.</div>
 				{/each}
-			{/snippet}
-			{#snippet edit()}
-				{#each draft.languages as lang, i}
-					<div class="list-row">
-						<div class="list-row-fields" style="grid-template-columns: 1fr 60px auto;">
-							<input class="input-demo" bind:value={lang.name} placeholder="Language" />
-							<input class="input-demo input-num" type="number" bind:value={lang.percentage} />
-							<label style="display:flex;align-items:center;gap:4px;font-size:12px;">
-								<input type="checkbox" bind:checked={lang.nativeLanguage} /> Native
-							</label>
-						</div>
-						<button class="remove-row-btn" onclick={() => removeLanguage(i)}>&#10005;</button>
-					</div>
-				{:else}
-					<div class="empty-hint">No languages yet.</div>
-				{/each}
-				<button class="add-row-btn" onclick={addLanguage}>+ Add Language</button>
-			{/snippet}
-		</EditableSectionCard>
-	{:else}
-		<Panel header="Languages" color="plain">
-			{#each draft.languages as lang}
-				<div class="list-view-row">
-					<span class="list-view-name">{lang.name}{lang.nativeLanguage ? ' (Native)' : ''}</span>
-					<span class="list-view-value">{lang.percentage}%</span>
-				</div>
-			{:else}
-				<div class="empty-hint">No languages yet.</div>
-			{/each}
+			</div>
 		</Panel>
 	{/if}
 
 	{#if editable}
 		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Passions" color="plain">
 			{#snippet view()}
+				<div class="list-scroll-4">
+					{#each draft.passions as passion}
+						<div class="list-view-row">
+							<span class="list-view-name">{passion.name}</span>
+							<span class="list-view-value">{passion.total}%</span>
+						</div>
+					{:else}
+						<div class="empty-hint">No passions yet.</div>
+					{/each}
+				</div>
+			{/snippet}
+			{#snippet edit()}
+				<div class="list-scroll-4">
+					{#each draft.passions as passion, i}
+						<div class="list-row">
+							<div class="list-row-fields" style="grid-template-columns: 1fr 60px;">
+								<input class="input-demo" bind:value={passion.name} placeholder="Passion" />
+								<input class="input-demo input-num" type="number" bind:value={passion.total} />
+							</div>
+							<button class="remove-row-btn" onclick={() => removePassion(i)}>&#10005;</button>
+						</div>
+					{:else}
+						<div class="empty-hint">No passions yet.</div>
+					{/each}
+				</div>
+				<button class="add-row-btn" onclick={addPassion}>+ Add Passion</button>
+			{/snippet}
+		</EditableSectionCard>
+	{:else}
+		<Panel header="Passions" color="plain">
+			<div class="list-scroll-4">
 				{#each draft.passions as passion}
 					<div class="list-view-row">
 						<span class="list-view-name">{passion.name}</span>
@@ -294,38 +398,45 @@
 				{:else}
 					<div class="empty-hint">No passions yet.</div>
 				{/each}
-			{/snippet}
-			{#snippet edit()}
-				{#each draft.passions as passion, i}
-					<div class="list-row">
-						<div class="list-row-fields" style="grid-template-columns: 1fr 60px;">
-							<input class="input-demo" bind:value={passion.name} placeholder="Passion" />
-							<input class="input-demo input-num" type="number" bind:value={passion.total} />
-						</div>
-						<button class="remove-row-btn" onclick={() => removePassion(i)}>&#10005;</button>
-					</div>
-				{:else}
-					<div class="empty-hint">No passions yet.</div>
-				{/each}
-				<button class="add-row-btn" onclick={addPassion}>+ Add Passion</button>
-			{/snippet}
-		</EditableSectionCard>
-	{:else}
-		<Panel header="Passions" color="plain">
-			{#each draft.passions as passion}
-				<div class="list-view-row">
-					<span class="list-view-name">{passion.name}</span>
-					<span class="list-view-value">{passion.total}%</span>
-				</div>
-			{:else}
-				<div class="empty-hint">No passions yet.</div>
-			{/each}
+			</div>
 		</Panel>
 	{/if}
 
 	{#if editable}
 		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Cults &amp; Devotion" color="teal">
 			{#snippet view()}
+				<div class="list-scroll-4">
+					{#each draft.cults as cult}
+						<div class="list-view-row">
+							<span class="list-view-name">{cult.name}</span>
+							<span class="list-view-value">{cult.devotionalPoolCurrent} / {cult.devotionalPoolMax}</span>
+						</div>
+					{:else}
+						<div class="empty-hint">No cult affiliations yet.</div>
+					{/each}
+				</div>
+			{/snippet}
+			{#snippet edit()}
+				<div class="list-scroll-4">
+					{#each draft.cults as cult, i}
+						<div class="list-row">
+							<div class="list-row-fields" style="grid-template-columns: 1fr 60px 60px;">
+								<input class="input-demo" bind:value={cult.name} placeholder="Cult name" />
+								<input class="input-demo input-num" type="number" bind:value={cult.devotionalPoolCurrent} placeholder="Cur." />
+								<input class="input-demo input-num" type="number" bind:value={cult.devotionalPoolMax} placeholder="Max" />
+							</div>
+							<button class="remove-row-btn" onclick={() => removeCult(i)}>&#10005;</button>
+						</div>
+					{:else}
+						<div class="empty-hint">No cult affiliations yet.</div>
+					{/each}
+				</div>
+				<button class="add-row-btn" onclick={addCult}>+ Add Cult</button>
+			{/snippet}
+		</EditableSectionCard>
+	{:else}
+		<Panel header="Cults &amp; Devotion" color="teal">
+			<div class="list-scroll-4">
 				{#each draft.cults as cult}
 					<div class="list-view-row">
 						<span class="list-view-name">{cult.name}</span>
@@ -334,33 +445,7 @@
 				{:else}
 					<div class="empty-hint">No cult affiliations yet.</div>
 				{/each}
-			{/snippet}
-			{#snippet edit()}
-				{#each draft.cults as cult, i}
-					<div class="list-row">
-						<div class="list-row-fields" style="grid-template-columns: 1fr 60px 60px;">
-							<input class="input-demo" bind:value={cult.name} placeholder="Cult name" />
-							<input class="input-demo input-num" type="number" bind:value={cult.devotionalPoolCurrent} placeholder="Cur." />
-							<input class="input-demo input-num" type="number" bind:value={cult.devotionalPoolMax} placeholder="Max" />
-						</div>
-						<button class="remove-row-btn" onclick={() => removeCult(i)}>&#10005;</button>
-					</div>
-				{:else}
-					<div class="empty-hint">No cult affiliations yet.</div>
-				{/each}
-				<button class="add-row-btn" onclick={addCult}>+ Add Cult</button>
-			{/snippet}
-		</EditableSectionCard>
-	{:else}
-		<Panel header="Cults &amp; Devotion" color="teal">
-			{#each draft.cults as cult}
-				<div class="list-view-row">
-					<span class="list-view-name">{cult.name}</span>
-					<span class="list-view-value">{cult.devotionalPoolCurrent} / {cult.devotionalPoolMax}</span>
-				</div>
-			{:else}
-				<div class="empty-hint">No cult affiliations yet.</div>
-			{/each}
+			</div>
 		</Panel>
 	{/if}
 </div>
