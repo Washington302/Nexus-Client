@@ -80,6 +80,7 @@ export interface Characteristics {
 export interface ResourcePool {
 	current: number;
 	max: number;
+	manualOverride: boolean;
 }
 
 export interface Attributes {
@@ -172,12 +173,22 @@ export interface EquipmentItem {
 	encumbrance: number;
 }
 
+export interface Gift {
+	id: string;
+	name: string;
+	activationType: string;
+	magicPointCost: number;
+	skillRequired: string;
+	effect: string;
+	active: boolean;
+}
+
 export interface Cult {
 	name: string;
 	rank?: string | null;
-	benefits?: string | null;
-	restrictions?: string | null;
-	gifts?: string | null;
+	benefits: string[];
+	restrictions: string[];
+	gifts: Gift[];
 	devotionalPoolCurrent: number;
 	devotionalPoolMax: number;
 }

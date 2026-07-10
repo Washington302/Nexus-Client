@@ -1,9 +1,15 @@
 import type { Characteristics, MythrasCharacter, ResourcePool, Skill } from '$lib/services/api';
 
-/** Coerces a legacy flat-number attribute (pre resource-pool migration) into a ResourcePool. */
+/**
+ * Coerces a legacy flat-number attribute (pre resource-pool migration) into a ResourcePool.
+ * Defaults `manualOverride` to true for anything that didn't already have it set — there's no
+ * way to know whether an old value matches the current formula, so treat it as manually set
+ * rather than letting the next recompute silently overwrite it.
+ */
 function normalizeResourcePool(value: ResourcePool | number | null | undefined): ResourcePool {
-	if (typeof value === 'number') return { current: value, max: value };
-	return value ?? { current: 0, max: 0 };
+	if (typeof value === 'number') return { current: value, max: value, manualOverride: true };
+	if (value == null) return { current: 0, max: 0, manualOverride: true };
+	return { ...value, manualOverride: value.manualOverride ?? true };
 }
 
 const CHAR_KEY_MAP: Record<string, keyof Characteristics> = {
@@ -159,7 +165,10 @@ export function hitLocationMaxHp(
 	con: number,
 	siz: number
 ): number {
-	return HIT_POINT_TABLE[location][bracketIndex(con + siz)];
+	const sum = con + siz;
+	const base = HIT_POINT_TABLE[location][bracketIndex(sum)];
+	const extra = sum > 40 ? Math.ceil((sum - 40) / 5) : 0;
+	return base + extra;
 }
 
 export const DEFAULT_HIT_LOCATIONS: Array<{
@@ -184,31 +193,47 @@ export function computeActionPoints(intelligence: number, dex: number): number {
 	return 3 + Math.ceil((sum - 36) / 12);
 }
 
-const DAMAGE_MODIFIERS = [
+// STR+SIZ -> Damage Modifier. Irregular band widths per the printed rulebook table: 5-wide
+// through 60, then 10-wide from 61 to 130. Must match nexus-core's MythrasFormulaTables exactly
+// (including lowercase "d") since the backend validates this field with exact string equality.
+const DAMAGE_MODIFIER_UPPER_BOUND = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 130];
+const DAMAGE_MODIFIER_VALUE = [
 	'-1d8',
 	'-1d6',
-	'-1D4',
-	'-1D2',
+	'-1d4',
+	'-1d2',
 	'+0',
-	'+1D2',
-	'+1D4',
-	'+1D6',
-	'+1D8',
-	'+1D10',
-	'+1D12',
-	'+2D6'
+	'+1d2',
+	'+1d4',
+	'+1d6',
+	'+1d8',
+	'+1d10',
+	'+1d12',
+	'+2d6',
+	'+1d8+1d6',
+	'+2d8',
+	'+1d10+1d8',
+	'+2d10',
+	'+2d10+1d2',
+	'+2d10+1d4'
 ];
 
 export function computeDamageModifier(str: number, siz: number): string {
 	const sum = str + siz;
-	if (sum > 60) return `+2D6 + ${Math.ceil((sum - 60) / 5)}D2`;
-	return DAMAGE_MODIFIERS[bracketIndex(sum, 11)];
+	for (let i = 0; i < DAMAGE_MODIFIER_UPPER_BOUND.length; i++) {
+		if (sum <= DAMAGE_MODIFIER_UPPER_BOUND[i]) return DAMAGE_MODIFIER_VALUE[i];
+	}
+	// Beyond the book's printed range (130) it only says "Continue Progression" with no
+	// further values — approximate by extending the last visible +1d2-per-10 step.
+	const stepsBeyond = Math.ceil((sum - 130) / 10);
+	const last = DAMAGE_MODIFIER_VALUE[DAMAGE_MODIFIER_VALUE.length - 1];
+	return `${last} (+${stepsBeyond} approx. step${stepsBeyond === 1 ? '' : 's'})`;
 }
 
-export function computeExperienceModifier(con: number): number {
-	if (con <= 6) return -1;
-	if (con <= 12) return 0;
-	return 1 + Math.floor((con - 13) / 6);
+export function computeExperienceModifier(cha: number): number {
+	if (cha <= 6) return -1;
+	if (cha <= 12) return 0;
+	return 1 + Math.floor((cha - 13) / 6);
 }
 
 export function computeHealingRate(con: number): number {
@@ -223,9 +248,14 @@ export function computeLuckPoints(pow: number): number {
 	return 3 + Math.floor((pow - 13) / 6);
 }
 
-/** Strike Rank determines turn order in combat: FLOOR((DEX+INT)/2) per the Mythras corebook. */
+/** Strike Rank determines turn order in combat: ROUND((DEX+INT)/2) per the Mythras corebook. */
 export function computeStrikeRank(intelligence: number, dex: number): number {
-	return Math.floor((intelligence + dex) / 2);
+	return Math.round((intelligence + dex) / 2);
+}
+
+/** Magic Points max is a straight POW readout, per the Mythras corebook. */
+export function computeMagicPointsMax(pow: number): number {
+	return pow;
 }
 
 /** ENC a character can carry before incurring a skill penalty: STR+CON. Display-only —
@@ -240,18 +270,26 @@ export function computeEncPenalty(current: number, max: number): number {
 }
 
 /**
- * Recomputes the attributes that have no "spend during play" concept (always a pure
- * function of characteristics). actionPoints/luckPoints/magicPoints are intentionally
- * NOT touched here — the backend only stores a single current value for each (no
- * separate max), so overwriting them on every edit would erase manual adjustments
- * made while playing (e.g. spending a luck point).
+ * Recomputes the attributes that are always a pure function of characteristics. Action/Luck/
+ * Magic Points max are included unless that pool's `manualOverride` is set — the backend now
+ * validates max against the same formulas on every save, skipping only overridden pools, so
+ * the frontend has to keep max in sync the same way rather than treating it as untouched.
  */
 export function recomputeDerivedAttributes(draft: MythrasCharacter): void {
 	const c = draft.characteristics;
 	draft.attributes.damageModifier = computeDamageModifier(c.str, c.siz);
-	draft.attributes.experienceModifier = computeExperienceModifier(c.con);
+	draft.attributes.experienceModifier = computeExperienceModifier(c.cha);
 	draft.attributes.healingRate = computeHealingRate(c.con);
 	draft.attributes.initiativeBonus = computeStrikeRank(c.intelligence, c.dex);
+	if (!draft.attributes.actionPoints.manualOverride) {
+		draft.attributes.actionPoints.max = computeActionPoints(c.intelligence, c.dex);
+	}
+	if (!draft.attributes.luckPoints.manualOverride) {
+		draft.attributes.luckPoints.max = computeLuckPoints(c.pow);
+	}
+	if (!draft.attributes.magicPoints.manualOverride) {
+		draft.attributes.magicPoints.max = computeMagicPointsMax(c.pow);
+	}
 	for (const loc of draft.hitLocations ?? []) {
 		const def = DEFAULT_HIT_LOCATIONS.find((d) => d.name === loc.name);
 		if (def) loc.maxHp = hitLocationMaxHp(def.location, c.con, c.siz);
@@ -267,13 +305,13 @@ export function ensureDefaults(d: MythrasCharacter): void {
 	}
 	if (d.attributes == null) {
 		d.attributes = {
-			actionPoints: { current: 2, max: 2 },
+			actionPoints: { current: 2, max: 2, manualOverride: false },
 			damageModifier: '+0',
 			experienceModifier: 0,
 			healingRate: 2,
 			initiativeBonus: 10,
-			luckPoints: { current: 2, max: 2 },
-			magicPoints: { current: 10, max: 10 },
+			luckPoints: { current: 2, max: 2, manualOverride: false },
+			magicPoints: { current: 10, max: 10, manualOverride: false },
 			movementRate: 6
 		};
 	} else {
