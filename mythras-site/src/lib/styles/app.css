@@ -1317,6 +1317,7 @@ select.input-demo {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px;
+	margin-bottom: var(--stack-sm);
 }
 .fatigue-step {
 	font-family: var(--font-body);
@@ -1337,58 +1338,33 @@ select.input-demo {
 	border-color: var(--primary);
 }
 
-/* ── Hit location HP row ── */
-.hitloc-row {
-	display: grid;
-	grid-template-columns: 50px 1fr 70px 60px;
-	gap: 8px;
-	align-items: center;
-	padding: 6px 0;
-	border-bottom: 1px solid var(--outline-variant);
-}
-.hitloc-row:last-child {
-	border-bottom: none;
-}
-.hitloc-roll {
-	font-family: var(--font-body);
-	font-size: 12px;
-	color: var(--on-surface-variant);
-}
-.hitloc-name {
-	font-family: var(--font-body);
-	font-size: 13px;
-	color: var(--on-surface);
-}
-.hitloc-hp {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	font-family: var(--font-display);
-	font-size: 13px;
-	font-weight: 700;
-	color: var(--primary);
-}
-
 /* ── ConditionBar (top full-width strip) ── */
 .condition-bar-wrap {
 	margin-bottom: var(--stack-md);
 }
-.condition-strip {
+.hitloc-grid {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
-	margin-bottom: var(--stack-sm);
+	margin-bottom: var(--stack-md);
 }
-.condition-chip {
+.hitloc-card {
 	display: flex;
-	align-items: center;
-	gap: 6px;
+	flex-direction: column;
+	gap: 4px;
 	border: 1px solid var(--outline-variant);
-	border-radius: var(--radius-full);
-	padding: 4px 12px;
+	border-radius: var(--radius-sm);
+	padding: 6px 10px;
 	background: var(--surface-container-low);
+	min-width: 110px;
 }
-.condition-chip-label {
+.hitloc-card-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 8px;
+}
+.hitloc-name {
 	font-family: var(--font-body);
 	font-size: 11px;
 	font-weight: 700;
@@ -1396,17 +1372,47 @@ select.input-demo {
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 }
-.condition-chip-value {
+.hitloc-roll {
+	font-family: var(--font-body);
+	font-size: 10px;
+	color: var(--on-surface-variant);
+	opacity: 0.7;
+}
+.hitloc-card-stats {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.hitloc-hp {
+	display: flex;
+	align-items: center;
+	gap: 2px;
 	font-family: var(--font-display);
-	font-size: 13px;
+	font-size: 15px;
 	font-weight: 700;
 	color: var(--primary);
 }
-.condition-row {
+.hitloc-ap {
 	display: flex;
 	align-items: center;
-	flex-wrap: wrap;
-	gap: var(--stack-md);
+	gap: 4px;
+	font-family: var(--font-body);
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--on-surface-variant);
+}
+.hitloc-armor-input {
+	font-size: 11px !important;
+	padding: 3px 6px !important;
+}
+.hitloc-armor-label {
+	font-family: var(--font-body);
+	font-size: 11px;
+	color: var(--on-surface-variant);
+	font-style: italic;
+}
+.condition-wounds-row {
+	margin-top: var(--stack-sm);
 }
 .condition-wounds {
 	font-family: var(--font-body);

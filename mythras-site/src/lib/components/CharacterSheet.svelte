@@ -8,15 +8,12 @@
 	import CharacteristicsEditor from '$lib/components/CharacteristicsEditor.svelte';
 	import AttributesEditor from '$lib/components/AttributesEditor.svelte';
 	import { computeEncMax, computeEncPenalty } from '$lib/utils/character';
+	import { focusOnMount } from '$lib/utils/actions';
 
 	let { draft, editable = true }: { draft: MythrasCharacter; editable?: boolean } = $props();
 
 	// Click-to-edit: which resource pool's "current" value is currently showing as an input.
 	let editingCurrentPool = $state<'actionPoints' | 'luckPoints' | 'magicPoints' | null>(null);
-	function focusOnMount(node: HTMLInputElement) {
-		node.focus();
-		node.select();
-	}
 
 	// Edit modals bind their inputs directly to `draft`, so changes apply as you type.
 	// Snapshot on open / restore on cancel is what makes the Cancel button actually cancel.
@@ -55,9 +52,9 @@
 		draft.cults.push({
 			name: '',
 			rank: '',
-			benefits: '',
-			restrictions: '',
-			gifts: '',
+			benefits: [],
+			restrictions: [],
+			gifts: [],
 			devotionalPoolCurrent: 0,
 			devotionalPoolMax: 0
 		});
@@ -275,7 +272,7 @@
 	</div>
 {/snippet}
 
-<ConditionBar {draft} {editable} onOpen={beginEdit} onCancel={cancelEdit} />
+<ConditionBar {draft} {editable} />
 
 <div class="front-top-grid">
 	{#if editable}
