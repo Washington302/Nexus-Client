@@ -10,7 +10,10 @@
 </div>
 {#each skills as skill}
 	<div class="skill-row">
-		<div class="skill-name">{skill.name} <span style="opacity:0.6;">({skill.formula})</span></div>
+		<div class="skill-name">
+			{skill.name}{skill.specialization ? ` (${skill.specialization})` : ''}
+			<span style="opacity:0.6;">({skill.formula})</span>
+		</div>
 		<div class="skill-cell">{skill.total}%</div>
 	</div>
 {:else}

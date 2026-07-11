@@ -173,6 +173,28 @@ export interface EquipmentItem {
 	encumbrance: number;
 }
 
+/** Matches the backend's GiftEffectTag enum toString values. */
+export type GiftEffectTag =
+	| 'HIT_POINTS_FORMULA_EXTRA_CHARACTERISTIC'
+	| 'DAMAGE_MODIFIER_FORMULA_EXTRA_CHARACTERISTIC'
+	| 'HEALING_RATE_MULTIPLIER'
+	| 'ACTION_POINTS_FLAT_BONUS'
+	| 'MAGIC_POINTS_FLAT_BONUS'
+	| 'LUCK_POINTS_FLAT_BONUS'
+	| 'MOVEMENT_RATE_FLAT_BONUS'
+	| 'EXPERIENCE_MODIFIER_FLAT_BONUS'
+	| 'INITIATIVE_FLAT_BONUS'
+	| 'SKILL_FLAT_BONUS'
+	| 'DICE_FORMULA_OVERRIDE';
+
+export interface GiftEffect {
+	tag: GiftEffectTag;
+	scope: string;
+	formulaValue: string;
+	multiplier: number;
+	flatValue: number;
+}
+
 export interface Gift {
 	id: string;
 	name: string;
@@ -181,6 +203,7 @@ export interface Gift {
 	skillRequired: string;
 	effect: string;
 	active: boolean;
+	effects: GiftEffect[];
 }
 
 export interface Cult {

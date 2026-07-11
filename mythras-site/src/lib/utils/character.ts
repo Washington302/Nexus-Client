@@ -1,4 +1,13 @@
-import type { Characteristics, MythrasCharacter, ResourcePool, Skill } from '$lib/services/api';
+import type {
+	Characteristics,
+	CombatStyle,
+	GiftEffect,
+	GiftEffectTag,
+	MythrasCharacter,
+	Passion,
+	ResourcePool,
+	Skill
+} from '$lib/services/api';
 
 /**
  * Coerces a legacy flat-number attribute (pre resource-pool migration) into a ResourcePool.
@@ -43,6 +52,107 @@ export const CHARACTERISTIC_OPTIONS = ['STR', 'CON', 'SIZ', 'DEX', 'INT', 'POW',
 
 /** The four Mythras cultures, per the corebook's Culture Bonuses table. */
 export const CULTURE_OPTIONS = ['Barbarian', 'Civilised', 'Nomadic', 'Primitive'] as const;
+
+/** Matches nexus-core's GiftEffectTag enum, in dropdown order. */
+export const GIFT_EFFECT_TAG_OPTIONS: GiftEffectTag[] = [
+	'HIT_POINTS_FORMULA_EXTRA_CHARACTERISTIC',
+	'DAMAGE_MODIFIER_FORMULA_EXTRA_CHARACTERISTIC',
+	'HEALING_RATE_MULTIPLIER',
+	'ACTION_POINTS_FLAT_BONUS',
+	'MAGIC_POINTS_FLAT_BONUS',
+	'LUCK_POINTS_FLAT_BONUS',
+	'MOVEMENT_RATE_FLAT_BONUS',
+	'EXPERIENCE_MODIFIER_FLAT_BONUS',
+	'INITIATIVE_FLAT_BONUS',
+	'SKILL_FLAT_BONUS',
+	'DICE_FORMULA_OVERRIDE'
+];
+
+export const GIFT_EFFECT_TAG_LABELS: Record<GiftEffectTag, string> = {
+	HIT_POINTS_FORMULA_EXTRA_CHARACTERISTIC: 'Hit Points: extra characteristic',
+	DAMAGE_MODIFIER_FORMULA_EXTRA_CHARACTERISTIC: 'Damage Modifier: extra characteristic',
+	HEALING_RATE_MULTIPLIER: 'Healing Rate multiplier',
+	ACTION_POINTS_FLAT_BONUS: 'Action Points bonus',
+	MAGIC_POINTS_FLAT_BONUS: 'Magic Points bonus',
+	LUCK_POINTS_FLAT_BONUS: 'Luck Points bonus',
+	MOVEMENT_RATE_FLAT_BONUS: 'Movement Rate bonus',
+	EXPERIENCE_MODIFIER_FLAT_BONUS: 'Experience Modifier bonus',
+	INITIATIVE_FLAT_BONUS: 'Initiative bonus',
+	SKILL_FLAT_BONUS: 'Skill bonus',
+	DICE_FORMULA_OVERRIDE: 'Dice formula override'
+};
+
+/** Which GiftEffect fields are mechanically meaningful for each tag — used to hide fields that
+ * would otherwise look actionable but are silently ignored by the backend's GiftEffectService. */
+export const GIFT_EFFECT_TAG_FIELDS: Record<
+	GiftEffectTag,
+	Array<'scope' | 'formulaValue' | 'multiplier' | 'flatValue'>
+> = {
+	HIT_POINTS_FORMULA_EXTRA_CHARACTERISTIC: ['scope'],
+	DAMAGE_MODIFIER_FORMULA_EXTRA_CHARACTERISTIC: ['scope'],
+	HEALING_RATE_MULTIPLIER: ['multiplier'],
+	ACTION_POINTS_FLAT_BONUS: ['flatValue'],
+	MAGIC_POINTS_FLAT_BONUS: ['flatValue'],
+	LUCK_POINTS_FLAT_BONUS: ['flatValue'],
+	MOVEMENT_RATE_FLAT_BONUS: ['flatValue'],
+	EXPERIENCE_MODIFIER_FLAT_BONUS: ['flatValue'],
+	INITIATIVE_FLAT_BONUS: ['flatValue'],
+	SKILL_FLAT_BONUS: ['scope', 'flatValue'],
+	DICE_FORMULA_OVERRIDE: ['scope', 'formulaValue']
+};
+
+/** Comma-separated text <-> string[] for compact list fields (traits, benefits, etc.). */
+export function listToText(list: string[]): string {
+	return (list ?? []).join(', ');
+}
+export function textToList(text: string): string[] {
+	return text
+		.split(',')
+		.map((s) => s.trim())
+		.filter(Boolean);
+}
+
+/** Ports nexus-core's GiftEffectService#resolveCharacteristic verbatim. */
+function resolveCharacteristic(chars: Characteristics, name: string | null | undefined): number {
+	if (!name) return 0;
+	switch (name.trim().toLowerCase()) {
+		case 'str':
+			return chars.str;
+		case 'con':
+			return chars.con;
+		case 'siz':
+			return chars.siz;
+		case 'dex':
+			return chars.dex;
+		case 'int':
+		case 'intelligence':
+			return chars.intelligence;
+		case 'pow':
+			return chars.pow;
+		case 'cha':
+			return chars.cha;
+		default:
+			return 0;
+	}
+}
+
+/** Flattens cults -> active gifts -> effects, filtered by tag. Mirrors GiftEffectService#getActiveEffectsByTag. */
+function getActiveGiftEffects(draft: MythrasCharacter, tag: GiftEffectTag): GiftEffect[] {
+	const matches: GiftEffect[] = [];
+	for (const cult of draft.cults ?? []) {
+		for (const gift of cult.gifts ?? []) {
+			if (!gift.active || !gift.effects) continue;
+			for (const effect of gift.effects) {
+				if (effect.tag === tag) matches.push(effect);
+			}
+		}
+	}
+	return matches;
+}
+
+function sumFlatValues(effects: GiftEffect[]): number {
+	return effects.reduce((sum, e) => sum + (e.flatValue ?? 0), 0);
+}
 
 /** Splits a formula string ("STR+DEX" or "INT x2") into its two characteristic tokens. */
 export function parseFormula(formula: string): [string, string] {
@@ -146,6 +256,22 @@ export function recomputeSkill(skill: Skill, chars: Characteristics): void {
 	const career = Math.min(15, skill.career ?? 0);
 	const bonus = skill.bonus ?? 0;
 	skill.total = skill.base + cultural + career + bonus;
+}
+
+/** Passions have no formula — `base` is a plain player-entered starting value, not derived. */
+export function recomputePassion(passion: Passion): void {
+	const cultural = Math.min(15, passion.cultural ?? 0);
+	const career = Math.min(15, passion.career ?? 0);
+	const bonus = passion.bonus ?? 0;
+	passion.total = (passion.base ?? 0) + cultural + career + bonus;
+}
+
+/** Combat Styles have no formula either — `base` is a plain player-entered starting value. */
+export function recomputeCombatStyle(style: CombatStyle): void {
+	const cultural = Math.min(15, style.cultural ?? 0);
+	const career = Math.min(15, style.career ?? 0);
+	const bonus = style.bonus ?? 0;
+	style.total = (style.base ?? 0) + cultural + career + bonus;
 }
 
 function bracketIndex(sum: number, maxIndex = 7): number {
@@ -270,33 +396,65 @@ export function computeEncPenalty(current: number, max: number): number {
 }
 
 /**
- * Recomputes the attributes that are always a pure function of characteristics. Action/Luck/
- * Magic Points max are included unless that pool's `manualOverride` is set — the backend now
- * validates max against the same formulas on every save, skipping only overridden pools, so
- * the frontend has to keep max in sync the same way rather than treating it as untouched.
+ * Recomputes the attributes that are always a pure function of characteristics + active Gift
+ * effects (mirrors nexus-core's GiftEffectService#computeExpected). Action/Luck/Magic Points max
+ * are included unless that pool's `manualOverride` is set — the backend validates max against
+ * the same formulas on every save, skipping only overridden pools, so the frontend has to keep
+ * max in sync the same way rather than treating it as untouched.
+ *
+ * SKILL_FLAT_BONUS and DICE_FORMULA_OVERRIDE are intentionally NOT summed here — the backend's
+ * GiftEffectService never references either tag, so wiring them in would invent validation the
+ * backend doesn't do and risk double-counting against a skill's own `bonus` field.
  */
 export function recomputeDerivedAttributes(draft: MythrasCharacter): void {
 	const c = draft.characteristics;
-	draft.attributes.damageModifier = computeDamageModifier(c.str, c.siz);
-	draft.attributes.experienceModifier = computeExperienceModifier(c.cha);
-	draft.attributes.healingRate = computeHealingRate(c.con);
-	draft.attributes.initiativeBonus = computeStrikeRank(c.intelligence, c.dex);
+
+	const extraForHp = getActiveGiftEffects(draft, 'HIT_POINTS_FORMULA_EXTRA_CHARACTERISTIC').reduce(
+		(sum, e) => sum + resolveCharacteristic(c, e.scope),
+		0
+	);
+	const extraForDamageModifier = getActiveGiftEffects(
+		draft,
+		'DAMAGE_MODIFIER_FORMULA_EXTRA_CHARACTERISTIC'
+	).reduce((sum, e) => sum + resolveCharacteristic(c, e.scope), 0);
+	const healingMultiplier = getActiveGiftEffects(draft, 'HEALING_RATE_MULTIPLIER').reduce(
+		(product, e) => product * (e.multiplier ?? 1),
+		1
+	);
+
+	draft.attributes.damageModifier = computeDamageModifier(c.str + extraForDamageModifier, c.siz);
+	draft.attributes.healingRate = Math.round(computeHealingRate(c.con) * healingMultiplier);
+	draft.attributes.experienceModifier =
+		computeExperienceModifier(c.cha) +
+		sumFlatValues(getActiveGiftEffects(draft, 'EXPERIENCE_MODIFIER_FLAT_BONUS'));
+	draft.attributes.initiativeBonus =
+		computeStrikeRank(c.intelligence, c.dex) +
+		sumFlatValues(getActiveGiftEffects(draft, 'INITIATIVE_FLAT_BONUS'));
+	draft.attributes.movementRate =
+		6 + sumFlatValues(getActiveGiftEffects(draft, 'MOVEMENT_RATE_FLAT_BONUS'));
+
 	if (!draft.attributes.actionPoints.manualOverride) {
-		draft.attributes.actionPoints.max = computeActionPoints(c.intelligence, c.dex);
+		draft.attributes.actionPoints.max =
+			computeActionPoints(c.intelligence, c.dex) +
+			sumFlatValues(getActiveGiftEffects(draft, 'ACTION_POINTS_FLAT_BONUS'));
 	}
 	if (!draft.attributes.luckPoints.manualOverride) {
-		draft.attributes.luckPoints.max = computeLuckPoints(c.pow);
+		draft.attributes.luckPoints.max =
+			computeLuckPoints(c.pow) + sumFlatValues(getActiveGiftEffects(draft, 'LUCK_POINTS_FLAT_BONUS'));
 	}
 	if (!draft.attributes.magicPoints.manualOverride) {
-		draft.attributes.magicPoints.max = computeMagicPointsMax(c.pow);
+		draft.attributes.magicPoints.max =
+			computeMagicPointsMax(c.pow) + sumFlatValues(getActiveGiftEffects(draft, 'MAGIC_POINTS_FLAT_BONUS'));
 	}
 	for (const loc of draft.hitLocations ?? []) {
 		const def = DEFAULT_HIT_LOCATIONS.find((d) => d.name === loc.name);
-		if (def) loc.maxHp = hitLocationMaxHp(def.location, c.con, c.siz);
+		if (def) loc.maxHp = hitLocationMaxHp(def.location, c.con + extraForHp, c.siz);
 	}
 	for (const skill of draft.standardSkills ?? []) recomputeSkill(skill, c);
 	for (const skill of draft.professionalSkills ?? []) recomputeSkill(skill, c);
 	for (const skill of draft.magicSkills ?? []) recomputeSkill(skill, c);
+	for (const passion of draft.passions ?? []) recomputePassion(passion);
+	for (const style of draft.combatStyles ?? []) recomputeCombatStyle(style);
 }
 
 export function ensureDefaults(d: MythrasCharacter): void {
@@ -337,6 +495,14 @@ export function ensureDefaults(d: MythrasCharacter): void {
 	d.rangedWeapons ??= [];
 	d.equipment ??= [];
 	d.cults ??= [];
+	for (const cult of d.cults) {
+		cult.benefits ??= [];
+		cult.restrictions ??= [];
+		cult.gifts ??= [];
+		for (const gift of cult.gifts) {
+			gift.effects ??= [];
+		}
+	}
 	if (d.hitLocations == null || d.hitLocations.length === 0) {
 		d.hitLocations = DEFAULT_HIT_LOCATIONS.map((loc) => ({
 			d20Range: loc.d20Range,
