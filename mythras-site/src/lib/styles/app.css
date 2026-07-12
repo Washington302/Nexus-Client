@@ -1303,6 +1303,22 @@ select.input-demo {
 .list-scroll-4::-webkit-scrollbar {
 	display: none;
 }
+.list-scroll-cults {
+	max-height: 420px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding-right: 4px;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+.list-scroll-cults::-webkit-scrollbar {
+	display: none;
+}
+.nested-card {
+	border-left: 2px solid var(--outline-variant);
+	padding-left: 10px;
+	margin: 8px 0 8px 4px;
+}
 .list-view-name {
 	color: var(--on-surface);
 }

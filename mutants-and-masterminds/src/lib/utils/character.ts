@@ -346,11 +346,15 @@ export function initNormalizePower(p: any) {
 
 export function normalizePowerForSave(p: any) {
 	if (typeof p.array !== 'boolean') p.array = false;
+	if (typeof p.isArray !== 'boolean') p.isArray = p.array;
 	for (const e of (p.effects || [])) {
 		if (typeof e.primary !== 'boolean') e.primary = false;
+		if (typeof e.isPrimary !== 'boolean') e.isPrimary = e.primary;
 		if (typeof e.summon !== 'boolean') e.summon = false;
+		if (typeof e.isSummon !== 'boolean') e.isSummon = e.summon;
 		for (const m of (e.modifiers || [])) {
 			if (typeof m.flat !== 'boolean') m.flat = false;
+			if (typeof m.isFlat !== 'boolean') m.isFlat = m.flat;
 		}
 		if (e.summonExtension?.minionStatBlock?.powers) {
 			for (const mp of e.summonExtension.minionStatBlock.powers) normalizePowerForSave(mp);
@@ -361,9 +365,12 @@ export function normalizePowerForSave(p: any) {
 		if (typeof a.costPerRank !== 'number') a.costPerRank = 0;
 		for (const e of (a.effects || [])) {
 			if (typeof e.primary !== 'boolean') e.primary = false;
+			if (typeof e.isPrimary !== 'boolean') e.isPrimary = e.primary;
 			if (typeof e.summon !== 'boolean') e.summon = false;
+			if (typeof e.isSummon !== 'boolean') e.isSummon = e.summon;
 			for (const m of (e.modifiers || [])) {
 				if (typeof m.flat !== 'boolean') m.flat = false;
+				if (typeof m.isFlat !== 'boolean') m.isFlat = m.flat;
 			}
 			if (e.summonExtension?.minionStatBlock?.powers) {
 				for (const mp of e.summonExtension.minionStatBlock.powers) normalizePowerForSave(mp);

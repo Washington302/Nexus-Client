@@ -75,7 +75,10 @@
 	{@const [char1, char2] = parseFormula(skill.formula)}
 	<div class="skill-edit-row">
 		<div class="skill-edit-row-top">
-			<input class="input-demo" bind:value={skill.name} placeholder="Skill name" />
+			<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+				<input class="input-demo" bind:value={skill.name} placeholder="Skill name" />
+				<input class="input-demo" bind:value={skill.specialization} placeholder="Specialization" />
+			</div>
 			<button class="remove-row-btn" onclick={() => removeSkill(i)}>&#10005;</button>
 		</div>
 		<div class="skill-edit-row-bottom">

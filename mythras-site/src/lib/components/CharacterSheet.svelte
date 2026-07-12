@@ -7,7 +7,8 @@
 	import IdentityPanel from '$lib/components/IdentityPanel.svelte';
 	import CharacteristicsEditor from '$lib/components/CharacteristicsEditor.svelte';
 	import AttributesEditor from '$lib/components/AttributesEditor.svelte';
-	import { computeEncMax, computeEncPenalty } from '$lib/utils/character';
+	import CultsEditor from '$lib/components/CultsEditor.svelte';
+	import { computeEncMax, computeEncPenalty, listToText, textToList } from '$lib/utils/character';
 	import { focusOnMount } from '$lib/utils/actions';
 
 	let { draft, editable = true }: { draft: MythrasCharacter; editable?: boolean } = $props();
@@ -47,20 +48,6 @@
 	}
 	function removePassion(index: number) {
 		draft.passions = draft.passions.filter((_, i) => i !== index);
-	}
-	function addCult() {
-		draft.cults.push({
-			name: '',
-			rank: '',
-			benefits: [],
-			restrictions: [],
-			gifts: [],
-			devotionalPoolCurrent: 0,
-			devotionalPoolMax: 0
-		});
-	}
-	function removeCult(index: number) {
-		draft.cults = draft.cults.filter((_, i) => i !== index);
 	}
 	function addEquipment() {
 		draft.equipment.push({ name: '', quantity: 1, encumbrance: 0 });
@@ -109,19 +96,18 @@
 	function removeRangedWeapon(index: number) {
 		draft.rangedWeapons = draft.rangedWeapons.filter((_, i) => i !== index);
 	}
-
-	function listToText(list: string[]): string {
-		return (list ?? []).join(', ');
-	}
-	function textToList(text: string): string[] {
-		return text
-			.split(',')
-			.map((s) => s.trim())
-			.filter(Boolean);
-	}
 </script>
 
 {#snippet identityView()}
+	{#if draft.portraitUrl}
+		<div class="field-group">
+			<img
+				src={draft.portraitUrl}
+				alt="Portrait"
+				style="width:80px;height:80px;object-fit:cover;border-radius:var(--radius-sm);"
+			/>
+		</div>
+	{/if}
 	<div class="field-group">
 		<div class="field-hdr">Name</div>
 		<div style="font-family:var(--font-display);font-size:18px;font-weight:700;">{draft.name || '—'}</div>
@@ -176,12 +162,28 @@
 			<div>{draft.socialClass || '—'}</div>
 		</div>
 	</div>
+	{#if draft.frame}
+		<div class="field-group">
+			<div class="field-hdr">Frame</div>
+			<div>{draft.frame}</div>
+		</div>
+	{/if}
 	{#if draft.description}
 		<div class="field-group">
 			<div class="field-hdr">Description</div>
 			<div>{draft.description}</div>
 		</div>
 	{/if}
+	{#if draft.backgroundNotes}
+		<div class="field-group">
+			<div class="field-hdr">Background</div>
+			<div style="white-space:pre-wrap;">{draft.backgroundNotes}</div>
+		</div>
+	{/if}
+	<div class="field-group">
+		<div class="field-hdr">Sharing</div>
+		<div>{draft.public ? 'Public' : 'Private'}</div>
+	</div>
 {/snippet}
 
 {#snippet characteristicsView()}
@@ -269,6 +271,7 @@
 			<span class="char-row-value">{draft.attributes.experienceModifier >= 0 ? '+' + draft.attributes.experienceModifier : draft.attributes.experienceModifier}</span>
 		</div>
 		<div class="char-row"><span class="char-row-label">Movement</span><span class="char-row-value">{draft.attributes.movementRate}m</span></div>
+		<div class="char-row"><span class="char-row-label">Exp. Rolls</span><span class="char-row-value">{draft.experienceRolls}</span></div>
 	</div>
 {/snippet}
 
@@ -296,7 +299,7 @@
 	{#if editable}
 		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Attributes" color="gold">
 			{#snippet view()}{@render attributesView()}{/snippet}
-			{#snippet edit()}<AttributesEditor attributes={draft.attributes} characteristics={draft.characteristics} />{/snippet}
+			{#snippet edit()}<AttributesEditor attributes={draft.attributes} characteristics={draft.characteristics} {draft} />{/snippet}
 		</EditableSectionCard>
 	{:else}
 		<Panel header="Attributes" color="gold">{@render attributesView()}</Panel>
@@ -371,9 +374,13 @@
 				<div class="list-scroll-4">
 					{#each draft.passions as passion, i}
 						<div class="list-row">
-							<div class="list-row-fields" style="grid-template-columns: 1fr 60px;">
+							<div class="list-row-fields" style="grid-template-columns: 1fr 50px 50px 50px 50px 44px;">
 								<input class="input-demo" bind:value={passion.name} placeholder="Passion" />
-								<input class="input-demo input-num" type="number" bind:value={passion.total} />
+								<input class="input-demo input-num" type="number" bind:value={passion.base} placeholder="Base" />
+								<input class="input-demo input-num" type="number" bind:value={passion.cultural} placeholder="Cult." />
+								<input class="input-demo input-num" type="number" bind:value={passion.career} placeholder="Career" />
+								<input class="input-demo input-num" type="number" bind:value={passion.bonus} placeholder="Exp." />
+								<span class="skill-edit-total">{passion.total}%</span>
 							</div>
 							<button class="remove-row-btn" onclick={() => removePassion(i)}>&#10005;</button>
 						</div>
@@ -405,7 +412,11 @@
 				<div class="list-scroll-4">
 					{#each draft.cults as cult}
 						<div class="list-view-row">
-							<span class="list-view-name">{cult.name}</span>
+							<span class="list-view-name"
+								>{cult.name}{cult.rank ? ` (${cult.rank})` : ''}
+								<span style="opacity:0.6;">— {cult.gifts.filter((g) => g.active).length} active gift(s)</span
+								></span
+							>
 							<span class="list-view-value">{cult.devotionalPoolCurrent} / {cult.devotionalPoolMax}</span>
 						</div>
 					{:else}
@@ -414,21 +425,7 @@
 				</div>
 			{/snippet}
 			{#snippet edit()}
-				<div class="list-scroll-4">
-					{#each draft.cults as cult, i}
-						<div class="list-row">
-							<div class="list-row-fields" style="grid-template-columns: 1fr 60px 60px;">
-								<input class="input-demo" bind:value={cult.name} placeholder="Cult name" />
-								<input class="input-demo input-num" type="number" bind:value={cult.devotionalPoolCurrent} placeholder="Cur." />
-								<input class="input-demo input-num" type="number" bind:value={cult.devotionalPoolMax} placeholder="Max" />
-							</div>
-							<button class="remove-row-btn" onclick={() => removeCult(i)}>&#10005;</button>
-						</div>
-					{:else}
-						<div class="empty-hint">No cult affiliations yet.</div>
-					{/each}
-				</div>
-				<button class="add-row-btn" onclick={addCult}>+ Add Cult</button>
+				<CultsEditor {draft} />
 			{/snippet}
 		</EditableSectionCard>
 	{:else}
@@ -436,7 +433,11 @@
 			<div class="list-scroll-4">
 				{#each draft.cults as cult}
 					<div class="list-view-row">
-						<span class="list-view-name">{cult.name}</span>
+						<span class="list-view-name"
+							>{cult.name}{cult.rank ? ` (${cult.rank})` : ''}
+							<span style="opacity:0.6;">— {cult.gifts.filter((g) => g.active).length} active gift(s)</span
+							></span
+						>
 						<span class="list-view-value">{cult.devotionalPoolCurrent} / {cult.devotionalPoolMax}</span>
 					</div>
 				{:else}
@@ -535,6 +536,56 @@
 		{/if}
 
 		{#if editable}
+			<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Wealth" color="plain">
+				{#snippet view()}
+					<div class="char-list">
+						<div class="char-row"><span class="char-row-label">Silver Pieces</span><span class="char-row-value">{draft.wealth.silverPieces}</span></div>
+						<div class="char-row"><span class="char-row-label">Income / Day</span><span class="char-row-value">{draft.wealth.incomePerDay}</span></div>
+						<div class="char-row"><span class="char-row-label">Income / Week</span><span class="char-row-value">{draft.wealth.incomePerWeek}</span></div>
+						<div class="char-row"><span class="char-row-label">Income / Season</span><span class="char-row-value">{draft.wealth.incomePerSeason}</span></div>
+						<div class="char-row"><span class="char-row-label">Income / Year</span><span class="char-row-value">{draft.wealth.incomePerYear}</span></div>
+					</div>
+				{/snippet}
+				{#snippet edit()}
+					<div class="field-group">
+						<div class="field-hdr">Silver Pieces</div>
+						<input class="input-demo input-num" type="number" bind:value={draft.wealth.silverPieces} />
+					</div>
+					<div class="grid-2">
+						<div class="field-group">
+							<div class="field-hdr">Income / Day</div>
+							<input class="input-demo input-num" type="number" bind:value={draft.wealth.incomePerDay} />
+						</div>
+						<div class="field-group">
+							<div class="field-hdr">Income / Week</div>
+							<input class="input-demo input-num" type="number" bind:value={draft.wealth.incomePerWeek} />
+						</div>
+					</div>
+					<div class="grid-2">
+						<div class="field-group">
+							<div class="field-hdr">Income / Season</div>
+							<input class="input-demo input-num" type="number" bind:value={draft.wealth.incomePerSeason} />
+						</div>
+						<div class="field-group">
+							<div class="field-hdr">Income / Year</div>
+							<input class="input-demo input-num" type="number" bind:value={draft.wealth.incomePerYear} />
+						</div>
+					</div>
+				{/snippet}
+			</EditableSectionCard>
+		{:else}
+			<Panel header="Wealth" color="plain">
+				<div class="char-list">
+					<div class="char-row"><span class="char-row-label">Silver Pieces</span><span class="char-row-value">{draft.wealth.silverPieces}</span></div>
+					<div class="char-row"><span class="char-row-label">Income / Day</span><span class="char-row-value">{draft.wealth.incomePerDay}</span></div>
+					<div class="char-row"><span class="char-row-label">Income / Week</span><span class="char-row-value">{draft.wealth.incomePerWeek}</span></div>
+					<div class="char-row"><span class="char-row-label">Income / Season</span><span class="char-row-value">{draft.wealth.incomePerSeason}</span></div>
+					<div class="char-row"><span class="char-row-label">Income / Year</span><span class="char-row-value">{draft.wealth.incomePerYear}</span></div>
+				</div>
+			</Panel>
+		{/if}
+
+		{#if editable}
 			<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Combat Styles" color="plain">
 				{#snippet view()}
 					{#each draft.combatStyles as style}
@@ -548,13 +599,21 @@
 				{/snippet}
 				{#snippet edit()}
 					{#each draft.combatStyles as style, i}
-						<div class="list-row">
-							<div class="list-row-fields" style="grid-template-columns: 1fr 1fr 60px;">
-								<input class="input-demo" bind:value={style.name} placeholder="Style name" />
-								<input class="input-demo" bind:value={style.weapons} placeholder="Weapons used" />
-								<input class="input-demo input-num" type="number" bind:value={style.total} />
+						<div class="nested-card">
+							<div class="list-row">
+								<div class="list-row-fields" style="grid-template-columns: 1fr 1fr;">
+									<input class="input-demo" bind:value={style.name} placeholder="Style name" />
+									<input class="input-demo" bind:value={style.weapons} placeholder="Weapons used" />
+								</div>
+								<button class="remove-row-btn" onclick={() => removeCombatStyle(i)}>&#10005;</button>
 							</div>
-							<button class="remove-row-btn" onclick={() => removeCombatStyle(i)}>&#10005;</button>
+							<div class="list-row-fields" style="grid-template-columns: 50px 50px 50px 50px 44px;">
+								<input class="input-demo input-num" type="number" bind:value={style.base} placeholder="Base" />
+								<input class="input-demo input-num" type="number" bind:value={style.cultural} placeholder="Cult." />
+								<input class="input-demo input-num" type="number" bind:value={style.career} placeholder="Career" />
+								<input class="input-demo input-num" type="number" bind:value={style.bonus} placeholder="Exp." />
+								<span class="skill-edit-total">{style.total}%</span>
+							</div>
 						</div>
 					{:else}
 						<div class="empty-hint">No combat styles yet.</div>
@@ -580,7 +639,10 @@
 				{#snippet view()}
 					{#each draft.meleeWeapons as weapon}
 						<div class="list-view-row">
-							<span class="list-view-name">{weapon.name} <span style="opacity:0.6;">({weapon.size}, {weapon.reach})</span></span>
+							<span class="list-view-name"
+								>{weapon.name} <span style="opacity:0.6;">({weapon.size}, {weapon.reach}, AP {weapon.armorPoints}, HP {weapon.hitPoints})</span
+								></span
+							>
 							<span class="list-view-value">{weapon.damage}</span>
 						</div>
 					{:else}
@@ -589,21 +651,36 @@
 				{/snippet}
 				{#snippet edit()}
 					{#each draft.meleeWeapons as weapon, i}
-						<div class="list-row">
-							<div class="list-row-fields" style="grid-template-columns: 1.5fr 1fr 60px 60px 1fr auto;">
-								<input class="input-demo" bind:value={weapon.name} placeholder="Weapon" />
-								<input class="input-demo" bind:value={weapon.damage} placeholder="Damage" />
-								<input class="input-demo" bind:value={weapon.size} placeholder="Size" />
-								<input class="input-demo" bind:value={weapon.reach} placeholder="Reach" />
-								<input
-									class="input-demo"
-									value={listToText(weapon.traits)}
-									oninput={(e) => (weapon.traits = textToList(e.currentTarget.value))}
-									placeholder="Traits (comma separated)"
-								/>
-								<input class="input-demo input-num" type="number" bind:value={weapon.encumbrance} placeholder="ENC" />
+						<div class="nested-card">
+							<div class="list-row">
+								<div class="list-row-fields" style="grid-template-columns: 1.5fr 1fr 60px 60px;">
+									<input class="input-demo" bind:value={weapon.name} placeholder="Weapon" />
+									<input class="input-demo" bind:value={weapon.damage} placeholder="Damage" />
+									<input class="input-demo" bind:value={weapon.size} placeholder="Size" />
+									<input class="input-demo" bind:value={weapon.reach} placeholder="Reach" />
+								</div>
+								<button class="remove-row-btn" onclick={() => removeMeleeWeapon(i)}>&#10005;</button>
 							</div>
-							<button class="remove-row-btn" onclick={() => removeMeleeWeapon(i)}>&#10005;</button>
+							<div class="list-row">
+								<div class="list-row-fields" style="grid-template-columns: 60px 60px 60px;">
+									<input class="input-demo input-num" type="number" bind:value={weapon.armorPoints} placeholder="AP" />
+									<input class="input-demo input-num" type="number" bind:value={weapon.hitPoints} placeholder="HP" />
+									<input class="input-demo input-num" type="number" bind:value={weapon.encumbrance} placeholder="ENC" />
+								</div>
+							</div>
+							<input
+								class="input-demo"
+								value={listToText(weapon.traits)}
+								oninput={(e) => (weapon.traits = textToList(e.currentTarget.value))}
+								placeholder="Traits (comma separated)"
+							/>
+							<input
+								class="input-demo"
+								style="margin-top:6px;"
+								value={listToText(weapon.combatEffects)}
+								oninput={(e) => (weapon.combatEffects = textToList(e.currentTarget.value))}
+								placeholder="Combat effects (comma separated)"
+							/>
 						</div>
 					{:else}
 						<div class="empty-hint">No melee weapons yet.</div>
@@ -615,7 +692,10 @@
 			<Panel header="Melee Weapons &amp; Shields" color="plain">
 				{#each draft.meleeWeapons as weapon}
 					<div class="list-view-row">
-						<span class="list-view-name">{weapon.name} <span style="opacity:0.6;">({weapon.size}, {weapon.reach})</span></span>
+						<span class="list-view-name"
+							>{weapon.name} <span style="opacity:0.6;">({weapon.size}, {weapon.reach}, AP {weapon.armorPoints}, HP {weapon.hitPoints})</span
+							></span
+						>
 						<span class="list-view-value">{weapon.damage}</span>
 					</div>
 				{:else}
@@ -629,7 +709,11 @@
 				{#snippet view()}
 					{#each draft.rangedWeapons as weapon}
 						<div class="list-view-row">
-							<span class="list-view-name">{weapon.name}</span>
+							<span class="list-view-name"
+								>{weapon.name}
+								<span style="opacity:0.6;">(S {weapon.shortRange}/M {weapon.mediumRange}/L {weapon.longRange})</span
+								></span
+							>
 							<span class="list-view-value">{weapon.damage}</span>
 						</div>
 					{:else}
@@ -638,15 +722,39 @@
 				{/snippet}
 				{#snippet edit()}
 					{#each draft.rangedWeapons as weapon, i}
-						<div class="list-row">
-							<div class="list-row-fields" style="grid-template-columns: 1.5fr 1fr 1fr 60px 60px;">
-								<input class="input-demo" bind:value={weapon.name} placeholder="Weapon" />
-								<input class="input-demo" bind:value={weapon.damage} placeholder="Damage" />
-								<input class="input-demo" bind:value={weapon.force} placeholder="Force" />
-								<input class="input-demo input-num" type="number" bind:value={weapon.load} placeholder="Load" />
-								<input class="input-demo input-num" type="number" bind:value={weapon.encumbrance} placeholder="ENC" />
+						<div class="nested-card">
+							<div class="list-row">
+								<div class="list-row-fields" style="grid-template-columns: 1.5fr 1fr 1fr;">
+									<input class="input-demo" bind:value={weapon.name} placeholder="Weapon" />
+									<input class="input-demo" bind:value={weapon.damage} placeholder="Damage" />
+									<input class="input-demo" bind:value={weapon.force} placeholder="Force" />
+								</div>
+								<button class="remove-row-btn" onclick={() => removeRangedWeapon(i)}>&#10005;</button>
 							</div>
-							<button class="remove-row-btn" onclick={() => removeRangedWeapon(i)}>&#10005;</button>
+							<div class="list-row">
+								<div class="list-row-fields" style="grid-template-columns: 50px 50px 50px 50px 60px;">
+									<input class="input-demo input-num" type="number" bind:value={weapon.shortRange} placeholder="S" />
+									<input class="input-demo input-num" type="number" bind:value={weapon.mediumRange} placeholder="M" />
+									<input class="input-demo input-num" type="number" bind:value={weapon.longRange} placeholder="L" />
+									<input class="input-demo input-num" type="number" bind:value={weapon.load} placeholder="Load" />
+									<input class="input-demo input-num" type="number" bind:value={weapon.encumbrance} placeholder="ENC" />
+								</div>
+							</div>
+							<div class="list-row">
+								<div class="list-row-fields" style="grid-template-columns: 60px 60px auto;">
+									<input class="input-demo input-num" type="number" bind:value={weapon.armorPoints} placeholder="AP" />
+									<input class="input-demo input-num" type="number" bind:value={weapon.hitPoints} placeholder="HP" />
+									<label style="display:flex;align-items:center;gap:4px;font-size:12px;">
+										<input type="checkbox" bind:checked={weapon.damageModifierApplies} /> Dmg Mod Applies
+									</label>
+								</div>
+							</div>
+							<input
+								class="input-demo"
+								value={listToText(weapon.combatEffects)}
+								oninput={(e) => (weapon.combatEffects = textToList(e.currentTarget.value))}
+								placeholder="Combat effects (comma separated)"
+							/>
 						</div>
 					{:else}
 						<div class="empty-hint">No ranged weapons yet.</div>
@@ -658,7 +766,11 @@
 			<Panel header="Ranged Weapons" color="plain">
 				{#each draft.rangedWeapons as weapon}
 					<div class="list-view-row">
-						<span class="list-view-name">{weapon.name}</span>
+						<span class="list-view-name"
+							>{weapon.name}
+							<span style="opacity:0.6;">(S {weapon.shortRange}/M {weapon.mediumRange}/L {weapon.longRange})</span
+							></span
+						>
 						<span class="list-view-value">{weapon.damage}</span>
 					</div>
 				{:else}

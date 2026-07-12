@@ -65,8 +65,29 @@
 	</div>
 </div>
 <div class="field-group">
+	<div class="field-hdr">Frame</div>
+	<input class="input-demo" bind:value={draft.frame} placeholder="e.g. Slim, Average, Heavy" />
+</div>
+<div class="field-group">
 	<div class="field-hdr">Description</div>
 	<input class="input-demo" bind:value={draft.description} />
+</div>
+<div class="field-group">
+	<div class="field-hdr">Background Notes</div>
+	<textarea
+		class="input-demo"
+		style="min-height:80px;resize:vertical;"
+		bind:value={draft.backgroundNotes}
+		placeholder="History, family, motivations..."
+	></textarea>
+</div>
+<div class="field-group">
+	<div class="field-hdr">Portrait Image URL</div>
+	<input class="input-demo" bind:value={draft.portraitUrl} placeholder="https://..." />
+</div>
+<div class="field-group">
+	<div class="field-hdr">Campaign ID</div>
+	<input class="input-demo" bind:value={draft.campaignId} placeholder="Campaign ID (paste from campaign settings)" />
 </div>
 <div class="field-group">
 	<label style="display:flex;align-items:center;gap:6px;font-size:13px;">
