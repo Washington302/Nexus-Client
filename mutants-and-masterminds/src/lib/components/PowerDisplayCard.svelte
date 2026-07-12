@@ -1,5 +1,6 @@
 <script lang="ts">
 	import PillBadge from './PillBadge.svelte';
+	import ModifierBadge from './ModifierBadge.svelte';
 	import { perRankCostLabel } from '$lib/utils/character';
 
 	let { power }: { power: any } = $props();
@@ -37,7 +38,7 @@
 						{#if effect.modifiers?.length}
 							<div class="modifier-line">
 								{#each effect.modifiers as mod}
-									<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.flat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
+									<ModifierBadge modifier={mod} />
 								{/each}
 							</div>
 						{/if}
@@ -59,7 +60,7 @@
 									{#if effect.modifiers?.length}
 										<div class="modifier-line">
 											{#each effect.modifiers as mod}
-												<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.flat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
+												<ModifierBadge modifier={mod} />
 											{/each}
 										</div>
 									{/if}
@@ -82,7 +83,7 @@
 				{#if effect.modifiers?.length}
 					<div class="modifier-line">
 						{#each effect.modifiers as mod}
-							<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.flat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
+							<ModifierBadge modifier={mod} />
 						{/each}
 					</div>
 				{/if}
@@ -134,7 +135,7 @@
 							{#if effect.modifiers?.length}
 								<div class="modifier-line">
 									{#each effect.modifiers as mod}
-										<span class="mod-badge" class:extra={mod.type === 'EXTRA'} class:flaw={mod.type === 'FLAW'}>{mod.name}{mod.flat ? '' : (mod.type === 'FLAW' ? ' (-' + mod.costModifier + ')' : ' (+' + mod.costModifier + ')')}</span>
+										<ModifierBadge modifier={mod} />
 									{/each}
 								</div>
 							{/if}
