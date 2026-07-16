@@ -219,6 +219,9 @@ export interface Power {
 	description: string;
 	descriptors: string[];
 	array: boolean;
+	arrayName?: string;
+	activeSlotName?: string;
+	activeSlotDescription?: string;
 	maxPpPool: number;
 	effects: PowerEffect[];
 	alternateEffects: AlternateEffect[];
@@ -285,6 +288,7 @@ export interface MnmCharacter {
 	campaignId?: string;
 	gameSystem?: string;
 	name: string;
+	realName: string;
 	powerLevel: number;
 	identity: IdentityType;
 	gender: string;

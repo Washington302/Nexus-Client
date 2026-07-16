@@ -1028,6 +1028,14 @@ select.input-demo {
 	display: block;
 }
 
+.field-hint {
+	font-family: var(--font-body);
+	font-size: 11px;
+	color: var(--on-surface-variant);
+	margin-top: 4px;
+	display: block;
+}
+
 /* ── Characters list ── */
 .list-header {
 	width: 100%;

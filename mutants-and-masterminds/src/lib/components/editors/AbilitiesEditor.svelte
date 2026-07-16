@@ -46,7 +46,7 @@
 <div class="editor-grid">
 	{#each abiKeys as f}
 		<div class="field-row">
-			<label class="field-label">{f.label}</label>
+			<label class="field-label ability-label">{f.label}</label>
 			{#if abilities[f.absentKey]}
 				<span class="final-val absent-dash">—</span>
 			{:else}
@@ -64,3 +64,10 @@
 	{/each}
 </div>
 
+<style>
+	.ability-label {
+		width: 90px;
+		flex-shrink: 0;
+		margin-bottom: 0;
+	}
+</style>

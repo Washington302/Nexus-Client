@@ -497,44 +497,44 @@ function shareCharacter() {
 		★ The tactical interface — built for heroes who need data <em>fast</em>. ★
 	</div>
 
-	<div class="panel-grid-3">
+	<div class="panel-grid">
 		<ComicPanel header="★ Identity" color="blue">
 			<IdentityPanel {draft} />
 		</ComicPanel>
-
-		<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Power Points" color="dark">
-			{#snippet view()}
-				<div class="pp-display">
-					<div class="pp-ring">
-						<div class="pp-ring-inner">
-							<div class="pp-num">{draft.totalAllowed ?? 0}</div>
-							<div class="pp-lbl">Total PP</div>
-						</div>
-					</div>
-					<div class="pp-ring used">
-						<div class="pp-ring-inner">
-							<div class="pp-num" style="color:var(--danger);">{draft.totalSpent ?? 0}</div>
-							<div class="pp-lbl">Spent PP</div>
-						</div>
-					</div>
-				</div>
-				<hr class="divider" />
-				<div class="pp-bar-wrap">
-					<div class="pp-bar-bg">
-						<div class="pp-bar-fill" style="width: {draft.totalAllowed ? (draft.totalSpent / draft.totalAllowed) * 100 : 0}%;"></div>
-					</div>
-					<div class="pp-bar-text">{draft.totalAllowed - draft.totalSpent} PP Remaining</div>
-				</div>
-			{/snippet}
-			{#snippet edit()}
-				<PowerPointsEditor draft={draft} />
-			{/snippet}
-		</EditableSectionCard>
 
 		<ComicPanel header="★ Conditions" color="red">
 			<ConditionsPanel {activeConditions} {toggleCondition} onReset={() => { activeConditions = new Set(); resetManeuvers(); resetCombatState(); }} />
 		</ComicPanel>
 	</div>
+
+	<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Power Points" color="dark">
+		{#snippet view()}
+			<div class="pp-display">
+				<div class="pp-ring">
+					<div class="pp-ring-inner">
+						<div class="pp-num">{draft.totalAllowed ?? 0}</div>
+						<div class="pp-lbl">Total PP</div>
+					</div>
+				</div>
+				<div class="pp-ring used">
+					<div class="pp-ring-inner">
+						<div class="pp-num" style="color:var(--danger);">{draft.totalSpent ?? 0}</div>
+						<div class="pp-lbl">Spent PP</div>
+					</div>
+				</div>
+			</div>
+			<hr class="divider" />
+			<div class="pp-bar-wrap">
+				<div class="pp-bar-bg">
+					<div class="pp-bar-fill" style="width: {draft.totalAllowed ? (draft.totalSpent / draft.totalAllowed) * 100 : 0}%;"></div>
+				</div>
+				<div class="pp-bar-text">{draft.totalAllowed - draft.totalSpent} PP Remaining</div>
+			</div>
+		{/snippet}
+		{#snippet edit()}
+			<PowerPointsEditor draft={draft} />
+		{/snippet}
+	</EditableSectionCard>
 
 	<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Abilities" color="blue">
 		{#snippet view()}
@@ -632,15 +632,17 @@ function shareCharacter() {
 							<span class="maneuver-hdr">Select Combat Attacks</span>
 							<div class="atk-select-list">
 								{#each selectableEffects as se}
-									<label class="atk-select-item" class:active={se.effect._showInCombat}>
-										<input type="checkbox" checked={se.effect._showInCombat} onchange={() => se.effect._showInCombat = !se.effect._showInCombat} />
-										<span class="atk-select-name">{se.powerName} — {se.effectName}</span>
-									</label>
-									<div class="atk-bonus-row">
-										<span class="atk-bonus-label">Atk+</span>
-										<input type="number" class="atk-bonus-input" bind:value={se.effect.manualAtkBonus} placeholder="0" />
-										<span class="atk-bonus-label">Rank+</span>
-										<input type="number" class="atk-bonus-input" bind:value={se.effect.manualRankBonus} placeholder="0" />
+									<div class="atk-select-row">
+										<label class="atk-select-item" class:active={se.effect._showInCombat}>
+											<input type="checkbox" checked={se.effect._showInCombat} onchange={() => se.effect._showInCombat = !se.effect._showInCombat} />
+											<span class="atk-select-name">{se.powerName} — {se.effectName}</span>
+										</label>
+										<div class="atk-bonus-row">
+											<span class="atk-bonus-label">Atk+</span>
+											<input type="number" class="atk-bonus-input" bind:value={se.effect.manualAtkBonus} placeholder="0" />
+											<span class="atk-bonus-label">Rank+</span>
+											<input type="number" class="atk-bonus-input" bind:value={se.effect.manualRankBonus} placeholder="0" />
+										</div>
 									</div>
 								{/each}
 							</div>

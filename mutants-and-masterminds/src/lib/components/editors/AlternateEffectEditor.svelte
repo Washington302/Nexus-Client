@@ -12,6 +12,10 @@
 		depth?: number;
 	} = $props();
 
+	let collapsed = $state(true);
+
+	function toggleCollapse() { collapsed = !collapsed; }
+
 	function addEffect() {
 		alt.effects.push(createDefaultEffect(alt.effects.length === 0));
 	}
@@ -23,6 +27,9 @@
 
 <div class="alt-card">
 	<div class="alt-header-row">
+		<button class="collapse-btn" onclick={toggleCollapse} type="button" title={collapsed ? 'Expand' : 'Collapse'}>
+			<span class="collapse-icon">{collapsed ? '▶' : '▼'}</span>
+		</button>
 		<input type="text" class="alt-name-input" bind:value={alt.name} placeholder="Alternate name" />
 		<select class="type-select" bind:value={alt.arrayType}>
 			<option value="ALTERNATE">Alternate</option>
@@ -30,6 +37,7 @@
 		</select>
 		<button class="remove-btn sm" onclick={onRemove}>&#10005;</button>
 	</div>
+	{#if !collapsed}
 	<textarea class="alt-desc-input" bind:value={alt.description} placeholder="Description"></textarea>
 	<div class="descriptors-row">
 		<input type="text" class="desc-input" value={alt.descriptors?.[0] ?? ''}
@@ -48,5 +56,6 @@
 		{/each}
 		<button class="add-effect-btn" onclick={addEffect}>+ Effect</button>
 	</div>
+	{/if}
 </div>
 

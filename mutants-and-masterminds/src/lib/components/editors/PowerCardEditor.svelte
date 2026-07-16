@@ -15,7 +15,7 @@
 		depth?: number;
 	} = $props();
 
-	let collapsed = $state(false);
+	let collapsed = $state(true);
 
 	function toggleCollapse() { collapsed = !collapsed; }
 
@@ -76,8 +76,18 @@
 			<DeviceSectionEditor {power} {depth} />
 		{/if}
 
+		{#if power.array}
+			<div class="descriptors-row">
+				<input type="text" class="desc-input" bind:value={power.arrayName} placeholder="Array name (optional, defaults to power name)" />
+			</div>
+			<div class="descriptors-row">
+				<input type="text" class="desc-input" bind:value={power.activeSlotName} placeholder="Active slot label (optional, defaults to listing every effect)" />
+			</div>
+			<textarea class="desc-textarea" bind:value={power.activeSlotDescription} placeholder="Active slot description (optional)" rows="2"></textarea>
+		{/if}
+
 		<div class="effects-section">
-			<div class="effects-head">{power.array ? 'Active Slot Effects' : 'Effects'}</div>
+			<div class="effects-head">{power.array ? (power.activeSlotName || 'Active Slot Effects') : 'Effects'}</div>
 			{#if !power._deviceType}
 				{#each power.effects as effect, ei}
 					<EffectEditor effect={effect} onRemove={() => removeEffect(ei)} {depth} />

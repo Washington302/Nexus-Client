@@ -43,6 +43,16 @@
 	function removeAlternateEffect(ep: any, ai: number) {
 		ep.alternateEffects.splice(ai, 1);
 	}
+
+	let collapsedEmbedded = $state<Record<string, boolean>>({});
+
+	function isCollapsed(ep: any): boolean {
+		return collapsedEmbedded[ep.powerId] ?? true;
+	}
+
+	function toggleCollapse(ep: any) {
+		collapsedEmbedded[ep.powerId] = !isCollapsed(ep);
+	}
 </script>
 
 <div class="device-section">
@@ -63,6 +73,9 @@
 		{#each power._embeddedPowers as ep, ei}
 			<div class="embedded-card">
 				<div class="embedded-header">
+					<button class="collapse-btn" onclick={() => toggleCollapse(ep)} type="button" title={isCollapsed(ep) ? 'Expand' : 'Collapse'}>
+						<span class="collapse-icon">{isCollapsed(ep) ? '▶' : '▼'}</span>
+					</button>
 					<input type="text" class="power-name-input" bind:value={ep.name} placeholder="Embedded power name" />
 					<label class="array-toggle">
 						<input type="checkbox" checked={ep.array} onchange={() => toggleArray(ep)} />
@@ -70,9 +83,20 @@
 					</label>
 					<button class="remove-btn sm" onclick={() => removeEmbeddedPower(ei)}>&#10005;</button>
 				</div>
+				{#if !isCollapsed(ep)}
 				<div class="embedded-effects">
+					<textarea class="desc-textarea" bind:value={ep.description} placeholder="What does this power do?" rows="2"></textarea>
+					{#if ep.array}
+						<div class="descriptors-row">
+							<input type="text" class="desc-input" bind:value={ep.arrayName} placeholder="Array name (optional, defaults to power name)" />
+						</div>
+						<div class="descriptors-row">
+							<input type="text" class="desc-input" bind:value={ep.activeSlotName} placeholder="Active slot label (optional, defaults to listing every effect)" />
+						</div>
+						<textarea class="desc-textarea" bind:value={ep.activeSlotDescription} placeholder="Active slot description (optional)" rows="2"></textarea>
+					{/if}
 					<div class="effects-section">
-						<div class="effects-head">{ep.array ? 'Active Slot Effects' : 'Effects'}</div>
+						<div class="effects-head">{ep.array ? (ep.activeSlotName || 'Active Slot Effects') : 'Effects'}</div>
 						{#each ep.effects as effect, eei}
 							<EffectEditor effect={effect} onRemove={() => removeEffect(ep.effects, eei)} {depth} />
 						{/each}
@@ -88,6 +112,7 @@
 						</div>
 					{/if}
 				</div>
+				{/if}
 			</div>
 		{/each}
 		<button class="add-embedded-btn" onclick={addEmbeddedPower}>+ Embedded Power</button>

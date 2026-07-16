@@ -15,6 +15,10 @@
 		depth?: number;
 	} = $props();
 
+	let collapsed = $state(true);
+
+	function toggleCollapse() { collapsed = !collapsed; }
+
 	function addModifier() {
 		effect.modifiers.push(createDefaultModifier());
 	}
@@ -26,22 +30,27 @@
 
 <div class="effect-card">
 	<div class="effect-row">
+		<button class="collapse-btn" onclick={toggleCollapse} type="button" title={collapsed ? 'Expand' : 'Collapse'}>
+			<span class="collapse-icon">{collapsed ? '▶' : '▼'}</span>
+		</button>
 		<input type="text" class="effect-input" bind:value={effect.effectName} placeholder="Effect name" />
 		<button class="combat-toggle" class:active={effect._showInCombat} onclick={() => effect._showInCombat = !effect._showInCombat} title="Show in combat">&#x2694;</button>
 		<button class="combat-toggle" class:active={effect._isThrownWeapon} onclick={() => effect._isThrownWeapon = !effect._isThrownWeapon} title="Strength-based damage">&#x1F4AA;</button>
-		<select class="resist-select"
-			value={effect.resistance ?? ''}
-			onchange={(e) => { const v = (e.target as HTMLSelectElement).value; effect.resistance = v || undefined; }}>
-			<option value="">Resist (auto)</option>
-			<option value="TOUGHNESS">Toughness</option>
-			<option value="DODGE">Dodge</option>
-			<option value="FORTITUDE">Fortitude</option>
-			<option value="WILL">Will</option>
-			<option value="WILL_FORTITUDE">Will / Fortitude</option>
-			<option value="STRENGTH_DODGE">Strength / Dodge</option>
-			<option value="PARRY">Parry</option>
-			<option value="NONE">None</option>
-		</select>
+		{#if !collapsed}
+			<select class="resist-select"
+				value={effect.resistance ?? ''}
+				onchange={(e) => { const v = (e.target as HTMLSelectElement).value; effect.resistance = v || undefined; }}>
+				<option value="">Resist (auto)</option>
+				<option value="TOUGHNESS">Toughness</option>
+				<option value="DODGE">Dodge</option>
+				<option value="FORTITUDE">Fortitude</option>
+				<option value="WILL">Will</option>
+				<option value="WILL_FORTITUDE">Will / Fortitude</option>
+				<option value="STRENGTH_DODGE">Strength / Dodge</option>
+				<option value="PARRY">Parry</option>
+				<option value="NONE">None</option>
+			</select>
+		{/if}
 		<div class="effect-meta">
 			<label class="sm-label">Rank</label>
 			<input type="number" class="sm-input sm-input-sm" bind:value={effect.rank} min="0" />
@@ -50,6 +59,7 @@
 		</div>
 		<button class="remove-btn sm" onclick={onRemove}>&#10005;</button>
 	</div>
+	{#if !collapsed}
 	<div class="modifiers-section">
 		<div class="mods-head">Modifiers</div>
 		{#each effect.modifiers as mod, mi}
@@ -88,6 +98,7 @@
 				{/if}
 			</div>
 		{/if}
+	{/if}
 	{/if}
 </div>
 

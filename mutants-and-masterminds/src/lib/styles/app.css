@@ -643,13 +643,14 @@ select.input-demo { appearance:none; cursor:pointer; }
 /* ── AttackActionCard ── */
 .atk-card {
 	display:grid;
-	grid-template-columns:1fr auto auto auto;
+	grid-template-columns:1fr 44px 72px 44px;
 	gap:4px 10px; padding:5px 8px;
 	border:1px solid var(--border); margin-bottom:4px;
-	background:var(--panel-bg); align-items:center;
+	background:var(--panel-bg); align-items:start;
 }
 .atk-card.ranged { border-left:4px solid var(--primary); }
-.atk-name { font-family:'Bangers',cursive; font-size:14px; color:var(--ink); }
+.atk-name { font-family:'Bangers',cursive; font-size:14px; color:var(--ink); min-width:0; overflow-wrap:break-word; }
+.atk-bonus, .atk-resist, .atk-dc { padding-top:2px; }
 .atk-bonus { font-family:'Oswald',sans-serif; font-size:13px; font-weight:700; color:var(--ink); text-align:right; }
 .atk-resist { font-family:'Oswald',sans-serif; font-size:12px; color:var(--accent); text-align:center; }
 .atk-dc { font-family:'Bangers',cursive; font-size:14px; color:var(--primary); text-align:center; }
@@ -676,11 +677,9 @@ select.input-demo { appearance:none; cursor:pointer; }
 	color:var(--accent); text-transform:uppercase; letter-spacing:0.06em; margin:3px 0;
 }
 .array-slot.active-slot {
-	color:var(--primary);
-	margin:4px 0 2px;
-	padding:2px 6px;
-	background:color-mix(in srgb,var(--primary)12%,transparent);
-	border-left:3px solid var(--primary);
+	font-family:'Nunito',sans-serif; font-size:14px; font-weight:700;
+	color:var(--ink); text-transform:none; letter-spacing:normal;
+	margin:4px 0 2px; padding:0; background:none; border-left:none;
 }
 .effect-line { font-family:'Nunito',sans-serif; font-size:14px; color:var(--ink); margin:4px 0 2px 8px; padding-left:8px; border-left:2px solid var(--border); }
 .effect-name { font-family:'Nunito',sans-serif; font-size:15px; font-weight:700; color:var(--ink); }
@@ -800,12 +799,12 @@ select.input-demo { appearance:none; cursor:pointer; }
 .advantage-row { display:flex; align-items:flex-start; gap:8px; padding:4px 0; border-bottom:1.5px dashed var(--border); }
 .advantage-row:last-child { border-bottom:none; }
 .advantage-bullet { font-family:'Bangers',cursive; font-size:16px; color:var(--danger); }
-.advantage-name { font-family:'Nunito',sans-serif; font-size:14px; font-weight:600; color:var(--ink); flex-shrink:0; }
+.advantage-name { font-family:'Nunito',sans-serif; font-size:14px; font-weight:600; color:var(--ink); flex-shrink:0; width:140px; box-sizing:border-box; }
 .advantage-desc { font-family:'Nunito',sans-serif; font-size:15px; color:var(--accent); margin-left:4px; }
 
 .complication-row { display:flex; gap:10px; padding:6px 0; border-bottom:1.5px dashed var(--border); align-items:flex-start; }
 .complication-row:last-child { border-bottom:none; }
-.comp-badge { flex-shrink:0; font-family:'Oswald',sans-serif; font-size:15px; font-weight:700; color:var(--primary); background:var(--panel-bg); border:2px solid var(--primary); padding:2px 8px; text-transform:uppercase; letter-spacing:0.05em; }
+.comp-badge { flex-shrink:0; width:150px; box-sizing:border-box; font-family:'Oswald',sans-serif; font-size:13px; font-weight:700; color:var(--primary); background:var(--panel-bg); border:2px solid var(--primary); padding:4px 6px; text-transform:uppercase; letter-spacing:0.03em; text-align:center; white-space:normal; word-break:break-word; line-height:1.15; }
 .comp-text { font-family:'Nunito',sans-serif; font-size:14px; color:var(--ink); line-height:1.4; }
 
 .empty-state { font-family:'Oswald',sans-serif; font-size:15px; color:var(--accent); text-align:center; padding:8px; }
@@ -835,15 +834,19 @@ select.input-demo { appearance:none; cursor:pointer; }
 /* ── Character page: Maneuvers & Attacks ── */
 .init-value { font-family:'Bangers',cursive; font-size:22px; color:var(--success); display:inline-block; min-width:36px; text-align:center; }
 .attacks-list { display:flex; flex-direction:column; gap:3px; max-height:360px; overflow-y:auto; }
-.atk-hdr-row { display:grid; grid-template-columns:1fr 44px 72px 44px; gap:4px; padding:3px 4px; border-bottom:2px solid var(--border); font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.06em; }
+.atk-hdr-row { display:grid; grid-template-columns:1fr 44px 72px 44px; gap:4px 10px; padding:3px 8px; border-bottom:2px solid var(--border); font-family:'Oswald',sans-serif; font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.06em; }
+.atk-hdr:nth-child(2) { text-align:right; }
+.atk-hdr:nth-child(3), .atk-hdr:nth-child(4) { text-align:center; }
 .edit-select-attacks { margin-top:8px; padding-top:8px; border-top:1px solid var(--border); }
 .edit-select-attacks .maneuver-hdr { display:block; margin-bottom:4px; }
 .atk-select-list { margin-top:2px; border:1.5px solid var(--border); background:color-mix(in srgb,var(--panel-bg)50%,transparent); max-height:200px; overflow-y:auto; }
-.atk-select-item { display:flex; align-items:center; gap:6px; padding:3px 6px; cursor:pointer; font-family:'Nunito',sans-serif; font-size:11px; color:var(--ink); border-bottom:1px solid var(--border); }
+.atk-select-row { border-bottom:1px solid var(--border); }
+.atk-select-row:last-child { border-bottom:none; }
+.atk-select-item { display:flex; align-items:center; gap:6px; padding:3px 6px; cursor:pointer; font-family:'Nunito',sans-serif; font-size:11px; color:var(--ink); }
 .atk-select-item.active { background:color-mix(in srgb,var(--danger)12%,transparent); }
 .atk-select-item input[type="checkbox"] { accent-color:var(--danger); cursor:pointer; }
 .atk-select-name { flex:1; }
-.atk-bonus-row { display:flex; align-items:center; gap:4px; padding:2px 6px 4px 28px; border-bottom:1px solid var(--border); }
+.atk-bonus-row { display:flex; align-items:center; gap:4px; padding:2px 6px 4px 28px; }
 .atk-bonus-label { font-family:'Oswald',sans-serif; font-size:10px; font-weight:700; color:var(--accent); text-transform:uppercase; }
 .atk-bonus-input { width:40px; padding:1px 3px; border:1px solid var(--border); font-family:'Nunito',sans-serif; font-size:11px; color:var(--ink); background:var(--newsprint); text-align:center; }
 .combat-edit-note { font-family:'Nunito',sans-serif; font-size:14px; color:var(--accent); padding:12px; text-align:center; }
@@ -893,6 +896,7 @@ select.input-demo { appearance:none; cursor:pointer; }
 .modal-title { font-family:'Bangers',cursive; font-size:24px; color:var(--primary); margin:0; }
 .modal-error { padding:10px; background:#ffdad6; border:2px solid var(--danger); font-family:'Nunito',sans-serif; font-size:14px; color:var(--danger); }
 .field-label { font-family:'Oswald',sans-serif; font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:2px; }
+.field-hint { font-family:'Nunito',sans-serif; font-size:11px; color:var(--ink); opacity:0.7; margin-top:4px; display:block; }
 .comic-input { padding:10px 12px; border:2.5px solid var(--border); box-shadow:2px 2px 0 var(--border); font-family:'Nunito',sans-serif; font-size:16px; color:var(--ink); background:var(--newsprint); outline:none; width:100%; }
 .comic-input:focus { border-color:var(--primary); }
 
@@ -1018,6 +1022,7 @@ select.input-demo { appearance:none; cursor:pointer; }
 .power-card { border:2px solid var(--border); padding:8px; background:var(--newsprint); }
 .power-card .power-header { display:flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer; }
 .collapse-icon { font-size:12px; color:var(--accent); }
+.collapse-btn { background:none; border:none; padding:2px; cursor:pointer; display:flex; align-items:center; flex-shrink:0; }
 .array-toggle { display:flex; align-items:center; gap:3px; cursor:pointer; }
 .array-label { font-family:'Oswald',sans-serif; font-size:12px; font-weight:700; color:var(--accent); }
 .device-toggle { display:flex; align-items:center; gap:3px; cursor:pointer; }
