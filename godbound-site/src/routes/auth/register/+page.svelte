@@ -2,6 +2,8 @@
 	import { register } from '$lib/stores/session.svelte';
 	import { goto } from '$app/navigation';
 
+	const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,40}$/;
+
 	let username = $state('');
 	let email = $state('');
 	let password = $state('');
@@ -12,6 +14,15 @@
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
 		error = null;
+		if (username.length < 3 || username.length > 30) {
+			error = 'Username must be between 3 and 30 characters.';
+			return;
+		}
+		if (!PASSWORD_PATTERN.test(password)) {
+			error =
+				'Password must be 8-40 characters and include an uppercase letter, a lowercase letter, a number, and a special character (!@#$%^&*).';
+			return;
+		}
 		if (password !== confirmPassword) {
 			error = 'Passwords do not match.';
 			return;
@@ -41,7 +52,16 @@
 
 		<div class="field-group">
 			<label for="reg-username" class="field-label">Username</label>
-			<input id="reg-username" type="text" bind:value={username} required class="gb-input" />
+			<input
+				id="reg-username"
+				type="text"
+				bind:value={username}
+				required
+				minlength={3}
+				maxlength={30}
+				class="gb-input"
+			/>
+			<span class="field-hint">3-30 characters.</span>
 		</div>
 
 		<div class="field-group">
@@ -51,12 +71,33 @@
 
 		<div class="field-group">
 			<label for="reg-password" class="field-label">Password</label>
-			<input id="reg-password" type="password" bind:value={password} required minlength={6} class="gb-input" />
+			<input
+				id="reg-password"
+				type="password"
+				bind:value={password}
+				required
+				minlength={8}
+				maxlength={40}
+				pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,40}"
+				class="gb-input"
+			/>
+			<span class="field-hint"
+				>8-40 characters, with at least one uppercase letter, one lowercase letter, one number,
+				and one special character (!@#$%^&*).</span
+			>
 		</div>
 
 		<div class="field-group">
 			<label for="reg-confirm" class="field-label">Confirm Password</label>
-			<input id="reg-confirm" type="password" bind:value={confirmPassword} required minlength={6} class="gb-input" />
+			<input
+				id="reg-confirm"
+				type="password"
+				bind:value={confirmPassword}
+				required
+				minlength={8}
+				maxlength={40}
+				class="gb-input"
+			/>
 		</div>
 
 		<button type="submit" disabled={loading} class="gb-btn" style="width:100%;">{loading ? 'Registering...' : 'Create Account'}</button>

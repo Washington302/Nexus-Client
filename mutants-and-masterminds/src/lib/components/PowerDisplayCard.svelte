@@ -8,27 +8,35 @@
 
 <div class="power-row">
 	<div class="power-header">
-		<span class="power-name">{power.name}</span>
+		<span class="power-name">{power.array && power.arrayName ? power.arrayName : power.name}</span>
 		{#if power.array}<span class="array-badge">ARRAY</span>{/if}
 		<PillBadge text="{power.totalPowerCost} PP" color="primary" />
 	</div>
-	{#if power.description}
-		<div class="power-desc-text">{power.description}</div>
-	{/if}
 	{#if power.descriptors?.length}
 		<div class="power-desc">{power.descriptors.join(', ')}</div>
+	{/if}
+	{#if !power.array && power.description}
+		<div class="power-desc-text">{power.description}</div>
 	{/if}
 	{#if power._deviceType}
 		<div class="device-badge">{power._deviceType === 'EASILY_REMOVABLE' ? 'Easily Removable' : 'Removable'}</div>
 		{#each power._embeddedPowers as ep}
 			<div class="embedded-power-display">
 				<div class="ep-header">
-					<span class="power-name">{ep.name}</span>
+					<span class="power-name">{ep.array && ep.arrayName ? ep.arrayName : ep.name}</span>
 					{#if ep.array}<span class="array-badge">ARRAY</span>{/if}
 					<span class="effect-detail"><strong>{ep.totalPowerCost} PP</strong></span>
 				</div>
 				{#if ep.array}
-					<div class="array-slot active-slot">Active Slot</div>
+					{#if ep.description}
+						<div class="power-desc-text">{ep.description}</div>
+					{/if}
+					<div class="array-slot active-slot">{ep.activeSlotName || 'Active Slot'}</div>
+					{#if ep.activeSlotDescription}
+						<div class="power-desc-text">{ep.activeSlotDescription}</div>
+					{/if}
+				{:else if ep.description}
+					<div class="power-desc-text">{ep.description}</div>
 				{/if}
 				{#each ep.effects as effect}
 					<div class="effect-line">
@@ -73,7 +81,13 @@
 		{/each}
 	{:else}
 		{#if power.array}
-			<div class="array-slot active-slot">Active Slot</div>
+			{#if power.description}
+				<div class="power-desc-text">{power.description}</div>
+			{/if}
+			<div class="array-slot active-slot">{power.activeSlotName || 'Active Slot'}</div>
+			{#if power.activeSlotDescription}
+				<div class="power-desc-text">{power.activeSlotDescription}</div>
+			{/if}
 		{/if}
 		{#each power.effects as effect}
 			<div class="effect-line">

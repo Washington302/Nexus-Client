@@ -22,6 +22,7 @@
 			<div class="comp-header">
 				<select class="type-select" bind:value={comp.type}>
 					<option value="">Select type...</option>
+					<option value="NOTE">Note</option>
 					<option value="ACCIDENT">Accident</option>
 					<option value="ADDICTION">Addiction</option>
 					<option value="DISABILITY">Disability</option>

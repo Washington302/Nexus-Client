@@ -4,6 +4,8 @@
 
   import { api, setToken } from '$lib/services/api';
 
+  const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,40}$/;
+
   let username = $state('');
   let email = $state('');
   let password = $state('');
@@ -14,6 +16,17 @@
   async function handleSubmit(e: Event) {
     e.preventDefault();
     error = null;
+
+    if (username.length < 3 || username.length > 30) {
+      error = 'Username must be between 3 and 30 characters.';
+      return;
+    }
+
+    if (!PASSWORD_PATTERN.test(password)) {
+      error =
+        'Password must be 8-40 characters and include an uppercase letter, a lowercase letter, a number, and a special character (!@#$%^&*).';
+      return;
+    }
 
     if (password !== confirmPassword) {
       error = 'Passwords do not match.';
@@ -100,6 +113,8 @@
         type="text"
         bind:value={username}
         required
+        minlength={3}
+        maxlength={30}
         style="
           padding: 10px 12px;
           border: 1px solid {COLORS.outlineVar};
@@ -113,6 +128,9 @@
           width: 100%;
         "
       />
+      <span style="font-family: {S.fontBody}; font-size: 11px; color: {COLORS.inkMuted};"
+        >3-30 characters.</span
+      >
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -158,7 +176,9 @@
         type="password"
         bind:value={password}
         required
-        minlength={6}
+        minlength={8}
+        maxlength={40}
+        pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,40}"
         style="
           padding: 10px 12px;
           border: 1px solid {COLORS.outlineVar};
@@ -172,6 +192,10 @@
           width: 100%;
         "
       />
+      <span style="font-family: {S.fontBody}; font-size: 11px; color: {COLORS.inkMuted};"
+        >8-40 characters, with at least one uppercase letter, one lowercase letter, one number, and
+        one special character (!@#$%^&*).</span
+      >
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -188,7 +212,8 @@
         type="password"
         bind:value={confirmPassword}
         required
-        minlength={6}
+        minlength={8}
+        maxlength={40}
         style="
           padding: 10px 12px;
           border: 1px solid {COLORS.outlineVar};

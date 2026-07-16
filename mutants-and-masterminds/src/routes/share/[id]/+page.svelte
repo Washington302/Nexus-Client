@@ -157,7 +157,7 @@
 			const isDamaging = name.includes('damage') || modNames.some((n: string) => n.includes('damaging'));
 			const resistDC = isDamaging ? (effectRank + 15) : (effectRank + 10);
 			const resistance = resistanceLabel(effectResistance(e));
-			const rangeLabel = autoHit ? (modNames.some((n: string) => n.includes('area') ?? false) ? 'Area' : 'Perception') : closeOrRanged === 'ranged' ? 'Ranged' : 'Close';
+			const rangeLabel = autoHit ? (modNames.some((n: string) => n.includes('area') || n.includes('burst') || n.includes('cone') || n.includes('cloud') || n.includes('line')) ? 'Area' : 'Perception') : closeOrRanged === 'ranged' ? 'Ranged' : 'Close';
 			actions.push({
 				name: `${powerName} — ${e.effectName ?? ''} — ${rangeLabel}`,
 				descriptors: [],
