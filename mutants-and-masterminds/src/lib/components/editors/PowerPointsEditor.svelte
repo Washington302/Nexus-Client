@@ -18,36 +18,49 @@
 
 <div class="editor-grid">
 	<div class="field-row">
-		<label class="field-label">Total PP Allowed</label>
+		<label class="field-label pp-label">Total PP Allowed</label>
 		<input type="number" class="field-input" bind:value={draft.totalAllowed} />
 	</div>
 	<hr class="divider" />
 	<div class="cat-head">Spent Breakdown</div>
 	<div class="field-row">
-		<label class="field-label">Abilities</label>
-		<span class="field-value">{draft.spentAbilities}</span>
+		<label class="field-label pp-label">Abilities</label>
+		<span class="field-value pp-boxed">{draft.spentAbilities}</span>
 	</div>
 	<div class="field-row">
-		<label class="field-label">Defenses</label>
-		<input type="number" class="field-input" bind:value={draft.spentDefenses} />
+		<label class="field-label pp-label">Defenses</label>
+		<span class="field-value pp-boxed">{draft.spentDefenses}</span>
 	</div>
 	<div class="field-row">
-		<label class="field-label">Skills</label>
-		<input type="number" class="field-input" bind:value={draft.spentSkills} />
+		<label class="field-label pp-label">Skills</label>
+		<span class="field-value pp-boxed">{draft.spentSkills}</span>
 	</div>
 	<div class="field-row">
-		<label class="field-label">Advantages</label>
-		<input type="number" class="field-input" bind:value={draft.spentAdvantages} />
+		<label class="field-label pp-label">Advantages</label>
+		<span class="field-value pp-boxed">{draft.spentAdvantages}</span>
 	</div>
 	<div class="field-row">
-		<label class="field-label">Powers</label>
-		<input type="number" class="field-input" bind:value={draft.spentPowers} />
+		<label class="field-label pp-label">Powers</label>
+		<span class="field-value pp-boxed">{draft.spentPowers}</span>
 	</div>
 	<hr class="divider" />
 	<div class="field-row">
-		<label class="field-label"><strong>Total Spent</strong></label>
-		<span class="field-value"><strong>{totalSpent}</strong></span>
+		<label class="field-label pp-label"><strong>Total Spent</strong></label>
+		<span class="field-value pp-boxed"><strong>{totalSpent}</strong></span>
 	</div>
 	<div class="note">Remaining: <strong>{draft.totalAllowed - totalSpent}</strong> PP</div>
 </div>
+
+<style>
+	.pp-label {
+		width: 140px;
+		flex-shrink: 0;
+		margin-bottom: 0;
+	}
+	.pp-boxed {
+		width: 100%;
+		border: 2px solid var(--border);
+		background: var(--newsprint);
+	}
+</style>
 

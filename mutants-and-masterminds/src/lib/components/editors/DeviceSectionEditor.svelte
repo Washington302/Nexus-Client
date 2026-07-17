@@ -94,6 +94,10 @@
 							<input type="text" class="desc-input" bind:value={ep.activeSlotName} placeholder="Active slot label (optional, defaults to listing every effect)" />
 						</div>
 						<textarea class="desc-textarea" bind:value={ep.activeSlotDescription} placeholder="Active slot description (optional)" rows="2"></textarea>
+						<label class="array-toggle">
+							<input type="checkbox" bind:checked={ep.primarySlotDynamic} />
+							<span class="array-label">Primary slot is Dynamic (+1 PP)</span>
+						</label>
 					{/if}
 					<div class="effects-section">
 						<div class="effects-head">{ep.array ? (ep.activeSlotName || 'Active Slot Effects') : 'Effects'}</div>

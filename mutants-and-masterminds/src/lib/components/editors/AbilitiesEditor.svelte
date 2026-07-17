@@ -22,11 +22,11 @@
 
 	function calcPP(field: typeof abiKeys[number]): number {
 		const base = (abilities[field.baseKey] as number) ?? 0;
-		const mod = (abilities[field.costKey] as number) ?? 0;
 		const absent = (abilities[field.absentKey] as boolean) ?? false;
 		// Lacking an ability entirely is a flat -10 PP, regardless of rank.
 		if (absent) return -10;
-		return base >= 0 ? base * (BASE_PP_PER_RANK + mod) : Math.max(base, -5) * BASE_PP_PER_RANK;
+		// RAW: abilities cost a flat 2 PP/rank (rebate for negative ranks too), floored at -5.
+		return Math.max(base, -5) * BASE_PP_PER_RANK;
 	}
 
 	$effect(() => {

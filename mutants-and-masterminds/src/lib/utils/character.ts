@@ -71,24 +71,25 @@ export function perRankCostLabel(e: { baseCostPerRank?: number; modifiers?: Arra
 	return `1 PP / ${2 - rate} ranks`;
 }
 
-export function powerTotalCost(effects: any[], alternateEffects: any[]): number {
+export function powerTotalCost(effects: any[], alternateEffects: any[], primarySlotDynamic = false): number {
 	const active = (effects ?? []).reduce((sum: number, e: any) => sum + effectCost(e), 0);
 	const alts = (alternateEffects ?? []).reduce((sum: number, a: any) => {
 		const altActive = (a.effects ?? []).reduce((s: number, e: any) => s + effectCost(e), 0);
 		return Math.max(sum, altActive);
 	}, 0);
-	return Math.max(active, alts) + (alternateEffects?.length ?? 0);
+	// RAW: the array costs whichever effect (primary or alternate) is most expensive, plus a
+	// flat unlock cost per alternate — 1 PP for a standard Alternate Effect, 2 PP for Dynamic.
+	// If the primary/base slot is itself Dynamic, that's 1 more point on top.
+	const unlockCost = (alternateEffects ?? []).reduce((n: number, a: any) => n + (a.arrayType === 'DYNAMIC' ? 2 : 1), 0);
+	return Math.max(active, alts) + unlockCost + (primarySlotDynamic ? 1 : 0);
 }
 
 export function computeDeviceCost(power: any, embeddedPowers: any[] = power?._embeddedPowers ?? []): { raw: number; discount: number; final: number } {
 	const raw = (embeddedPowers ?? []).reduce((sum: number, ep: any) => sum + (ep.totalPowerCost ?? 0), 0);
-	let discount = 0;
-	if (raw <= 5) {
-		discount = power?._deviceType === 'EASILY_REMOVABLE' ? 4 : 2;
-	} else {
-		const perFive = Math.ceil(raw / 5);
-		discount = power?._deviceType === 'EASILY_REMOVABLE' ? perFive * 2 : perFive;
-	}
+	const multiplier = power?._deviceType === 'EASILY_REMOVABLE' ? 2 : 1;
+	// RAW: the Removable discount is -1 PP per 5 points of raw cost (-2/5 for Easily Removable),
+	// rounded up — not truncated.
+	const discount = Math.ceil(raw / 5) * multiplier;
 	return { raw, discount, final: Math.max(0, raw - discount) };
 }
 
@@ -125,9 +126,8 @@ export function createDefaultModifier(): PowerModifier {
 }
 
 export function calcPower(power: any): void {
-	power.totalPowerCost = powerTotalCost(power.effects, power.alternateEffects);
+	power.totalPowerCost = powerTotalCost(power.effects, power.alternateEffects, power.primarySlotDynamic);
 	for (const e of power.effects ?? []) {
-		if (e.effectName?.toLowerCase() === 'summon') e.summon = true;
 		e.calculatedCost = effectCost(e);
 		if (e.summon) {
 			if (!e.summonExtension) {
@@ -144,7 +144,6 @@ export function calcPower(power: any): void {
 		alt.costPerRank = (alt.effects ?? []).reduce((sum: number, e: any) => sum + perRankCost(e), 0);
 		alt.currentAllocatedRank = alt.effects[0]?.rank ?? 0;
 		for (const e of alt.effects ?? []) {
-			if (e.effectName?.toLowerCase() === 'summon') e.summon = true;
 			e.calculatedCost = effectCost(e);
 			if (e.summon) {
 				if (!e.summonExtension) {
@@ -176,7 +175,6 @@ export function recomputeCharacterCosts(draft: any): void {
 	let totalAbiPP = 0;
 	for (const key of abiKeys) {
 		const base = draft.abilities?.[key + 'BaseRank'] ?? 0;
-		const mod = draft.abilities?.[key + 'CostModifier'] ?? 0;
 		const enh = draft.abilities?.[key + 'EnhancedRank'] ?? 0;
 		const absent = draft.abilities?.[key + 'Absent'] ?? false;
 		draft.abilities[key + 'FinalValue'] = base + enh;
@@ -185,7 +183,8 @@ export function recomputeCharacterCosts(draft: any): void {
 			draft.abilities[key + 'CostModifier'] = -10;
 			totalAbiPP += -10;
 		} else {
-			totalAbiPP += base >= 0 ? base * (2 + mod) : Math.max(base, -5) * 2;
+			// RAW: abilities cost a flat 2 PP/rank (rebate for negative ranks too), floored at -5.
+			totalAbiPP += Math.max(base, -5) * 2;
 		}
 	}
 	draft.spentAbilities = totalAbiPP;
@@ -198,6 +197,12 @@ export function recomputeCharacterCosts(draft: any): void {
 		totalSkillRanks += (skill.ranks ?? 0);
 	}
 	draft.spentSkills = Math.ceil(totalSkillRanks / 2);
+	draft.spentAdvantages = (draft.advantages ?? []).reduce((sum: number, a: any) => sum + (a.ranks ?? 0), 0);
+	// Toughness isn't purchased the way the other four defenses are — its rank comes from
+	// Stamina + Protection effects (already priced under Powers), so it's excluded here.
+	draft.spentDefenses = ['dodge','parry','fortitude','will'].reduce(
+		(sum: number, k: string) => sum + (draft.defenses?.[k + 'PointsBought'] ?? 0), 0
+	);
 	const hqs = draft.headquarters ?? [];
 	for (const hq of hqs) {
 		const dsCost = (hq.defenseSystems ?? []).reduce((sum: number, ds: any) => sum + (ds.totalPowerCost ?? 0), 0);
@@ -347,6 +352,8 @@ export function initNormalizePower(p: any) {
 export function normalizePowerForSave(p: any) {
 	if (typeof p.array !== 'boolean') p.array = false;
 	if (typeof p.isArray !== 'boolean') p.isArray = p.array;
+	if (typeof p.primarySlotDynamic !== 'boolean') p.primarySlotDynamic = false;
+	if (typeof p.isPrimarySlotDynamic !== 'boolean') p.isPrimarySlotDynamic = p.primarySlotDynamic;
 	for (const e of (p.effects || [])) {
 		if (typeof e.primary !== 'boolean') e.primary = false;
 		if (typeof e.isPrimary !== 'boolean') e.isPrimary = e.primary;

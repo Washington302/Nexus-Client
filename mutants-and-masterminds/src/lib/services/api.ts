@@ -222,6 +222,7 @@ export interface Power {
 	arrayName?: string;
 	activeSlotName?: string;
 	activeSlotDescription?: string;
+	primarySlotDynamic?: boolean;
 	maxPpPool: number;
 	effects: PowerEffect[];
 	alternateEffects: AlternateEffect[];
