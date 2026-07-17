@@ -67,37 +67,35 @@
 		{/each}
 		<button class="add-mod-btn" onclick={addModifier}>+ Modifier</button>
 	</div>
-	{#if effect.effectName?.toLowerCase() === 'summon' || effect.summon}
-		<label class="summon-toggle">
-			<input type="checkbox" bind:checked={effect.summon} />
-			<span class="sm-label">Summon</span>
-		</label>
-		{#if effect.summon}
-			{@const summonRank = effect.rank}
-			{@const ppBudget = summonRank * 15}
-			<div class="summon-section">
-				<div class="summon-head">Minion &middot; PL {summonRank} &middot; {ppBudget} PP</div>
-				{#if effect.summonExtension}
-					{@const se = effect.summonExtension}
-					{@const isHeroic = (effect.modifiers ?? []).some((m: any) => (m.name ?? '').toLowerCase() === 'heroic')}
-					{@const canEditMinion = depth === 0 || (isHeroic && depth < MAX_SUMMON_DEPTH)}
-					<input type="text" class="summon-name-input"
-						value={se.minionStatBlock?.name ?? ''}
-						oninput={(e) => { const v = (e.target as HTMLInputElement).value; if (se.minionStatBlock) se.minionStatBlock.name = v; }}
-						placeholder="Minion name" />
-					{#if canEditMinion}
-						<button class="edit-minion-btn" onclick={() => { (se as any)._expanded = !(se as any)._expanded; }} type="button">{(se as any)._expanded ? 'Collapse Minion' : 'Edit Minion'}</button>
-						{#if (se as any)._expanded && se.minionStatBlock}
-							<div class="minion-expanded"><MinionEditor minion={se.minionStatBlock} depth={depth + 1} /></div>
-						{/if}
-					{:else if !isHeroic}
-						<div class="summon-note">This minion can't have its own summonable minions (requires the Heroic extra).</div>
-					{:else}
-						<div class="summon-note">Maximum summon nesting depth ({MAX_SUMMON_DEPTH}) reached.</div>
+	<label class="summon-toggle">
+		<input type="checkbox" bind:checked={effect.summon} />
+		<span class="sm-label">Summon</span>
+	</label>
+	{#if effect.summon}
+		{@const summonRank = effect.rank}
+		{@const ppBudget = summonRank * 15}
+		<div class="summon-section">
+			<div class="summon-head">Minion &middot; PL {summonRank} &middot; {ppBudget} PP</div>
+			{#if effect.summonExtension}
+				{@const se = effect.summonExtension}
+				{@const isHeroic = (effect.modifiers ?? []).some((m: any) => (m.name ?? '').toLowerCase() === 'heroic')}
+				{@const canEditMinion = depth === 0 || (isHeroic && depth < MAX_SUMMON_DEPTH)}
+				<input type="text" class="summon-name-input"
+					value={se.minionStatBlock?.name ?? ''}
+					oninput={(e) => { const v = (e.target as HTMLInputElement).value; if (se.minionStatBlock) se.minionStatBlock.name = v; }}
+					placeholder="Minion name" />
+				{#if canEditMinion}
+					<button class="edit-minion-btn" onclick={() => { (se as any)._expanded = !(se as any)._expanded; }} type="button">{(se as any)._expanded ? 'Collapse Minion' : 'Edit Minion'}</button>
+					{#if (se as any)._expanded && se.minionStatBlock}
+						<div class="minion-expanded"><MinionEditor minion={se.minionStatBlock} depth={depth + 1} /></div>
 					{/if}
+				{:else if !isHeroic}
+					<div class="summon-note">This minion can't have its own summonable minions (requires the Heroic extra).</div>
+				{:else}
+					<div class="summon-note">Maximum summon nesting depth ({MAX_SUMMON_DEPTH}) reached.</div>
 				{/if}
-			</div>
-		{/if}
+			{/if}
+		</div>
 	{/if}
 	{/if}
 </div>

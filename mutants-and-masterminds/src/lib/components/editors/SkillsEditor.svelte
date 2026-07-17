@@ -51,7 +51,7 @@
 		<span class="header-cell center"></span>
 	</div>
 	{#each skills as skill, i}
-		<div class="skill-row">
+		<div class="skill-row editor">
 			<input type="text" class="skill-input" bind:value={skill.skillName} placeholder="Skill name" />
 			<input type="number" class="ranks-input" bind:value={skill.ranks} />
 			<select class="ability-select" bind:value={skill.keyAbility}>

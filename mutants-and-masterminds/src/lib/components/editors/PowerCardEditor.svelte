@@ -84,6 +84,10 @@
 				<input type="text" class="desc-input" bind:value={power.activeSlotName} placeholder="Active slot label (optional, defaults to listing every effect)" />
 			</div>
 			<textarea class="desc-textarea" bind:value={power.activeSlotDescription} placeholder="Active slot description (optional)" rows="2"></textarea>
+			<label class="array-toggle">
+				<input type="checkbox" bind:checked={power.primarySlotDynamic} />
+				<span class="array-label">Primary slot is Dynamic (+1 PP)</span>
+			</label>
 		{/if}
 
 		<div class="effects-section">

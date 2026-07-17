@@ -53,7 +53,7 @@
 			const weights: Record<SectionKey, number> = {
 				skills: (draft.skills?.length ?? 0) + (draft.spentSkills ?? 0),
 				advantages: (draft.advantages?.length ?? 0) + (draft.spentAdvantages ?? 0),
-				equipment: (draft.equipmentPool?.items?.length ?? 0) + (draft.equipmentPool?.epSpent ?? 0) + (draft.headquarters?.length ?? 0) * 5,
+				equipment: (draft.equipmentPool?.items?.length ?? 0) + (draft.headquarters?.length ?? 0) + (draft.equipmentPool?.epSpent ?? 0),
 				powers: (draft.powers?.length ?? 0) + (draft.spentPowers ?? 0),
 			};
 			priorityOrder = (['skills', 'advantages', 'equipment', 'powers'] as SectionKey[]).sort((a, b) => weights[b] - weights[a]);
@@ -497,44 +497,48 @@ function shareCharacter() {
 		★ The tactical interface — built for heroes who need data <em>fast</em>. ★
 	</div>
 
-	<div class="panel-grid">
+	<div class="panel-grid stretch-row">
 		<ComicPanel header="★ Identity" color="blue">
 			<IdentityPanel {draft} />
 		</ComicPanel>
 
-		<ComicPanel header="★ Conditions" color="red">
-			<ConditionsPanel {activeConditions} {toggleCondition} onReset={() => { activeConditions = new Set(); resetManeuvers(); resetCombatState(); }} />
-		</ComicPanel>
-	</div>
+		<div class="stack-col">
+			<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Power Points" color="dark">
+				{#snippet view()}
+					<div class="pp-display">
+						<div class="pp-ring">
+							<div class="pp-ring-inner">
+								<div class="pp-num">{draft.totalAllowed ?? 0}</div>
+								<div class="pp-lbl">Total PP</div>
+							</div>
+						</div>
+						<div class="pp-ring used">
+							<div class="pp-ring-inner">
+								<div class="pp-num" style="color:var(--danger);">{draft.totalSpent ?? 0}</div>
+								<div class="pp-lbl">Spent PP</div>
+							</div>
+						</div>
+					</div>
+					<hr class="divider" />
+					<div class="pp-bar-wrap">
+						<div class="pp-bar-bg">
+							<div class="pp-bar-fill" style="width: {draft.totalAllowed ? (draft.totalSpent / draft.totalAllowed) * 100 : 0}%;"></div>
+						</div>
+						<div class="pp-bar-text">{draft.totalAllowed - draft.totalSpent} PP Remaining</div>
+					</div>
+				{/snippet}
+				{#snippet edit()}
+					<PowerPointsEditor draft={draft} />
+				{/snippet}
+			</EditableSectionCard>
 
-	<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Power Points" color="dark">
-		{#snippet view()}
-			<div class="pp-display">
-				<div class="pp-ring">
-					<div class="pp-ring-inner">
-						<div class="pp-num">{draft.totalAllowed ?? 0}</div>
-						<div class="pp-lbl">Total PP</div>
-					</div>
-				</div>
-				<div class="pp-ring used">
-					<div class="pp-ring-inner">
-						<div class="pp-num" style="color:var(--danger);">{draft.totalSpent ?? 0}</div>
-						<div class="pp-lbl">Spent PP</div>
-					</div>
-				</div>
+			<div class="conditions-grow">
+				<ComicPanel header="★ Conditions" color="red">
+					<ConditionsPanel {activeConditions} {toggleCondition} onReset={() => { activeConditions = new Set(); resetManeuvers(); resetCombatState(); }} />
+				</ComicPanel>
 			</div>
-			<hr class="divider" />
-			<div class="pp-bar-wrap">
-				<div class="pp-bar-bg">
-					<div class="pp-bar-fill" style="width: {draft.totalAllowed ? (draft.totalSpent / draft.totalAllowed) * 100 : 0}%;"></div>
-				</div>
-				<div class="pp-bar-text">{draft.totalAllowed - draft.totalSpent} PP Remaining</div>
-			</div>
-		{/snippet}
-		{#snippet edit()}
-			<PowerPointsEditor draft={draft} />
-		{/snippet}
-	</EditableSectionCard>
+		</div>
+	</div>
 
 	<EditableSectionCard onOpen={beginEdit} onCancel={cancelEdit} title="Abilities" color="blue">
 		{#snippet view()}
@@ -793,6 +797,48 @@ function shareCharacter() {
 {/if}
 
 <style>
+	.comic-wrap > :global(.edit-wrap) {
+		margin-bottom: 14px;
+	}
+	.stack-col {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+	}
+	.stretch-row {
+		align-items: stretch;
+	}
+	.conditions-grow {
+		flex: 1;
+		display: flex;
+	}
+	.conditions-grow :global(.panel-full) {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+	}
+	.conditions-grow :global(.panel-body) {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+	}
+	.conditions-grow :global(.action-word) {
+		font-size: 26px;
+	}
+	.conditions-grow :global(.cond-check-row) {
+		padding: 9px 0;
+	}
+	.conditions-grow :global(.cond-pip) {
+		width: 16px;
+		height: 16px;
+	}
+	.conditions-grow :global(.cond-label) {
+		font-size: 16px;
+		min-width: 100px;
+	}
+	.conditions-grow :global(.cond-desc) {
+		font-size: 14px;
+	}
 	.all-view :global(.panel-body) {
 		max-height: 400px;
 		overflow-y: auto;
