@@ -617,6 +617,19 @@ a.roster-name:hover { color: var(--gold-bright); }
 	padding: 2px 0;
 }
 .folio-input:focus { outline: none; border-bottom-color: var(--gold); }
+/* Read-only twin of .folio-input, so the share sheet lines up with the editable one. */
+.folio-static {
+	width: 100%;
+	border-bottom: 1px solid transparent;
+	font-family: var(--font-serif);
+	font-style: italic;
+	font-size: 16px;
+	color: var(--foreground);
+	padding: 2px 0;
+	min-height: 24px;
+}
+.folio-field-num .folio-static { font-size: 28px; text-align: center; }
+div.fraydie-select { cursor: default; }
 .sheet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--ui-density-gap, 16px); align-items: start; }
 .sheet-col { display: flex; flex-direction: column; gap: var(--ui-density-gap, 16px); }
 

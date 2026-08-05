@@ -4,8 +4,29 @@ import type {
 	GameType,
 	WitcherStat,
 	WitcherCharacter,
-	Skill
+	Skill,
+	GameSession,
+	SessionNpc
 } from '$lib/services/api';
+
+export function createDefaultSessionNpc(): SessionNpc {
+	return { id: crypto.randomUUID(), name: '', role: '', avatar: '' };
+}
+
+export function createDefaultSession(nextNumber: number): GameSession {
+	return {
+		id: crypto.randomUUID(),
+		number: nextNumber,
+		title: '',
+		realDate: '',
+		current: false,
+		location: '',
+		npcs: [],
+		loot: [],
+		summary: '',
+		postscripts: [],
+	};
+}
 
 export const RACE_OPTIONS: Race[] = ['HUMAN', 'ELF', 'DWARF', 'HALFLING'];
 
@@ -156,6 +177,17 @@ export function statValue(character: WitcherCharacter, stat: WitcherStat): numbe
 	}
 }
 
+/**
+ * Deep-copies a character straight off the API and puts it in the shape the sheet
+ * renders. Both the owner's route and the public share route go through here so
+ * they can never drift.
+ */
+export function normalizeCharacterFromApi(raw: WitcherCharacter): WitcherCharacter {
+	const c = JSON.parse(JSON.stringify(raw)) as WitcherCharacter;
+	ensureDefaults(c);
+	return c;
+}
+
 /** Ensures older/incomplete drafts have every array/object field the sheet reads from. */
 export function ensureDefaults(c: WitcherCharacter): void {
 	c.raceInfo ??= { race: null, racialTraits: [] };
@@ -206,4 +238,5 @@ export function ensureDefaults(c: WitcherCharacter): void {
 	c.knownInvocations ??= [];
 	c.knownRituals ??= [];
 	c.knownHexes ??= [];
+	c.sessions ??= [];
 }

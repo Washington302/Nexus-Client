@@ -283,6 +283,26 @@ export interface Complication {
 	description: string;
 }
 
+export interface SessionNpc {
+	id: string;
+	name: string;
+	role?: string;
+	avatar?: string;
+}
+
+export interface GameSession {
+	id: string;
+	number: number;
+	title: string;
+	realDate?: string;
+	current: boolean;
+	location?: string;
+	npcs: SessionNpc[];
+	loot: string[];
+	summary?: string;
+	postscripts: string[];
+}
+
 export interface MnmCharacter {
 	id: string;
 	userId: string;
@@ -317,6 +337,7 @@ export interface MnmCharacter {
 	devices: Device[];
 	complications: Complication[];
 	headquarters: Headquarters[];
+	sessions: GameSession[];
 }
 
 export interface CreateCharacterRequest {

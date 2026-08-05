@@ -2,7 +2,7 @@
 	import { session } from '$lib/stores/session.svelte';
 	import { api } from '$lib/services/api';
 	import type { WitcherCharacter } from '$lib/services/api';
-	import { ensureDefaults } from '$lib/utils/character';
+	import { normalizeCharacterFromApi } from '$lib/utils/character';
 	import StatsSheet from '$lib/components/StatsSheet.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 
@@ -57,8 +57,7 @@
 		// guard, the post-save Object.assign into session.activeCharacter re-triggers this
 		// effect and wipes any edits made while the save was in flight.
 		if (!c || c.id === draft?.id) return;
-		const d = JSON.parse(JSON.stringify(c));
-		ensureDefaults(d);
+		const d = normalizeCharacterFromApi(c);
 		draft = d;
 		originalSnapshot = JSON.stringify(d);
 		autosaveDirty = false;
@@ -107,7 +106,7 @@
 		</div>
 	</div>
 {:else}
-	<StatsSheet {draft} />
+	<StatsSheet {draft} editable={true} />
 
 	<div class="page">
 		<SaveBar

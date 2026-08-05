@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { api } from '$lib/services/api';
 	import type { WitcherCharacter } from '$lib/services/api';
-	import { ensureDefaults, label } from '$lib/utils/character';
+	import { normalizeCharacterFromApi, label } from '$lib/utils/character';
 	import StatsSheet from '$lib/components/StatsSheet.svelte';
 
 	let char = $state<WitcherCharacter | null>(null);
@@ -17,8 +17,7 @@
 		api.character
 			.getPublic(id)
 			.then((c) => {
-				ensureDefaults(c);
-				char = c;
+				char = normalizeCharacterFromApi(c);
 			})
 			.catch((e) => {
 				error = (e as Error).message || 'This character is not available for sharing.';
@@ -45,6 +44,6 @@
 			</p>
 		</div>
 
-		<StatsSheet draft={char} />
+		<StatsSheet draft={char} editable={false} />
 	{/if}
 </div>
