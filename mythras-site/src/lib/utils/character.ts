@@ -1,13 +1,34 @@
 import type {
 	Characteristics,
 	CombatStyle,
+	GameSession,
 	GiftEffect,
 	GiftEffectTag,
 	MythrasCharacter,
 	Passion,
 	ResourcePool,
+	SessionNpc,
 	Skill
 } from '$lib/services/api';
+
+export function createDefaultSessionNpc(): SessionNpc {
+	return { id: crypto.randomUUID(), name: '', role: '', avatar: '' };
+}
+
+export function createDefaultSession(nextNumber: number): GameSession {
+	return {
+		id: crypto.randomUUID(),
+		number: nextNumber,
+		title: '',
+		realDate: '',
+		current: false,
+		location: '',
+		npcs: [],
+		loot: [],
+		summary: '',
+		postscripts: [],
+	};
+}
 
 /**
  * Coerces a legacy flat-number attribute (pre resource-pool migration) into a ResourcePool.
@@ -457,6 +478,18 @@ export function recomputeDerivedAttributes(draft: MythrasCharacter): void {
 	for (const style of draft.combatStyles ?? []) recomputeCombatStyle(style);
 }
 
+/**
+ * Deep-copies a character straight off the API and puts it in the shape the sheet
+ * renders: defaults filled in and derived attributes recomputed. Both the owner's
+ * route and the public share route go through here so they can never drift.
+ */
+export function normalizeCharacterFromApi(raw: MythrasCharacter): MythrasCharacter {
+	const d = JSON.parse(JSON.stringify(raw)) as MythrasCharacter;
+	ensureDefaults(d);
+	recomputeDerivedAttributes(d);
+	return d;
+}
+
 export function ensureDefaults(d: MythrasCharacter): void {
 	if (d.characteristics == null) {
 		d.characteristics = { str: 10, con: 10, siz: 10, dex: 10, intelligence: 10, pow: 10, cha: 10 };
@@ -495,6 +528,7 @@ export function ensureDefaults(d: MythrasCharacter): void {
 	d.rangedWeapons ??= [];
 	d.equipment ??= [];
 	d.cults ??= [];
+	d.sessions ??= [];
 	for (const cult of d.cults) {
 		cult.benefits ??= [];
 		cult.restrictions ??= [];

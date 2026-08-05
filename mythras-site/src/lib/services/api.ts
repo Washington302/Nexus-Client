@@ -225,6 +225,26 @@ export interface HitLocation {
 	armorWorn: string;
 }
 
+export interface SessionNpc {
+	id: string;
+	name: string;
+	role?: string;
+	avatar?: string;
+}
+
+export interface GameSession {
+	id: string;
+	number: number;
+	title: string;
+	realDate?: string;
+	current: boolean;
+	location?: string;
+	npcs: SessionNpc[];
+	loot: string[];
+	summary?: string;
+	postscripts: string[];
+}
+
 export interface MythrasCharacter {
 	id: string;
 	userId: string;
@@ -264,6 +284,7 @@ export interface MythrasCharacter {
 	equipment: EquipmentItem[];
 	cults: Cult[];
 	hitLocations: HitLocation[];
+	sessions: GameSession[];
 	createdAt?: string;
 	updatedAt?: string;
 }

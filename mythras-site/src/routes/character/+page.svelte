@@ -2,7 +2,7 @@
 	import { session } from '$lib/stores/session.svelte';
 	import { api } from '$lib/services/api';
 	import type { MythrasCharacter } from '$lib/services/api';
-	import { ensureDefaults, recomputeDerivedAttributes, prepareCharacterPayloadForSave } from '$lib/utils/character';
+	import { normalizeCharacterFromApi, recomputeDerivedAttributes, prepareCharacterPayloadForSave } from '$lib/utils/character';
 	import CharacterSheet from '$lib/components/CharacterSheet.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 
@@ -58,9 +58,7 @@
 		// effect and wipes any edits made while the save was in flight (including text
 		// being typed in an open edit modal, since autosave fires every 15s).
 		if (!c || c.id === draft?.id) return;
-		const d = JSON.parse(JSON.stringify(c));
-		ensureDefaults(d);
-		recomputeDerivedAttributes(d);
+		const d = normalizeCharacterFromApi(c);
 		draft = d;
 		originalSnapshot = JSON.stringify(d);
 		autosaveDirty = false;
@@ -116,7 +114,7 @@
 	</div>
 {:else}
 	<div class="page">
-		<CharacterSheet {draft} />
+		<CharacterSheet {draft} editable={true} />
 
 		<SaveBar
 			{saving}

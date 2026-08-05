@@ -528,6 +528,15 @@ main {
 .input-demo:focus { border-color:var(--primary); }
 select.input-demo { appearance:none; cursor:pointer; }
 .input-num { width:60px; }
+/* Read-only twin of .input-demo, so the share sheet lines up with the editable one. */
+.static-demo {
+	border-bottom:3px solid var(--border);
+	font-family:'Nunito',sans-serif;
+	font-size:15px;
+	padding:4px 2px;
+	min-height:28px;
+	color:var(--ink);
+}
 
 /* ── DefensesDisplay ── */
 .def-row {
@@ -583,6 +592,16 @@ select.input-demo { appearance:none; cursor:pointer; }
 	display:inline-flex;
 	align-items:center;
 	justify-content:center;
+}
+.input-box-demo.text-value {
+	font-family:'Oswald',sans-serif;
+	font-size:11px;
+	font-weight:700;
+	text-transform:uppercase;
+	letter-spacing:0.02em;
+	width:auto;
+	min-width:44px;
+	padding:4px 6px;
 }
 .note-box {
 	background:var(--newsprint);

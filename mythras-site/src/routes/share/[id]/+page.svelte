@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { api } from '$lib/services/api';
 	import type { MythrasCharacter } from '$lib/services/api';
-	import { ensureDefaults, recomputeDerivedAttributes } from '$lib/utils/character';
+	import { normalizeCharacterFromApi } from '$lib/utils/character';
 	import CharacterSheet from '$lib/components/CharacterSheet.svelte';
 
 	let char = $state<MythrasCharacter | null>(null);
@@ -17,9 +17,7 @@
 		api.character
 			.getPublic(id)
 			.then((c) => {
-				ensureDefaults(c);
-				recomputeDerivedAttributes(c);
-				char = c;
+				char = normalizeCharacterFromApi(c);
 			})
 			.catch((e) => {
 				error = (e as Error).message || 'This character is not available for sharing.';

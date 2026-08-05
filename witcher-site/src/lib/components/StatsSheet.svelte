@@ -6,10 +6,13 @@
 	import AttributeCard from '$lib/components/AttributeCard.svelte';
 	import BottomNav from '$lib/components/BottomNav.svelte';
 
-	let { draft }: { draft: WitcherCharacter } = $props();
+	// The whole sheet, for both the owner's view and the public share view.
+	// `editable` is the only switch; today it gates the owner-only navigation
+	// chrome (profile button, sheet tabs), which a share viewer must not see.
+	let { draft, editable = true }: { draft: WitcherCharacter; editable?: boolean } = $props();
 </script>
 
-<IdentityHeader name={draft.name} portraitUrl={draft.portraitUrl} />
+<IdentityHeader name={draft.name} portraitUrl={draft.portraitUrl} {editable} />
 
 <div
 	class="page"
@@ -65,4 +68,6 @@
 	</footer>
 </div>
 
-<BottomNav active="stats" />
+{#if editable}
+	<BottomNav active="stats" />
+{/if}

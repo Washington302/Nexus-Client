@@ -10,6 +10,7 @@
 			<a href="/" class="nav-brand">Mythic Workbook</a>
 			<div class="nav-sep"></div>
 			<a href="/characters" class="nav-link">Characters</a>
+			<a href="/log" class="nav-link">Log</a>
 			<a href="/dashboard" class="nav-link">Dashboard</a>
 		</div>
 
@@ -31,6 +32,7 @@
 					>
 						<a href="/dashboard" class="dropdown-item">Dashboard</a>
 						<a href="/characters" class="dropdown-item">My Characters</a>
+						<a href="/log" class="dropdown-item">Log</a>
 						<a href="/profile" class="dropdown-item">Profile</a>
 						<button onclick={logout} class="dropdown-item signout">Sign Out</button>
 					</div>

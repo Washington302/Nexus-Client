@@ -1,4 +1,23 @@
-import type { AlternateEffect, PowerEffect, PowerModifier, ResistanceType, MinionStatBlock } from '$lib/services/api';
+import type { AlternateEffect, PowerEffect, PowerModifier, ResistanceType, MinionStatBlock, SessionNpc, GameSession } from '$lib/services/api';
+
+export function createDefaultSessionNpc(): SessionNpc {
+	return { id: crypto.randomUUID(), name: '', role: '', avatar: '' };
+}
+
+export function createDefaultSession(nextNumber: number): GameSession {
+	return {
+		id: crypto.randomUUID(),
+		number: nextNumber,
+		title: '',
+		realDate: '',
+		current: false,
+		location: '',
+		npcs: [],
+		loot: [],
+		summary: '',
+		postscripts: [],
+	};
+}
 
 export function abilityMod(val: number): number {
 	return val;
@@ -313,8 +332,46 @@ export function ensureDefaults(d: any): void {
 	if (d.complications == null) d.complications = [];
 	if (d.equipmentPool == null) d.equipmentPool = { totalEpAllowed: 0, epSpent: 0, items: [] };
 	if (d.headquarters == null) d.headquarters = [];
+	if (d.sessions == null) d.sessions = [];
 	for (const k of ABI_KEYS) if (d.abilities[k + 'FinalValue'] == null) d.abilities[k + 'FinalValue'] = 0;
 	for (const k of DEF_KEYS) if (d.defenses[k + 'FinalValue'] == null) d.defenses[k + 'FinalValue'] = 0;
+}
+
+/**
+ * Deep-copies a character straight off the API and puts it in the shape the sheet
+ * renders: defaults filled in, powers normalized, and backend `devices[]` folded
+ * back into device-flagged entries in `powers[]`.
+ */
+export function normalizeCharacterFromApi(raw: any): any {
+	const d = JSON.parse(JSON.stringify(raw));
+	ensureDefaults(d);
+
+	for (const p of (d.powers ?? [])) {
+		initNormalizePower(p);
+	}
+
+	for (const dv of (d.devices ?? [])) {
+		d.powers = d.powers ?? [];
+		d.powers.push({
+			powerId: dv.deviceId,
+			name: dv.name,
+			description: '',
+			descriptors: [],
+			array: false,
+			maxPpPool: 0,
+			effects: [],
+			alternateEffects: [],
+			totalPowerCost: dv.finalDeviceCost ?? 0,
+			_deviceType: dv.deviceType,
+			_embeddedPowers: (dv.embeddedPowers ?? []).map((ep: any) => {
+				initNormalizePower(ep);
+				return ep;
+			}),
+		});
+	}
+	delete d.devices;
+	recomputeCharacterCosts(d);
+	return d;
 }
 
 export function initNormalizePower(p: any) {

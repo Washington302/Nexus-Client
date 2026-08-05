@@ -2,30 +2,151 @@
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
 	import ComicPanel from '$lib/components/ComicPanel.svelte';
 
-	const sites: { href: string; label: string; desc: string }[] = [];
+	const sites: { key: string; label: string; desc: string; href: string }[] = [
+		{ key: 'godbound', label: 'Godbound', desc: 'Divine-powered heroes reshaping a broken world.', href: '' },
+		{ key: 'mythras', label: 'Mythras', desc: 'Gritty, skill-based fantasy roleplaying.', href: '' },
+		{ key: 'witcher', label: 'The Witcher', desc: 'Monster hunting in a grim, morally gray world.', href: '' },
+		{ key: 'arsmagica', label: 'Ars Magica', desc: 'Wizards, covenants, and the fall of an age of magic.', href: '' },
+	];
 </script>
 
 <div class="page">
 	<SplashHeader title="My Other" highlight="Sites" subtitle="Everything else I'm building" />
 
-	<ComicPanel header="★ Coming Soon" color="dark">
-		{#if sites.length}
-			<div class="card-grid">
-				{#each sites as site}
-					<a href={site.href} class="dash-card" target="_blank" rel="noopener noreferrer">
-						<div class="dash-card-header">
-							<span class="dash-card-icon">★</span>
-							<span class="dash-card-label">{site.label}</span>
+	<ComicPanel header="★ Other Projects" color="dark">
+		<div class="card-grid">
+			{#each sites as site}
+				{#if site.href}
+					<a href={site.href} class="site-card {site.key}" target="_blank" rel="noopener noreferrer">
+						<div class="site-card-header">
+							<span class="site-card-label">{site.label}</span>
 						</div>
-						<p class="dash-card-desc">{site.desc}</p>
-						<span class="dash-card-open">Visit &#8594;</span>
+						<p class="site-card-desc">{site.desc}</p>
+						<span class="site-card-open">Visit &#8594;</span>
 					</a>
-				{/each}
-			</div>
-		{:else}
-			<p style="font-family:'Nunito',sans-serif;font-size:11px;line-height:1.6;color:var(--ink);">
-				Links to my other projects will show up here soon. Check back later!
-			</p>
-		{/if}
+				{:else}
+					<div class="site-card {site.key} pending">
+						<div class="site-card-header">
+							<span class="site-card-label">{site.label}</span>
+						</div>
+						<p class="site-card-desc">{site.desc}</p>
+						<span class="site-card-open">Deploying soon</span>
+					</div>
+				{/if}
+			{/each}
+		</div>
 	</ComicPanel>
 </div>
+
+<style>
+	@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;600&family=Montserrat:wght@700&family=Roboto:wght@400&family=Literata:wght@600;700&family=Hanken+Grotesk:wght@400;600&family=JetBrains+Mono:wght@600&family=Epilogue:wght@600;700&display=swap');
+
+	.card-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 16px;
+	}
+
+	.site-card {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 18px;
+		border-radius: 6px;
+		text-decoration: none;
+		transition: transform 0.15s;
+	}
+	.site-card:not(.pending):hover { transform: translateY(-3px); }
+	.site-card.pending { opacity: 0.7; cursor: default; }
+
+	.site-card-label {
+		font-size: 20px;
+		font-weight: 700;
+	}
+	.site-card-desc {
+		font-size: 13px;
+		line-height: 1.5;
+		flex: 1;
+		margin: 0;
+	}
+	.site-card-open {
+		font-size: 11px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+
+	/* Godbound — dark, elegant divine/epic fantasy: gold on near-black */
+	.site-card.godbound {
+		background: oklch(0.15 0.005 260);
+		border: 1px solid oklch(0.72 0.12 80 / 0.4);
+		box-shadow: 0 0 0 1px oklch(0.72 0.12 80 / 0.1);
+	}
+	.site-card.godbound .site-card-label {
+		font-family: 'Cormorant Garamond', serif;
+		color: oklch(0.82 0.14 80);
+		letter-spacing: 0.02em;
+	}
+	.site-card.godbound .site-card-desc {
+		font-family: 'Inter', sans-serif;
+		color: oklch(0.85 0.02 80);
+	}
+	.site-card.godbound .site-card-open { color: oklch(0.72 0.12 80); }
+
+	/* Mythras — clean Material-derived light theme: maroon on parchment-pink */
+	.site-card.mythras {
+		background: #fff8f7;
+		border: 1px solid #390009;
+		box-shadow: 4px 4px 0 #390009;
+	}
+	.site-card.mythras .site-card-label {
+		font-family: 'Montserrat', sans-serif;
+		color: #390009;
+		text-transform: uppercase;
+	}
+	.site-card.mythras .site-card-desc {
+		font-family: 'Roboto', sans-serif;
+		color: #390009;
+	}
+	.site-card.mythras .site-card-open {
+		color: #390009;
+		background: #fed488;
+		display: inline-block;
+		padding: 3px 8px;
+		border-radius: 3px;
+		width: fit-content;
+	}
+
+	/* Witcher — weathered monster-hunter field journal: bone/parchment on near-black */
+	.site-card.witcher {
+		background: #131313;
+		border: 1px solid #4d453e;
+	}
+	.site-card.witcher .site-card-label {
+		font-family: 'Literata', serif;
+		color: #f6e1cd;
+	}
+	.site-card.witcher .site-card-desc {
+		font-family: 'Hanken Grotesk', sans-serif;
+		color: #b7ab9c;
+	}
+	.site-card.witcher .site-card-open {
+		font-family: 'JetBrains Mono', monospace;
+		color: #e57373;
+	}
+
+	/* Ars Magica — illuminated manuscript / warm parchment */
+	.site-card.arsmagica {
+		background: #fef9eb;
+		border: 2px solid #c8c7be;
+	}
+	.site-card.arsmagica .site-card-label {
+		font-family: 'Epilogue', sans-serif;
+		color: #1d1c13;
+	}
+	.site-card.arsmagica .site-card-desc {
+		font-family: 'Literata', serif;
+		color: #474741;
+	}
+	.site-card.arsmagica .site-card-open { color: #a9372a; }
+</style>

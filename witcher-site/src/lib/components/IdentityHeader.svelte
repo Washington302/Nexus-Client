@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 
-	let { name, portraitUrl = null }: { name: string; portraitUrl?: string | null } = $props();
+	// `editable` gates owner-only chrome: a public share viewer has no profile to open.
+	let {
+		name,
+		portraitUrl = null,
+		editable = true
+	}: { name: string; portraitUrl?: string | null; editable?: boolean } = $props();
 </script>
 
 <header class="identity-bar">
@@ -15,7 +20,9 @@
 		</div>
 		<h1 class="identity-name">{name}</h1>
 	</div>
-	<button class="identity-settings-btn" onclick={() => goto('/profile')} aria-label="Settings"
-		>⚙</button
-	>
+	{#if editable}
+		<button class="identity-settings-btn" onclick={() => goto('/profile')} aria-label="Settings"
+			>⚙</button
+		>
+	{/if}
 </header>
