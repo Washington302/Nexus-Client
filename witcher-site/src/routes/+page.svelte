@@ -11,8 +11,8 @@
 
 <div class="page">
 	<div class="list-header">
-		<h1 class="list-title">The Witcher — Journal</h1>
-		<p class="list-subtitle">Witcher TTRPG Character Sheet &middot; Digital Companion</p>
+		<h1 class="list-title">Scribe Sheets</h1>
+		<p class="list-subtitle">A character tool for The Witcher TTRPG</p>
 	</div>
 
 	<div class="panel-full" style="width:100%;">
@@ -23,7 +23,14 @@
 			<p
 				style="font-family:var(--font-body);font-size:14px;color:var(--on-surface);margin-bottom:16px;"
 			>
-				Create and manage your Witcher characters on a single digital sheet.
+				Create and manage your characters on a single digital sheet. Free, with no paywalls.
+			</p>
+			<p
+				style="font-family:var(--font-body);font-size:12px;color:var(--on-surface-variant);margin-bottom:16px;"
+			>
+				Unofficial fan work — see <a href="/legal" style="color:var(--primary);"
+					>About &amp; Legal</a
+				>.
 			</p>
 			{#if !session.userId}
 				<div style="display:flex;gap:8px;">

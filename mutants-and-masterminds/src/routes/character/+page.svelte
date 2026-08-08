@@ -104,7 +104,7 @@
 	/>
 {:else}
 	<div class="comic-wrap">
-		<SplashHeader title="Unofficial " highlight="Mutants &amp; Masterminds" subtitle="Superhero Roleplaying · Character Sheet" />
+		<SplashHeader title="Scribe " highlight="Sheets" subtitle="Superhero Roleplaying · Character Sheet" />
 		<div class="prompt-card" style="text-align:center; margin-top:16px;">
 			<p style="margin-bottom:16px;">No active character. Create one to get started!</p>
 			<a href="/characters" class="comic-btn">Go to My Heroes</a>

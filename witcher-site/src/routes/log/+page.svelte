@@ -82,8 +82,14 @@
 	let newPostscript = $state('');
 	function appendPostscript() {
 		if (!selectedSession || !newPostscript.trim()) return;
-		const timestamp = new Date().toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-		selectedSession.postscripts = [...selectedSession.postscripts, `${timestamp} — ${newPostscript.trim()}`];
+		const timestamp = new Date().toLocaleString(undefined, {
+			dateStyle: 'medium',
+			timeStyle: 'short'
+		});
+		selectedSession.postscripts = [
+			...selectedSession.postscripts,
+			`${timestamp} — ${newPostscript.trim()}`
+		];
 		newPostscript = '';
 	}
 
@@ -112,9 +118,13 @@
 
 <div class="page">
 	{#if !session.userId}
-		<div class="prompt-card"><p><a href="/auth/login">Sign in</a> to view your session log.</p></div>
+		<div class="prompt-card">
+			<p><a href="/auth/login">Sign in</a> to view your session log.</p>
+		</div>
 	{:else if !draft}
-		<div class="prompt-card"><p>No active character. <a href="/characters">Create or select one</a>.</p></div>
+		<div class="prompt-card">
+			<p>No active character. <a href="/characters">Create or select one</a>.</p>
+		</div>
 	{:else}
 		<div class="list-header">
 			<h1 class="list-title">Session Log</h1>
@@ -130,19 +140,35 @@
 		</div>
 
 		<div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
-			<button onclick={() => (showNewSession = !showNewSession)} class="comic-btn secondary">+ New Entry</button>
+			<button onclick={() => (showNewSession = !showNewSession)} class="comic-btn secondary"
+				>+ New Entry</button
+			>
 		</div>
 
 		{#if showNewSession}
 			<div style="margin-bottom:14px;">
 				<Panel header="New Session" color="plain">
 					<div style="display:flex; gap:8px;">
-						<input type="text" bind:value={newSessionTitle} placeholder="Session title" class="input-demo" />
-						<input type="text" bind:value={newSessionDate} placeholder="In-world date" class="input-demo" />
+						<input
+							type="text"
+							bind:value={newSessionTitle}
+							placeholder="Session title"
+							class="input-demo"
+						/>
+						<input
+							type="text"
+							bind:value={newSessionDate}
+							placeholder="In-world date"
+							class="input-demo"
+						/>
 					</div>
 					<div style="display:flex; gap:8px; margin-top:10px;">
-						<button onclick={addSession} disabled={!newSessionTitle} class="comic-btn">Create Entry</button>
-						<button onclick={() => (showNewSession = false)} class="comic-btn secondary">Cancel</button>
+						<button onclick={addSession} disabled={!newSessionTitle} class="comic-btn"
+							>Create Entry</button
+						>
+						<button onclick={() => (showNewSession = false)} class="comic-btn secondary"
+							>Cancel</button
+						>
 					</div>
 				</Panel>
 			</div>
@@ -173,12 +199,26 @@
 
 			{#if selectedSession}
 				<Panel header={selectedSession.title || 'Untitled Session'} color="gold">
-					<input type="text" bind:value={selectedSession.title} class="input-demo" style="margin-bottom:8px;" placeholder="Session title" />
+					<input
+						type="text"
+						bind:value={selectedSession.title}
+						class="input-demo"
+						style="margin-bottom:8px;"
+						placeholder="Session title"
+					/>
 					<div style="display:flex; gap:16px; align-items:center; margin-bottom:14px;">
 						<span class="session-number">{selectedSession.realDate}</span>
-						<input type="text" bind:value={selectedSession.location} placeholder="Location" class="input-demo" style="width:200px;" />
+						<input
+							type="text"
+							bind:value={selectedSession.location}
+							placeholder="Location"
+							class="input-demo"
+							style="width:200px;"
+						/>
 						{#if selectedSession.current}
-							<button onclick={endSession} class="comic-btn secondary" style="margin-left:auto;">End Session</button>
+							<button onclick={endSession} class="comic-btn secondary" style="margin-left:auto;"
+								>End Session</button
+							>
 						{/if}
 					</div>
 
@@ -186,15 +226,33 @@
 						<div>
 							<div style="display:flex; justify-content:space-between; align-items:center;">
 								<div class="field-hdr">NPCs Encountered</div>
-								<button onclick={() => (showNewNpc = !showNewNpc)} class="comic-btn secondary">+</button>
+								<button onclick={() => (showNewNpc = !showNewNpc)} class="comic-btn secondary"
+									>+</button
+								>
 							</div>
 							{#if showNewNpc}
 								<div style="margin-top:8px;">
-									<div class="field-group"><input type="text" bind:value={newNpcName} placeholder="NPC name" class="input-demo" /></div>
-									<div class="field-group"><input type="text" bind:value={newNpcRole} placeholder="Title / role" class="input-demo" /></div>
+									<div class="field-group">
+										<input
+											type="text"
+											bind:value={newNpcName}
+											placeholder="NPC name"
+											class="input-demo"
+										/>
+									</div>
+									<div class="field-group">
+										<input
+											type="text"
+											bind:value={newNpcRole}
+											placeholder="Title / role"
+											class="input-demo"
+										/>
+									</div>
 									<div style="display:flex; gap:8px;">
 										<button onclick={addNpc} disabled={!newNpcName} class="comic-btn">Add</button>
-										<button onclick={() => (showNewNpc = false)} class="comic-btn secondary">Cancel</button>
+										<button onclick={() => (showNewNpc = false)} class="comic-btn secondary"
+											>Cancel</button
+										>
 									</div>
 								</div>
 							{/if}
@@ -213,7 +271,10 @@
 						<div>
 							<div class="field-hdr">Loot &amp; Rewards</div>
 							{#each selectedSession.loot as item, i}
-								<span class="tag">{item} <button onclick={() => removeLootItem(i)} class="tag-remove-btn">✕</button></span>
+								<span class="tag"
+									>{item}
+									<button onclick={() => removeLootItem(i)} class="tag-remove-btn">✕</button></span
+								>
 							{/each}
 							<input
 								type="text"
@@ -228,7 +289,10 @@
 
 					<div style="margin-top:16px;">
 						<div class="field-hdr">Summary of Events</div>
-						<textarea bind:value={selectedSession.summary} class="input-demo" style="min-height:100px; resize:vertical;"></textarea>
+						<textarea
+							bind:value={selectedSession.summary}
+							class="input-demo"
+							style="min-height:100px; resize:vertical;"></textarea>
 					</div>
 
 					<div style="margin-top:16px;">
@@ -236,9 +300,15 @@
 						{#each selectedSession.postscripts as ps}
 							<div class="npc-row"><span>{ps}</span></div>
 						{/each}
-						<textarea bind:value={newPostscript} placeholder="Add further notes..." class="input-demo" style="margin-top:8px; resize:vertical;"></textarea>
+						<textarea
+							bind:value={newPostscript}
+							placeholder="Add further notes..."
+							class="input-demo"
+							style="margin-top:8px; resize:vertical;"></textarea>
 						<div style="display:flex; justify-content:flex-end; margin-top:10px;">
-							<button onclick={appendPostscript} disabled={!newPostscript.trim()} class="comic-btn">Append Note</button>
+							<button onclick={appendPostscript} disabled={!newPostscript.trim()} class="comic-btn"
+								>Append Note</button
+							>
 						</div>
 					</div>
 				</Panel>
@@ -269,8 +339,14 @@
 		gap: 12px;
 		margin-bottom: 14px;
 	}
-	.save-error { color: var(--error); font-size: 13px; }
-	.save-success { color: var(--tertiary); font-size: 13px; }
+	.save-error {
+		color: var(--error);
+		font-size: 13px;
+	}
+	.save-success {
+		color: var(--tertiary);
+		font-size: 13px;
+	}
 	.session-list-item {
 		padding: 10px;
 		border: 1px solid var(--outline-variant);
@@ -279,9 +355,16 @@
 		cursor: pointer;
 		background: var(--surface-container-low);
 	}
-	.session-list-item.current { border-color: var(--primary); }
-	.session-number { font-size: 12px; color: var(--on-surface-variant); }
-	.session-title-sm { font-weight: 600; }
+	.session-list-item.current {
+		border-color: var(--primary);
+	}
+	.session-number {
+		font-size: 12px;
+		color: var(--on-surface-variant);
+	}
+	.session-title-sm {
+		font-weight: 600;
+	}
 	.npc-row {
 		display: flex;
 		align-items: center;
@@ -306,5 +389,7 @@
 		cursor: pointer;
 		color: var(--on-surface-variant);
 	}
-	.tag-remove-btn:hover { color: var(--error); }
+	.tag-remove-btn:hover {
+		color: var(--error);
+	}
 </style>

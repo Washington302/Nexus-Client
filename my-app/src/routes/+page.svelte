@@ -54,14 +54,14 @@
         letter-spacing: -0.01em;
         line-height: 1;
         margin-bottom: 4px;
-      ">NEXUS</h1>
+      ">SCRIBE SHEETS</h1>
       <span style="
         font-family: {S.fontBody};
         font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 0.1em;
         color: {COLORS.inkMuted};
-      ">Ars Magica Character Manager</span>
+      ">A character tool for the Ars Magica roleplaying game</span>
     </div>
 
     <div style="display: flex; gap: 8px;">

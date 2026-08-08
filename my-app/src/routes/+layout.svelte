@@ -1,6 +1,7 @@
 <script lang="ts">
   import SiteNav from '$lib/components/SiteNav.svelte';
   import CharacterNav from '$lib/components/CharacterNav.svelte';
+  import SiteFooter from '$lib/components/SiteFooter.svelte';
   import { session } from '$lib/stores/session.svelte';
 
   let { children } = $props();
@@ -24,3 +25,5 @@
 {/if}
 
 {@render children()}
+
+<SiteFooter />

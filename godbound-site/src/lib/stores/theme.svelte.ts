@@ -28,7 +28,7 @@ export const DEFAULT_THEME: ThemeColors = {
 
 export const PRESETS: Record<string, { label: string; colors: ThemeColors }> = {
 	'godbound-dusk': {
-		label: 'Godbound Dusk (Default)',
+		label: 'Dusk (Default)',
 		colors: { ...DEFAULT_THEME },
 	},
 	'blood-moon': {

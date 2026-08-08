@@ -3,7 +3,7 @@
 	import { api } from '$lib/services/api';
 	import type { WitcherCharacter } from '$lib/services/api';
 	import { normalizeCharacterFromApi } from '$lib/utils/character';
-	import StatsSheet from '$lib/components/StatsSheet.svelte';
+	import CharacterSheet from '$lib/components/CharacterSheet.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 
 	let draft = $state<WitcherCharacter>(null!);
@@ -106,7 +106,7 @@
 		</div>
 	</div>
 {:else}
-	<StatsSheet {draft} editable={true} />
+	<CharacterSheet {draft} editable={true} />
 
 	<div class="page">
 		<SaveBar

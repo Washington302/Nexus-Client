@@ -61,7 +61,7 @@
       font-size: 13px;
       color: {COLORS.inkMuted};
       margin: 0;
-    ">Enter your credentials to access NEXUS.</p>
+    ">Enter your credentials to access Scribe Sheets.</p>
 
     {#if error}
       <div style="

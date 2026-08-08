@@ -88,7 +88,7 @@
 	);
 </script>
 
-<div class="folio-eyebrow">Godbound</div>
+<div class="folio-eyebrow">Scribe Sheets</div>
 <div class="sheet-header">
 	<div class="field-group" style="margin:0;">
 		<label class="field-label" for="ch-name">Name</label>

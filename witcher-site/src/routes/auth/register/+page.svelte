@@ -48,7 +48,7 @@
 	<form onsubmit={handleSubmit} class="auth-form">
 		<div class="form-header">
 			<h1 class="form-title">Create Account</h1>
-			<p class="form-sub">Join The Witcher Journal</p>
+			<p class="form-sub">Join Scribe Sheets</p>
 		</div>
 
 		{#if error}

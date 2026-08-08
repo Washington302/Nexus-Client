@@ -102,7 +102,7 @@
 			Identity
 		</div>
 		<div class="theme-preview-body" style="color: {draft.onSurface};">
-			<div class="theme-preview-name">Geralt of Rivia</div>
+			<div class="theme-preview-name">Sample Character</div>
 			<div class="theme-preview-stat-row">
 				<span>Swordsmanship</span>
 				<span class="theme-preview-stat-value" style="color: {draft.primary};">12</span>

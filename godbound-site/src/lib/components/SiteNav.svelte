@@ -7,7 +7,12 @@
 <nav class="site-nav">
 	<div class="nav-inner">
 		<div class="nav-left">
-			<a href="/" class="nav-brand">Godbound</a>
+			<!-- The product name leads; the game it serves is a descriptive subtitle only.
+			     The official game title may not be used as the app name. -->
+			<a href="/" class="nav-brand">
+				Scribe Sheets
+				<span class="nav-brand-blurb">for Godbound</span>
+			</a>
 			<div class="nav-sep"></div>
 			<a href="/characters" class="nav-link">Characters</a>
 			<a href="/character" class="nav-link">Sheet</a>
@@ -36,6 +41,7 @@
 						<a href="/campaigns" class="dropdown-item">My Campaigns</a>
 						<a href="/profile" class="dropdown-item">Profile</a>
 						<a href="/settings" class="dropdown-item">Settings</a>
+						<a href="/legal" class="dropdown-item">About &amp; Legal</a>
 						<button onclick={logout} class="dropdown-item signout">Sign Out</button>
 					</div>
 				{/if}

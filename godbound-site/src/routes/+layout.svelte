@@ -5,13 +5,20 @@
 	import { session } from '$lib/stores/session.svelte';
 	import SiteNav from '$lib/components/SiteNav.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import SiteFooter from '$lib/components/SiteFooter.svelte';
 	import '$lib/stores/theme.svelte';
 	import '$lib/stores/preferences.svelte';
 
 	let { children } = $props();
 
 	function isPublicRoute(pathname: string) {
-		return pathname === '/' || pathname.startsWith('/auth/') || pathname.startsWith('/share/');
+		// /legal must stay reachable signed-out — it carries the disclaimers.
+		return (
+			pathname === '/' ||
+			pathname === '/legal' ||
+			pathname.startsWith('/auth/') ||
+			pathname.startsWith('/share/')
+		);
 	}
 
 	const CHARACTER_SCOPED_PREFIXES = ['/character', '/gifts', '/influence', '/log', '/campaigns'];
@@ -37,11 +44,13 @@
 		<Sidebar />
 		<main>
 			{@render children()}
+			<SiteFooter />
 		</main>
 	</div>
 {:else}
 	<SiteNav />
 	<main>
 		{@render children()}
+		<SiteFooter />
 	</main>
 {/if}

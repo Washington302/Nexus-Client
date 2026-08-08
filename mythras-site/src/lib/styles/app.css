@@ -491,11 +491,68 @@ main {
 	letter-spacing: 0.05em;
 	color: var(--on-primary);
 	text-decoration: none;
+	white-space: nowrap;
+}
+.nav-brand-blurb {
+	display: block;
+	font-family: var(--font-body);
+	font-size: 9px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--on-primary);
+	opacity: 0.72;
+	margin-top: 1px;
 }
 .nav-sep {
 	width: 1px;
 	height: 20px;
 	background: var(--on-primary-container);
+}
+
+/* ── About / Legal ── */
+.legal-body {
+	font-family: var(--font-body);
+	font-size: 14px;
+	line-height: 21px;
+	color: var(--on-surface);
+	margin-bottom: 12px;
+}
+.legal-body:last-child {
+	margin-bottom: 0;
+}
+.legal-quote {
+	font-family: var(--font-body);
+	font-size: 14px;
+	line-height: 21px;
+	color: var(--on-surface);
+	border-left: 3px solid var(--primary);
+	background: var(--surface-container-low);
+	padding: 12px 14px;
+	margin-bottom: 12px;
+	border-radius: 0 var(--radius) var(--radius) 0;
+}
+.legal-quote:last-child {
+	margin-bottom: 0;
+}
+
+/* ── Site footer ── */
+.site-footer {
+	width: 100%;
+	margin-top: 32px;
+	padding: 16px 24px 24px;
+	border-top: 1px solid var(--outline-variant);
+	text-align: center;
+	font-family: var(--font-body);
+	font-size: 11px;
+	line-height: 17px;
+	color: var(--on-surface-variant);
+}
+.site-footer a {
+	color: var(--primary);
+}
+.site-footer-brand {
+	font-weight: 700;
 }
 .nav-link {
 	font-family: var(--font-body);

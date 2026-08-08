@@ -124,7 +124,7 @@ main {
 	width: 85%;
 	max-width: 1600px;
 	margin: 0 auto;
-	padding-bottom: 96px; /* clears the fixed bottom sheet-nav */
+	padding-bottom: 32px;
 }
 .page {
 	font-family: var(--font-body);
@@ -193,10 +193,66 @@ main {
 	text-decoration: none;
 	white-space: nowrap;
 }
+.nav-brand-blurb {
+	display: block;
+	font-family: var(--font-mono);
+	font-size: 9px;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--on-surface-variant);
+	margin-top: 1px;
+}
 .nav-sep {
 	width: 1px;
 	height: 20px;
 	background: var(--outline-variant);
+}
+
+/* ── About / Legal ── */
+.legal-body {
+	font-family: var(--font-body);
+	font-size: 14px;
+	line-height: 21px;
+	color: var(--on-surface);
+	margin-bottom: var(--stack-sm);
+}
+.legal-body:last-child {
+	margin-bottom: 0;
+}
+.legal-quote {
+	font-family: var(--font-body);
+	font-size: 14px;
+	line-height: 21px;
+	color: var(--on-surface);
+	border-left: 3px solid var(--primary);
+	background: var(--surface-container-low);
+	padding: 12px 14px;
+	margin-bottom: var(--stack-sm);
+	border-radius: 0 var(--radius) var(--radius) 0;
+}
+.legal-quote:last-child {
+	margin-bottom: 0;
+}
+
+/* ── Site footer ── */
+.site-footer {
+	width: 100%;
+	margin-top: 32px;
+	padding: 16px 24px 24px;
+	border-top: 1px solid var(--outline-variant);
+	text-align: center;
+	font-family: var(--font-body);
+	font-size: 11px;
+	line-height: 17px;
+	color: var(--on-surface-variant);
+}
+.site-footer a {
+	color: var(--primary);
+}
+.site-footer-brand {
+	font-family: var(--font-display);
+	font-weight: 700;
 }
 .nav-link {
 	font-family: var(--font-mono);
@@ -506,41 +562,184 @@ main {
 .vial-fill.vigor {
 	background-color: color-mix(in srgb, var(--primary-container) 40%, transparent);
 }
+.vial-fill.stun {
+	background-color: color-mix(in srgb, var(--secondary) 50%, transparent);
+}
+/* Click-to-edit resting state (InlineNumber). The caller's own class owns the type
+   and colour so the value looks identical whether or not the sheet is editable —
+   hence the reset sits in :where() at zero specificity and never fights it. */
+:where(.inline-num-btn) {
+	font: inherit;
+	color: inherit;
+	line-height: inherit;
+	background: none;
+	border: none;
+	padding: 0;
+}
+.inline-num-btn {
+	cursor: text;
+	border-radius: var(--radius-sm);
+	border-bottom: 1px dashed color-mix(in srgb, currentColor 26%, transparent);
+	transition:
+		background-color 120ms ease,
+		border-color 120ms ease;
+}
+.inline-num-btn:hover,
+.inline-num-btn:focus-visible {
+	background: color-mix(in srgb, currentColor 14%, transparent);
+	border-bottom-color: currentColor;
+}
 
-/* ── Attribute cards (Reflexes/Dexterity/Intelligence/... + governed skill list) ── */
-.attribute-grid {
+.vial-input {
+	width: 64px;
+	background: var(--surface-container-lowest);
+	border: 1px solid var(--outline-variant);
+	border-radius: var(--radius-sm);
+	color: inherit;
+	font-family: var(--font-body);
+	font-size: 22px;
+	font-weight: 700;
+	text-align: right;
+	padding: 0 4px;
+	outline: none;
+}
+.vial-input:focus {
+	border-color: var(--primary);
+}
+/* Sits in the small "/ max" slot rather than the big current-value slot, so it
+   matches .vial-max's type instead of the 22px value. */
+.vial-input.threshold {
+	width: 46px;
+	font-family: var(--font-mono);
+	font-size: 13px;
+	font-weight: 500;
+	text-align: center;
+	color: var(--on-surface-variant);
+	padding: 1px 2px;
+}
+.wound-flag {
+	font-family: var(--font-mono);
+	font-size: 9px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--error);
+	border: 1px solid var(--error);
+	border-radius: var(--radius-sm);
+	padding: 1px 5px;
+	margin-left: 6px;
+}
+.wound-marker {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 2px;
+	background: var(--error);
+	opacity: 0.75;
+	pointer-events: none;
+}
+.vial-max {
+	font-family: var(--font-mono);
+	font-size: 12px;
+	color: var(--on-surface-variant);
+	margin-left: 2px;
+}
+
+.portrait-preview {
+	width: 100%;
+	max-width: 160px;
+	border: 1px solid var(--outline-variant);
+	border-radius: var(--radius);
+}
+.notes-block {
+	white-space: pre-wrap;
+}
+
+/* ── Sheet body: attributes on the left, supporting panels on the right ── */
+.sheet-body-grid {
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: var(--stack-md);
 	width: 100%;
+	align-items: start;
 }
-@media (min-width: 640px) {
-	.attribute-grid {
+@media (min-width: 900px) {
+	.sheet-body-grid {
 		grid-template-columns: 1fr 1fr;
 	}
 }
-@media (min-width: 1100px) {
-	.attribute-grid {
-		grid-template-columns: 1fr 1fr 1fr;
-	}
+.attribute-column {
+	display: flex;
+	flex-direction: column;
+	gap: var(--stack-sm);
+	min-width: 0;
 }
+.sheet-side-column {
+	display: flex;
+	flex-direction: column;
+	gap: var(--stack-md);
+	min-width: 0;
+}
+
+/* ── Attribute cards: collapsible, name + value always visible ── */
+/* Parchment card on a dark page. Text uses --on-primary (the true dark brown)
+   rather than --on-primary-container, which is mixed toward the background and
+   reads washed out at small sizes. */
 .attribute-card {
 	background: var(--primary-container);
-	color: var(--on-primary-container);
+	color: var(--on-primary);
 	border: 1px solid var(--outline-variant);
 	border-radius: var(--radius-lg);
 	box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
 	padding: var(--gutter);
 	display: flex;
 	flex-direction: column;
-	gap: var(--stack-sm);
 }
 .attribute-card-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	width: 100%;
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+.attribute-card-header.static {
+	cursor: default;
+}
+/* The divider only makes sense once skills are showing beneath it. */
+.attribute-card.open .attribute-card-header {
 	border-bottom: 1px solid color-mix(in srgb, var(--on-primary-container) 30%, transparent);
 	padding-bottom: 6px;
+	margin-bottom: 6px;
+}
+.attribute-card-meta {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+/* Drawn in CSS rather than as a ▾ glyph — the display/body fonts render that
+   character almost invisibly small. */
+.attribute-chevron {
+	width: 0;
+	height: 0;
+	flex-shrink: 0;
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-top: 6px solid currentColor;
+	opacity: 0.55;
+	transition: transform 0.15s ease;
+}
+.attribute-card.open .attribute-chevron {
+	transform: rotate(180deg);
+}
+/* Keep the value and chevron clear of the hover-reveal edit pencil. */
+.edit-wrap .attribute-card-header {
+	padding-right: 22px;
 }
 .attribute-card-name {
 	font-family: var(--font-display);
@@ -573,93 +772,670 @@ main {
 .skill-row-name .pkg-mark {
 	font-family: var(--font-mono);
 	font-size: 9px;
-	color: color-mix(in srgb, var(--on-primary-container) 60%, transparent);
+	/* Mixed toward the card background rather than to transparent — fading to
+	   transparent over parchment loses the glyph entirely. */
+	color: color-mix(in srgb, var(--on-primary) 80%, var(--primary-container) 20%);
 }
 .skill-row-total {
 	font-weight: 700;
 }
 
-/* ── Footer stat summary strip ── */
-.footer-stats {
-	width: 100%;
-	padding: var(--gutter);
-	background: var(--surface-container-low);
-	border: 1px dashed var(--outline-variant);
-	border-radius: var(--radius-lg);
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-around;
-	gap: var(--stack-md);
+/* ── Derived combat/movement readouts (server-recalculated, read-only) ── */
+.derived-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+	gap: var(--stack-sm);
 }
-.footer-stat {
+.derived-item {
 	text-align: center;
+	padding: 6px 4px;
+	border: 1px solid var(--outline-variant);
+	border-radius: var(--radius-sm);
+	background: var(--surface-container-low);
 }
-.footer-stat-label {
+.derived-label {
 	font-family: var(--font-mono);
 	font-size: 10px;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
 	color: var(--on-surface-variant);
 }
-.footer-stat-value {
+.derived-value {
 	font-family: var(--font-body);
-	font-size: 22px;
+	font-size: 20px;
 	font-weight: 700;
 	color: var(--primary);
+	line-height: 24px;
 }
-
-/* ── Bottom sheet-nav (Stats / Gear / Alchemy / Magic) ── */
-.sheet-nav {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	width: 100%;
-	z-index: 50;
-	display: flex;
-	justify-content: space-around;
-	align-items: center;
-	padding: 6px 16px calc(6px + env(safe-area-inset-bottom));
-	background: var(--surface-container-low);
-	border-top: 1px solid var(--outline-variant);
+.derived-value.sm {
+	font-size: 14px;
 }
-.sheet-nav-item {
+.derived-item.over-budget {
+	border-color: var(--error);
+}
+.derived-item.over-budget .derived-value {
+	color: var(--error);
+}
+/* ── Alchemy ── */
+.substance-column {
 	display: flex;
 	flex-direction: column;
+	gap: var(--stack-sm);
+}
+.effect-list {
+	margin-top: var(--stack-sm);
+}
+.effect-row {
+	display: flex;
 	align-items: center;
-	gap: 2px;
-	padding: 6px 14px;
-	border-radius: var(--radius-full);
-	background: none;
-	border: none;
+	gap: 8px;
+	padding: 6px 0;
+	border-bottom: 1px dashed var(--outline-variant);
+}
+.effect-row:last-child {
+	border-bottom: none;
+}
+.effect-main {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	min-width: 0;
+	flex: 1;
+}
+.effect-name {
+	font-family: var(--font-display);
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--on-surface);
+}
+.effect-meta {
+	font-family: var(--font-mono);
+	font-size: 10px;
+	letter-spacing: 0.04em;
 	color: var(--on-surface-variant);
+}
+.formula-row {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	padding: 8px 0;
+	border-bottom: 1px dashed var(--outline-variant);
+}
+.formula-row:last-child {
+	border-bottom: none;
+}
+.formula-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.formula-tags {
+	display: flex;
+	gap: 4px;
+	flex-wrap: wrap;
+}
+/* Wrapper for one repeatable record inside an edit modal. */
+.list-card {
+	position: relative;
+	border: 1px solid var(--outline-variant);
+	border-radius: var(--radius);
+	padding: 10px;
+	padding-top: 28px;
+	margin-bottom: var(--stack-sm);
+	background: var(--surface-container-low);
+}
+.list-card > .remove-row-btn {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+}
+/* A modifier row inside a wound card — inset so the nesting is legible. */
+.list-card.nested {
+	background: var(--surface-container);
+	margin-left: 10px;
+}
+
+/* ── Critical wounds ── */
+.wound-row {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 6px 0;
+	border-bottom: 1px dashed var(--outline-variant);
+}
+.wound-row:last-child {
+	border-bottom: none;
+}
+.wound-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.pill.wound-bleeding,
+.pill.wound-untreated {
+	color: var(--error);
+	border-color: color-mix(in srgb, var(--error) 55%, transparent);
+}
+
+/* ── Improvement Point stepper ── */
+.ip-stepper {
+	display: flex;
+	align-items: stretch;
+	gap: var(--stack-sm);
+}
+.ip-balance {
+	flex: 1;
+	text-align: center;
+	padding: 6px 4px;
+	border: 1px solid var(--outline-variant);
+	border-radius: var(--radius-sm);
+	background: var(--surface-container-low);
+}
+.ip-step {
+	width: 44px;
+	flex-shrink: 0;
+	font-family: var(--font-body);
+	font-size: 20px;
+	font-weight: 700;
+	line-height: 1;
+	color: var(--primary);
+	background: var(--surface-container-low);
+	border: 1px solid var(--outline-variant);
+	border-radius: var(--radius-sm);
 	cursor: pointer;
+	transition:
+		border-color 0.15s,
+		background 0.15s;
+}
+.ip-step:hover:not(:disabled) {
+	border-color: var(--primary);
+	background: var(--surface-container);
+}
+.ip-step:active:not(:disabled) {
+	background: var(--surface-container-high);
+}
+.ip-step:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+/* Tab strip inside a card — smaller and quieter than the page-level sheet tabs,
+   so it reads as a control within the panel rather than competing with them. */
+.inner-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 3px;
+	margin-bottom: var(--stack-sm);
+	padding-bottom: var(--stack-sm);
+	border-bottom: 1px dashed var(--outline-variant);
+}
+.inner-tab {
+	display: flex;
+	align-items: center;
+	gap: 5px;
 	font-family: var(--font-mono);
 	font-size: 10px;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
-	text-decoration: none;
+	color: var(--on-surface-variant);
+	background: none;
+	border: 1px solid transparent;
+	border-radius: var(--radius-sm);
+	padding: 4px 9px;
+	cursor: pointer;
 	transition:
 		background 0.15s,
-		color 0.15s;
+		color 0.15s,
+		border-color 0.15s;
 }
-.sheet-nav-item.active {
-	background: var(--secondary-container);
-	color: var(--on-secondary-container);
+.inner-tab:hover {
+	border-color: var(--outline-variant);
+	color: var(--primary);
 }
-.sheet-nav-item.disabled {
-	opacity: 0.4;
-	cursor: not-allowed;
+.inner-tab.active {
+	background: var(--primary);
+	color: var(--on-primary);
+	border-color: var(--primary);
 }
-.sheet-nav-icon {
-	font-size: 18px;
-	line-height: 1;
+.inner-tab-count {
+	font-size: 9px;
+	opacity: 0.75;
 }
 
-/* ── Sheet page toggle (legacy tab pattern, kept for parity with sibling apps) ── */
+/* Overexertion warning on a spell that exceeds remaining Vigor headroom. */
+.effect-meta.over-cost {
+	color: var(--error);
+}
+
+/* Weapon damage-type multi-select. */
+.type-toggles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-bottom: var(--stack-sm);
+}
+.type-toggle {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	font-family: var(--font-body);
+	font-size: 12px;
+	color: var(--on-surface-variant);
+	border: 1px solid var(--outline-variant);
+	border-radius: var(--radius-sm);
+	padding: 4px 8px;
+	cursor: pointer;
+}
+.type-toggle input {
+	accent-color: var(--primary);
+}
+/* Equipment rows are name / qty / weight / remove. */
+.bg-row:has(.input-num + .input-num) {
+	grid-template-columns: minmax(0, 1fr) 70px 70px auto;
+}
+
+/* Memorization cap readout on the recipes panel. */
+.memory-line {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	padding-bottom: 6px;
+	margin-bottom: var(--stack-sm);
+	border-bottom: 1px dashed var(--outline-variant);
+	flex-wrap: wrap;
+}
+.memory-count {
+	font-family: var(--font-body);
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--primary);
+}
+.memory-line.over .memory-count {
+	color: var(--error);
+}
+
+.finish-creation.disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+.finish-creation {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin-top: var(--stack-sm);
+	padding-top: var(--stack-sm);
+	border-top: 1px dashed var(--outline-variant);
+	font-family: var(--font-body);
+	font-size: 12px;
+	line-height: 17px;
+	color: var(--on-surface-variant);
+	cursor: pointer;
+}
+.finish-creation input {
+	margin-top: 2px;
+	flex-shrink: 0;
+	accent-color: var(--primary);
+}
+.budget-cap {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--on-surface-variant);
+	margin-left: 2px;
+}
+
+/* ── Attribute table: Maximum / Current per stat, edited inline ── */
+.attr-table {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.attr-table-head,
+.attr-row,
+.attr-total {
+	display: grid;
+	grid-template-columns: 1fr 72px 72px;
+	gap: 8px;
+	align-items: center;
+}
+.attr-col-label {
+	font-family: var(--font-mono);
+	font-size: 10px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--on-surface-variant);
+	text-align: center;
+}
+.attr-row {
+	padding: 3px 0;
+	border-bottom: 1px dashed var(--outline-variant);
+}
+.attr-row-label {
+	font-family: var(--font-mono);
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	color: var(--on-surface-variant);
+}
+.attr-input {
+	width: 72px;
+	background: var(--surface-container-lowest);
+	border: 1px solid var(--outline-variant);
+	border-radius: var(--radius-sm);
+	color: var(--on-surface);
+	font-family: var(--font-body);
+	font-size: 16px;
+	font-weight: 700;
+	text-align: center;
+	padding: 3px 4px;
+	outline: none;
+}
+.attr-input:focus {
+	border-color: var(--primary);
+}
+.attr-input.current {
+	color: var(--primary);
+}
+.attr-value {
+	font-family: var(--font-body);
+	font-size: 16px;
+	font-weight: 700;
+	text-align: center;
+	color: var(--on-surface);
+}
+.attr-value.current {
+	color: var(--primary);
+}
+/* The Effective column only exists while something is reducing a stat, so the grid
+   grows a fourth track rather than reserving dead space on a healthy character. */
+.attr-row.with-effective,
+.attr-total.with-effective,
+.attr-table-head.with-effective {
+	grid-template-columns: 1fr 72px 72px 72px;
+}
+.attr-value.effective {
+	color: var(--on-surface-variant);
+}
+.attr-value.effective.reduced {
+	color: var(--error);
+	cursor: help;
+}
+.condition-banner {
+	margin: 0 0 8px;
+	padding: 6px 8px;
+	border-radius: var(--radius-sm);
+	border-left: 3px solid var(--error);
+	background: color-mix(in srgb, var(--error) 12%, transparent);
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--on-surface);
+}
+.condition-banner.death {
+	border-left-color: var(--error);
+	background: color-mix(in srgb, var(--error) 22%, transparent);
+}
+.attr-row.drained .attr-input.current,
+.attr-row.drained .attr-value.current {
+	color: var(--error);
+}
+.attr-total {
+	margin-top: 4px;
+	padding-top: 6px;
+	border-top: 1px solid var(--outline-variant);
+}
+.attr-total-value {
+	font-family: var(--font-body);
+	font-size: 18px;
+	font-weight: 700;
+	text-align: center;
+	color: var(--primary);
+}
+.attr-total.over .attr-total-value {
+	color: var(--error);
+}
+.attr-total-pool {
+	font-family: var(--font-mono);
+	font-size: 10px;
+	text-align: center;
+	color: var(--on-surface-variant);
+}
+.attr-warning {
+	font-family: var(--font-body);
+	font-size: 12px;
+	color: var(--error);
+	margin-top: 4px;
+}
+
+/* ── Skill group extras ── */
+/* These sit on the light parchment card, so they tint toward the card background
+   instead of using opacity — stacking opacity on an already-muted colour is what
+   made them unreadable. */
+.skill-group-count {
+	font-family: var(--font-mono);
+	font-size: 10px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--on-primary) 88%, var(--primary-container) 12%);
+}
+.cost-mark {
+	font-family: var(--font-mono);
+	font-size: 9px;
+	color: color-mix(in srgb, var(--on-primary) 80%, var(--primary-container) 20%);
+}
+
+/* ── Profession ability tree: 3 branches × 3 tiers of free-form slots ── */
+.ability-tree {
+	display: flex;
+	flex-direction: column;
+	gap: var(--stack-md);
+}
+.ability-defining {
+	border: 1px solid var(--outline-variant);
+	border-left: 3px solid var(--primary);
+	border-radius: var(--radius);
+	background: var(--surface-container-low);
+	padding: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.ability-defining.empty {
+	opacity: 0.55;
+	border-style: dashed;
+	border-left-style: solid;
+}
+.ability-branches {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--stack-sm);
+}
+@media (min-width: 640px) {
+	.ability-branches {
+		grid-template-columns: 1fr 1fr 1fr;
+	}
+}
+.ability-branch {
+	display: flex;
+	flex-direction: column;
+	gap: var(--stack-sm);
+	min-width: 0;
+}
+.ability-card {
+	border: 1px solid var(--outline-variant);
+	border-left-width: 3px;
+	border-radius: var(--radius);
+	background: var(--surface-container-low);
+	padding: 8px 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.ability-card.one {
+	border-left-color: var(--tertiary);
+}
+.ability-card.two {
+	border-left-color: var(--aether);
+}
+.ability-card.three {
+	border-left-color: var(--vitriol);
+}
+.ability-card.empty {
+	opacity: 0.55;
+	border-style: dashed;
+	border-left-style: solid;
+}
+.ability-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 8px;
+}
+.ability-name {
+	font-family: var(--font-display);
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--on-surface);
+}
+.ability-stat {
+	font-family: var(--font-mono);
+	font-size: 10px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--on-surface-variant);
+	flex-shrink: 0;
+}
+.ability-desc {
+	font-family: var(--font-body);
+	font-size: 12px;
+	line-height: 17px;
+	color: var(--on-surface-variant);
+}
+.ability-desc.muted {
+	font-style: italic;
+	opacity: 0.7;
+}
+.ability-foot {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: auto;
+}
+.ability-level-label {
+	font-family: var(--font-mono);
+	font-size: 10px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--on-surface-variant);
+}
+.ability-level {
+	font-family: var(--font-body);
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--primary);
+}
+.ability-edit-btn {
+	margin-left: auto;
+	font-family: var(--font-mono);
+	font-size: 10px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--on-surface-variant);
+	background: none;
+	border: 1px solid var(--outline-variant);
+	border-radius: var(--radius-sm);
+	padding: 2px 10px;
+	cursor: pointer;
+	transition: border-color 0.15s;
+}
+.ability-edit-btn:hover {
+	border-color: var(--primary);
+	color: var(--primary);
+}
+
+/* ── Background tab: repeatable flavor rows (relations, life events) ── */
+.bg-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 8px;
+	align-items: start;
+	margin-bottom: var(--stack-sm);
+}
+.bg-row:has(.bg-row-kind) {
+	grid-template-columns: 96px minmax(0, 1fr) auto;
+}
+.bg-row-kind {
+	padding: 6px 4px;
+	font-size: 13px;
+}
+.bg-row-kind-label {
+	margin-top: 2px;
+}
+.bg-row-wide {
+	min-width: 0;
+}
+.bg-event-view {
+	padding: 6px 0;
+	border-bottom: 1px dashed var(--outline-variant);
+}
+.bg-event-view:last-child {
+	border-bottom: none;
+}
+.remove-row-btn {
+	background: none;
+	border: 1px solid var(--outline-variant);
+	color: var(--error);
+	border-radius: var(--radius-sm);
+	width: 26px;
+	height: 26px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	padding: 0;
+}
+.remove-row-btn:hover {
+	background: var(--error-container);
+}
+.add-row-btn {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--primary);
+	background: none;
+	border: 1px dashed var(--outline-variant);
+	border-radius: var(--radius-sm);
+	padding: 6px 12px;
+	cursor: pointer;
+	width: 100%;
+	margin-top: 4px;
+}
+.add-row-btn:hover {
+	border-color: var(--primary);
+}
+/* On a parchment card the page's light body colour is invisible — override it. */
+.attribute-card .empty-hint,
+.attribute-card .field-hint {
+	color: color-mix(in srgb, var(--on-primary) 85%, var(--primary-container) 15%);
+}
+.empty-hint {
+	font-family: var(--font-body);
+	font-size: 13px;
+	color: var(--on-surface-variant);
+	font-style: italic;
+	padding: 8px 0;
+}
+
+/* ── Sheet tab strip (Stats / Skills / Gear / Alchemy / Magic) — inline segmented
+   control in the page flow, same pattern as the sibling apps ── */
 .sheet-tabs {
 	display: flex;
 	gap: 4px;
-	margin-bottom: var(--stack-md);
+	width: 100%;
 	background: var(--surface-container-low);
 	border: 1px solid var(--outline-variant);
 	border-radius: var(--radius);
@@ -684,6 +1460,10 @@ main {
 .sheet-tab.active {
 	background: var(--primary);
 	color: var(--on-primary);
+}
+.sheet-tab.disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
 }
 
 /* ── Table (hit locations, weapons, etc.) ── */
@@ -958,6 +1738,59 @@ select.input-demo {
 .input-num {
 	width: 60px;
 	text-align: center;
+}
+.grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--stack-sm);
+}
+.checkbox-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-family: var(--font-body);
+	font-size: 13px;
+	color: var(--on-surface);
+	cursor: pointer;
+}
+
+/* ── Skill point rows inside the attribute edit modal ── */
+.skill-edit-row {
+	display: grid;
+	grid-template-columns: 1fr 60px 44px;
+	gap: 8px;
+	align-items: center;
+	padding: 4px 0;
+	border-bottom: 1px dashed var(--outline-variant);
+}
+.skill-edit-row:last-child {
+	border-bottom: none;
+}
+.skill-edit-name {
+	font-family: var(--font-body);
+	font-size: 13px;
+	color: var(--on-surface);
+}
+.skill-edit-head span {
+	font-family: var(--font-mono);
+	font-size: 10px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--on-surface-variant);
+	text-align: center;
+}
+.skill-edit-head .skill-edit-name {
+	text-align: left;
+	font-family: var(--font-mono);
+	font-size: 10px;
+}
+.skill-edit-total {
+	font-family: var(--font-body);
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--on-surface-variant);
+	text-align: center;
+	opacity: 0.7;
 }
 
 /* ── Progress bars (generic, non-vital) ── */
