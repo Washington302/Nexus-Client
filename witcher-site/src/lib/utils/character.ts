@@ -5,9 +5,53 @@ import type {
 	WitcherStat,
 	WitcherCharacter,
 	Skill,
+	Statistics,
+	DerivedStats,
+	CriticalWound,
+	WoundModifier,
+	WoundState,
+	WoundSeverity,
+	WoundLocation,
+	WitcherSkillName,
+	ProfessionAbility,
+	LifepathEvent,
+	Recipe,
+	AlchemyItemType,
+	Material,
+	AlchemicalItem,
+	ActiveAlchemyEffect,
+	RecipeComponent,
+	MasteryTier,
+	IngredientRarity,
+	Substance,
+	SubstanceHolding,
+	RecipeType,
+	OptionalRules,
+	CraftedItem,
+	Weapon,
+	WeaponType,
+	Availability,
+	Concealment,
+	ArmorItem,
+	ArmorLocation,
+	EquipmentItem,
+	MagicalEffect,
+	MagicType,
+	MagicElement,
 	GameSession,
 	SessionNpc
 } from '$lib/services/api';
+
+/** Comma-separated text <-> string[] for compact list fields (racial traits, etc.). */
+export function listToText(list: string[]): string {
+	return (list ?? []).join(', ');
+}
+export function textToList(text: string): string[] {
+	return text
+		.split(',')
+		.map((s) => s.trim())
+		.filter(Boolean);
+}
 
 export function createDefaultSessionNpc(): SessionNpc {
 	return { id: crypto.randomUUID(), name: '', role: '', avatar: '' };
@@ -24,11 +68,11 @@ export function createDefaultSession(nextNumber: number): GameSession {
 		npcs: [],
 		loot: [],
 		summary: '',
-		postscripts: [],
+		postscripts: []
 	};
 }
 
-export const RACE_OPTIONS: Race[] = ['HUMAN', 'ELF', 'DWARF', 'HALFLING'];
+export const RACE_OPTIONS: Race[] = ['HUMAN', 'ELF', 'DWARF', 'WITCHER'];
 
 export const PROFESSION_OPTIONS: Profession[] = [
 	'BARD',
@@ -44,6 +88,14 @@ export const PROFESSION_OPTIONS: Profession[] = [
 
 export const GAME_TYPE_OPTIONS: GameType[] = ['AVERAGE', 'SKILLED', 'HEROES', 'LEGENDS'];
 
+/** Point pools from GameType.java — the budget validateStatBudget checks against. */
+export const GAME_TYPE_POOL: Record<GameType, number> = {
+	AVERAGE: 60,
+	SKILLED: 70,
+	HEROES: 75,
+	LEGENDS: 80
+};
+
 /** Order attribute cards should render in, matching the mockup's Reflex/Dexterity/Intelligence/Will/Empathy grid. */
 export const STAT_ORDER: WitcherStat[] = [
 	'REFLEXES',
@@ -56,6 +108,79 @@ export const STAT_ORDER: WitcherStat[] = [
 	'SPEED',
 	'LUCK'
 ];
+
+/** Stat order for the attribute table, matching the printed player sheet. */
+export const STAT_TABLE_ORDER: WitcherStat[] = [
+	'INTELLIGENCE',
+	'REFLEXES',
+	'DEXTERITY',
+	'BODY',
+	'SPEED',
+	'EMPATHY',
+	'CRAFT',
+	'WILL',
+	'LUCK'
+];
+
+/** Abbreviations used in the attribute table, as printed on the sheet. */
+export const STAT_ABBREV: Record<WitcherStat, string> = {
+	INTELLIGENCE: 'INT',
+	REFLEXES: 'REF',
+	DEXTERITY: 'DEX',
+	BODY: 'BODY',
+	SPEED: 'SPD',
+	EMPATHY: 'EMP',
+	CRAFT: 'CRA',
+	WILL: 'WILL',
+	LUCK: 'LUCK'
+};
+
+/** The max/normal stat fields on Statistics — the point-buy values. */
+export type StatisticsField = Exclude<
+	keyof Statistics,
+	| 'gameType'
+	| 'currentIntelligence'
+	| 'currentReflexes'
+	| 'currentDexterity'
+	| 'currentBody'
+	| 'currentSpeed'
+	| 'currentEmpathy'
+	| 'currentCraft'
+	| 'currentWill'
+	| 'currentLuck'
+>;
+
+/** The matching live-play field for each stat. */
+export type StatisticsCurrentField = Extract<keyof Statistics, `current${string}`>;
+
+export const STAT_TO_CURRENT_FIELD: Record<WitcherStat, StatisticsCurrentField> = {
+	INTELLIGENCE: 'currentIntelligence',
+	REFLEXES: 'currentReflexes',
+	DEXTERITY: 'currentDexterity',
+	BODY: 'currentBody',
+	SPEED: 'currentSpeed',
+	EMPATHY: 'currentEmpathy',
+	CRAFT: 'currentCraft',
+	WILL: 'currentWill',
+	LUCK: 'currentLuck'
+};
+
+/**
+ * Maps a WitcherStat to its settable Statistics field. `statValue()` reads via a
+ * switch and so can't be a `bind:value` target; this gives edit forms a writable
+ * path (`statistics[STAT_TO_STATISTICS_FIELD[stat]]`).
+ */
+export const STAT_TO_STATISTICS_FIELD: Record<WitcherStat, StatisticsField> = {
+	INTELLIGENCE: 'intelligence',
+	REFLEXES: 'reflexes',
+	DEXTERITY: 'dexterity',
+	BODY: 'body',
+	SPEED: 'speed',
+	EMPATHY: 'empathy',
+	CRAFT: 'craft',
+	WILL: 'will',
+	LUCK: 'luck'
+};
 
 const LABELS: Record<string, string> = {
 	INTELLIGENCE: 'Intelligence',
@@ -70,7 +195,6 @@ const LABELS: Record<string, string> = {
 	HUMAN: 'Human',
 	ELF: 'Elf',
 	DWARF: 'Dwarf',
-	HALFLING: 'Halfling',
 	BARD: 'Bard',
 	CRAFTSMAN: 'Craftsman',
 	CRIMINAL: 'Criminal',
@@ -84,6 +208,49 @@ const LABELS: Record<string, string> = {
 	SKILLED: 'Skilled',
 	HEROES: 'Heroes',
 	LEGENDS: 'Legends',
+	POTION: 'Potion',
+	OIL: 'Oil',
+	DECOCTION: 'Decoction',
+	BOMB: 'Bomb',
+	MUTAGEN: 'Mutagen',
+	OTHER: 'Other',
+	NOVICE: 'Novice',
+	JOURNEYMAN: 'Journeyman',
+	MASTER: 'Master',
+	EVERYWHERE: 'Everywhere',
+	COMMON: 'Common',
+	POOR: 'Poor',
+	RARE: 'Rare',
+	SPELL: 'Spell',
+	INVOCATION: 'Invocation',
+	SIGN: 'Sign',
+	RITUAL: 'Ritual',
+	HEX: 'Hex',
+	EARTH: 'Earth',
+	AIR: 'Air',
+	FIRE: 'Fire',
+	WATER: 'Water',
+	MIXED: 'Mixed',
+	SLASHING: 'Slashing',
+	PIERCING: 'Piercing',
+	BLUDGEONING: 'Bludgeoning',
+	TINY: 'Tiny',
+	SMALL: 'Small',
+	LARGE: 'Large',
+	CANNOT_HIDE: 'Cannot Hide',
+	HEAD: 'Head',
+	UPPER_BODY: 'Upper Body',
+	LOWER_BODY: 'Lower Body',
+	SHIELD: 'Shield',
+	VITRIOL: 'Vitriol',
+	REBIS: 'Rebis',
+	AETHER: 'Aether',
+	QUEBRITH: 'Quebrith',
+	HYDRAGENUM: 'Hydragenum',
+	VERMILION: 'Vermilion',
+	SOL: 'Sol',
+	CAELUM: 'Caelum',
+	FULGUR: 'Fulgur',
 	// Fixed 44-skill list (WitcherSkillName.java) — hardcoded rather than heuristically
 	// derived from the enum name, since a generic "join with /" rule can't tell
 	// "Dodge/Escape" (rulebook slash) from "Human Perception" (plain two-word name).
@@ -154,6 +321,635 @@ export function skillsForStat(skills: Skill[], stat: WitcherStat): Skill[] {
 	return skills.filter((s) => s.governingStat === stat);
 }
 
+/**
+ * Mirrors WitcherDerivedStatsService.recalculateSkills — a skill's total is its
+ * governing stat's value plus the points invested. The server recomputes and
+ * overwrites `skill.total` on every save, so this is a live preview of that value:
+ * it keeps the sheet honest while you're typing, instead of showing a stale cached
+ * total until the next round-trip.
+ */
+export function skillTotal(statValue: number, points: number): number {
+	return (statValue || 0) + (points || 0);
+}
+
+/** A stat's live value — what you actually roll with — falling back to its max. */
+export function currentStatValue(statistics: Statistics, stat: WitcherStat): number {
+	const current = statistics[STAT_TO_CURRENT_FIELD[stat]];
+	return current ?? statistics[STAT_TO_STATISTICS_FIELD[stat]];
+}
+
+// ─── CRITICAL WOUND / CONDITION PENALTIES ──────────────────────────────────────
+//
+// The server stores wounds but deliberately applies nothing, because the rulebook
+// never prints a stacking order. This is where the table's ruling lives, in one
+// place, so it can be pointed at and changed rather than being spread through the UI.
+//
+// The order implemented, from the rules as given:
+//   1. Wound multipliers compound, applied sequentially and rounded down at each
+//      step. Two quarterings really is a sixteenth — the Hym's nightmare states "the
+//      halving of Stamina is cumulative", and the same logic governs the rest.
+//   2. The state multiplier — Wound Threshold halving, or Death State thirding —
+//      applies ON TOP of that already-multiplied value, not to the base ("if your
+//      Stamina is already quartered by Septic Shock and you enter the Death State,
+//      your Stamina would be reduced to 1/3 of that quartered value"). Death State
+//      replaces the halving rather than stacking with it.
+//   3. Flat wound penalties come off last, i.e. off the already-reduced value
+//      ("subtracted from your new, halved base": REF 10 → 5 → Concussion -2 → 3).
+//   4. Numbing Herbs lower each penalty by 2, separately, and never below 0.
+//   5. A statistic can reach 0 but never goes below it.
+//
+// Steps 2-4 are expressed as positive reductions rather than as further multiplies,
+// which is what makes step 4 work: herbs reduce each *penalty*, so they can never
+// push a stat above where it started. Verified against every printed example.
+//
+// Integer division is used for the state rather than multiplying by 1/2 or 1/3 —
+// 1/3 is not exact in binary, and 3 * (1/3) floors to 0 rather than 1.
+
+/** Sequential reduction, rounded down at each step. floor(floor(x/a)/b) equals
+ *  floor(x/ab) for positive integers, so applying them one at a time is both what
+ *  the rules describe and arithmetically identical to combining them first. */
+function applyMultipliers(value: number, multipliers: number[]): number {
+	return multipliers.reduce((acc, m) => Math.floor(acc * m), value);
+}
+
+/** The Wound Threshold halves only these four. BODY and SPD are explicitly exempt;
+ *  their penalties come from specific criticals instead. EMP/CRA/LUCK go untouched. */
+const WOUND_THRESHOLD_HALVES: readonly WitcherStat[] = [
+	'REFLEXES',
+	'DEXTERITY',
+	'INTELLIGENCE',
+	'WILL'
+];
+
+/** Numbing Herbs "lower negatives from critical wounds by 2" and "lessen penalties
+ *  from being near death by 2". Applied per penalty, not once overall. */
+export const NUMBING_HERB_RELIEF = 2;
+
+export type HealthCondition = 'NONE' | 'WOUNDED' | 'DEATH_STATE';
+
+/**
+ * Which whole-character condition is in force. Death State replaces the Wound
+ * Threshold halving rather than stacking with it, so this is one value, not a set.
+ */
+export function healthCondition(derived: DerivedStats): HealthCondition {
+	if (derived.currentHealthPoints <= 0) return 'DEATH_STATE';
+	if (derived.woundThreshold > 0 && derived.currentHealthPoints < derived.woundThreshold)
+		return 'WOUNDED';
+	return 'NONE';
+}
+
+/** The modifier list matching a wound's current state — the tables print one column per state. */
+export function activeModifiers(wound: CriticalWound): WoundModifier[] {
+	if (wound.state === 'TREATED') return wound.treatedModifiers ?? [];
+	if (wound.state === 'STABILIZED') return wound.stabilizedModifiers ?? [];
+	return wound.untreatedModifiers ?? [];
+}
+
+/**
+ * Herbs are flagged per wound, so near-death relief applies if herbs are on any
+ * wound. ASSUMPTION: the rule reads as one application relieving the near-death
+ * penalty once, not once per treated wound — relief is never summed.
+ */
+function nearDeathRelief(wounds: CriticalWound[]): number {
+	return wounds.some((w) => w.numbingHerbsApplied) ? NUMBING_HERB_RELIEF : 0;
+}
+
+export interface StatPenalty {
+	/** Working base: the player-owned current value, falling back to the max. */
+	base: number;
+	/** What you actually roll with. */
+	effective: number;
+	/** Reduction from the Wound Threshold / Death State, after herb relief. Measured
+	 *  against the already-multiplied value, since the state applies on top. */
+	conditionPenalty: number;
+	/** Reduction from wound multipliers compounding, taken off the base. */
+	multiplierPenalty: number;
+	/** Product of every active wound multiplier — 0.0625 when two quarterings stack. */
+	multiplier: number;
+	/** Reduction from flat wound penalties, after per-wound herb relief. */
+	flatPenalty: number;
+	condition: HealthCondition;
+	/** True when anything at all is reducing the stat. */
+	impaired: boolean;
+}
+
+/**
+ * The full penalty breakdown for one stat. Returns the parts as well as the total so
+ * the UI can explain *why* a number dropped instead of just showing a smaller number.
+ *
+ * Worked against every printed example:
+ *   REF 10, below threshold, Concussion -2   →  10 → 5 → -2       = 3   ✓
+ *   the same with Numbing Herbs              →  10 → 7 → -0       = 7   ✓
+ *   SPD 10, Heart Damage + Compound Fracture →  10 → 2 → 0        = 0   ✓
+ */
+export function statPenalty(
+	statistics: Statistics,
+	derived: DerivedStats,
+	wounds: CriticalWound[],
+	stat: WitcherStat
+): StatPenalty {
+	const base = currentStatValue(statistics, stat);
+	const condition = healthCondition(derived);
+	const list = wounds ?? [];
+
+	// 1. Multipliers compound. Two quarterings is a sixteenth, not a quarter.
+	const multipliers: number[] = [];
+	for (const wound of list) {
+		for (const mod of activeModifiers(wound)) {
+			if (mod.stat === stat && mod.multiplier > 0 && mod.multiplier < 1) {
+				multipliers.push(mod.multiplier);
+			}
+		}
+	}
+	const afterMultipliers = applyMultipliers(base, multipliers);
+	const multiplierPenalty = base - afterMultipliers;
+	const multiplier = multipliers.reduce((acc, m) => acc * m, 1);
+
+	// 2. The state applies to the already-multiplied value, not to the base — a
+	//    quartered stat entering Death State becomes a third OF THE QUARTER.
+	//    Integer division, because 1/3 is inexact in binary.
+	let conditionPenalty = 0;
+	if (condition === 'DEATH_STATE') {
+		conditionPenalty = afterMultipliers - Math.floor(afterMultipliers / 3);
+	} else if (condition === 'WOUNDED' && WOUND_THRESHOLD_HALVES.includes(stat)) {
+		conditionPenalty = afterMultipliers - Math.floor(afterMultipliers / 2);
+	}
+	conditionPenalty = Math.max(0, conditionPenalty - nearDeathRelief(list));
+
+	// 3. Flat penalties, relieved per wound since herbs are applied to a wound.
+	let flatPenalty = 0;
+	for (const wound of list) {
+		let woundFlat = 0;
+		for (const mod of activeModifiers(wound)) {
+			if (mod.stat === stat) woundFlat += Math.abs(mod.flatPenalty || 0);
+		}
+		if (woundFlat > 0) {
+			flatPenalty += Math.max(0, woundFlat - (wound.numbingHerbsApplied ? NUMBING_HERB_RELIEF : 0));
+		}
+	}
+
+	// Floored at 0: a statistic can be reduced to nothing, but never past it.
+	const effective = Math.max(0, afterMultipliers - conditionPenalty - flatPenalty);
+	return {
+		base,
+		effective,
+		conditionPenalty,
+		multiplierPenalty,
+		multiplier,
+		flatPenalty,
+		condition,
+		impaired: effective < base
+	};
+}
+
+/** What you roll with, after every wound and condition penalty. */
+export function effectiveStat(
+	statistics: Statistics,
+	derived: DerivedStats,
+	wounds: CriticalWound[],
+	stat: WitcherStat
+): number {
+	return statPenalty(statistics, derived, wounds, stat).effective;
+}
+
+/**
+ * Flat + multiplier reduction a wound imposes on one skill directly (Compound Leg
+ * Fracture quarters Dodge/Escape and Athletics). Separate from the stat path: this
+ * hits the skill's own points, not its governing stat.
+ */
+export function skillWoundPenalty(
+	wounds: CriticalWound[],
+	skill: WitcherSkillName
+): { multipliers: number[]; flat: number } {
+	const list = wounds ?? [];
+	const multipliers: number[] = [];
+	let flat = 0;
+	for (const wound of list) {
+		let woundFlat = 0;
+		for (const mod of activeModifiers(wound)) {
+			if (mod.skill !== skill) continue;
+			// Compound, as on stats — a Leg Fracture and a second quartering is a sixteenth.
+			if (mod.multiplier > 0 && mod.multiplier < 1) multipliers.push(mod.multiplier);
+			woundFlat += Math.abs(mod.flatPenalty || 0);
+		}
+		if (woundFlat > 0) {
+			flat += Math.max(0, woundFlat - (wound.numbingHerbsApplied ? NUMBING_HERB_RELIEF : 0));
+		}
+	}
+	return { multipliers, flat };
+}
+
+/**
+ * A skill's live total: its governing stat after every penalty, plus its points after
+ * any wound that targets the skill itself. The multiplier hits the points rather than
+ * the total, matching the backend's note that a Compound Leg Fracture quarters current
+ * Dodge/Escape without touching the purchased value.
+ */
+export function effectiveSkillTotal(
+	statistics: Statistics,
+	derived: DerivedStats,
+	wounds: CriticalWound[],
+	skill: Skill
+): number {
+	const stat = effectiveStat(statistics, derived, wounds, skill.governingStat);
+	const { multipliers, flat } = skillWoundPenalty(wounds, skill.skillName);
+	const points = Math.max(0, applyMultipliers(skill.points || 0, multipliers) - flat);
+	return stat + points;
+}
+
+export const WOUND_SEVERITY_OPTIONS: WoundSeverity[] = ['SIMPLE', 'COMPLEX', 'DIFFICULT', 'DEADLY'];
+export const WOUND_STATE_OPTIONS: WoundState[] = ['UNTREATED', 'STABILIZED', 'TREATED'];
+export const WOUND_LOCATION_OPTIONS: WoundLocation[] = ['HEAD', 'TORSO', 'ARM', 'LEG'];
+
+/** 1.0 / 0.5 / 0.25, as the backend's WoundModifier.multiplier expects. */
+export const WOUND_MULTIPLIER_OPTIONS: { value: number; label: string }[] = [
+	{ value: 1, label: 'None' },
+	{ value: 0.5, label: 'Halved' },
+	{ value: 0.25, label: 'Quartered' }
+];
+
+export function createDefaultWoundModifier(): WoundModifier {
+	return {
+		id: crypto.randomUUID(),
+		stat: null,
+		skill: null,
+		otherTarget: '',
+		flatPenalty: 0,
+		multiplier: 1,
+		notes: ''
+	};
+}
+
+export function createDefaultCriticalWound(): CriticalWound {
+	return {
+		id: crypto.randomUUID(),
+		name: '',
+		severity: null,
+		location: null,
+		state: 'UNTREATED',
+		bleeding: false,
+		untreatedModifiers: [],
+		stabilizedModifiers: [],
+		treatedModifiers: [],
+		effectText: '',
+		stabilizedText: '',
+		treatedText: '',
+		numbingHerbsApplied: false,
+		notes: ''
+	};
+}
+
+/** Raw sum of the nine maximum stats — the printed sheet's STAT TOTAL. validateStatBudget
+ * compares this minus the baseline (1 per stat) against the game type's point pool. */
+export function statPointsSpent(statistics: Statistics): number {
+	return STAT_TABLE_ORDER.reduce(
+		(sum, stat) => sum + (statistics[STAT_TO_STATISTICS_FIELD[stat]] || 0),
+		0
+	);
+}
+
+/* ── Background / lifepath ──────────────────────────────────────────────────
+   Everything flavor-side is stored as LifepathEvent {category, description}.
+   Fixed background boxes each own one entry under a known category; relations
+   and decade rolls are repeatable entries under theirs. */
+
+export const STYLE_CATEGORIES = [
+	'Clothing',
+	'Personality',
+	'Hair Style',
+	'Affectations',
+	'Valued Person',
+	'Value',
+	'Feelings On People'
+] as const;
+
+export const EARLY_LIFE_CATEGORIES = [
+	'Homeland',
+	'Family',
+	'Parents',
+	'Status',
+	'Influential Friend'
+] as const;
+
+export const RELATION_OPTIONS = ['Sibling', 'Rival', 'Friend'] as const;
+
+export const LIFE_EVENT_CATEGORY = 'Life Event';
+
+export function lifepathValue(events: LifepathEvent[], category: string): string {
+	return events.find((e) => e.category === category)?.description ?? '';
+}
+
+/** Writes a single-entry category, creating its LifepathEvent on first input. */
+export function setLifepathValue(c: WitcherCharacter, category: string, description: string): void {
+	const found = c.lifepathEvents.find((e) => e.category === category);
+	if (found) {
+		found.description = description;
+	} else {
+		c.lifepathEvents.push({ id: crypto.randomUUID(), category, description });
+	}
+}
+
+export function createLifepathEvent(category: string): LifepathEvent {
+	return { id: crypto.randomUUID(), category, description: '' };
+}
+
+export function removeLifepathEvent(c: WitcherCharacter, id: string): void {
+	c.lifepathEvents = c.lifepathEvents.filter((e) => e.id !== id);
+}
+
+/* ── Magic ────────────────────────────────────────────────────────────────── */
+
+export const MAGIC_TYPE_OPTIONS: MagicType[] = ['SPELL', 'INVOCATION', 'SIGN', 'RITUAL', 'HEX'];
+
+/** Section headings — spelled out rather than appending "s", which gives "Hexs". */
+export const MAGIC_TYPE_PLURAL: Record<MagicType, string> = {
+	SPELL: 'Spells',
+	INVOCATION: 'Invocations',
+	SIGN: 'Signs',
+	RITUAL: 'Rituals',
+	HEX: 'Hexes'
+};
+export const MAGIC_ELEMENT_OPTIONS: MagicElement[] = ['EARTH', 'AIR', 'FIRE', 'WATER', 'MIXED'];
+
+export function createDefaultMagicalEffect(type: MagicType = 'SPELL'): MagicalEffect {
+	return {
+		id: crypto.randomUUID(),
+		name: '',
+		type,
+		tier: 'NOVICE',
+		element: null,
+		staCost: 0,
+		effect: '',
+		range: '',
+		duration: '',
+		defense: '',
+		active: false,
+		vigorUpkeep: 0,
+		staUpkeep: 0,
+		components: '',
+		preparationTime: '',
+		difficultyCheck: 0,
+		requirementToLift: '',
+		danger: '',
+		notes: ''
+	};
+}
+
+/**
+ * Vigor tied up by maintained effects. Mirrors the server's committedVigor so the
+ * number moves the moment an effect is toggled, rather than waiting for a save.
+ */
+export function committedVigor(effects: MagicalEffect[]): number {
+	return effects.reduce((sum, e) => sum + (e.active ? e.vigorUpkeep || 0 : 0), 0);
+}
+
+/** Stamina drained per round by everything currently maintained. */
+export function staminaUpkeep(effects: MagicalEffect[]): number {
+	return effects.reduce((sum, e) => sum + (e.active ? e.staUpkeep || 0 : 0), 0);
+}
+
+/* ── Gear ─────────────────────────────────────────────────────────────────── */
+
+export const WEAPON_TYPE_OPTIONS: WeaponType[] = ['SLASHING', 'PIERCING', 'BLUDGEONING'];
+export const AVAILABILITY_OPTIONS: Availability[] = ['EVERYWHERE', 'COMMON', 'POOR', 'RARE'];
+export const CONCEALMENT_OPTIONS: Concealment[] = ['TINY', 'SMALL', 'LARGE', 'CANNOT_HIDE'];
+export const ARMOR_LOCATION_OPTIONS: ArmorLocation[] = [
+	'HEAD',
+	'UPPER_BODY',
+	'LOWER_BODY',
+	'SHIELD'
+];
+
+export function createDefaultWeapon(): Weapon {
+	return {
+		id: crypto.randomUUID(),
+		name: '',
+		weaponTypes: [],
+		weaponAccuracy: 0,
+		availability: null,
+		damage: '',
+		maxReliability: 0,
+		currentReliability: 0,
+		hands: 1,
+		range: '',
+		effect: '',
+		concealment: null,
+		enhancementSlots: 0,
+		weight: 0,
+		quantity: 1,
+		cost: 0,
+		notes: ''
+	};
+}
+
+export function createDefaultArmor(): ArmorItem {
+	return {
+		id: crypto.randomUUID(),
+		name: '',
+		location: null,
+		coverage: '',
+		maxStoppingPower: 0,
+		currentStoppingPower: 0,
+		availability: null,
+		enhancementSlots: 0,
+		effect: '',
+		encumbranceValue: 0,
+		weight: 0,
+		equipped: false,
+		cost: 0,
+		notes: ''
+	};
+}
+
+export function createDefaultEquipment(): EquipmentItem {
+	return { id: crypto.randomUUID(), name: '', quantity: 1, weight: 0, notes: '' };
+}
+
+/** Crafting materials are `Material` rows with no substance — alchemical ones live on Alchemy. */
+export function craftingMaterials(materials: Material[]): Material[] {
+	return materials.filter((m) => !m.yieldsSubstance);
+}
+
+/** Diagrams are the crafting half of the unified recipe list. */
+export function diagrams(recipes: Recipe[]): Recipe[] {
+	return recipes.filter((r) => r.type === 'DIAGRAM');
+}
+
+/* ── Alchemy ──────────────────────────────────────────────────────────────── */
+
+export const ALCHEMY_TYPE_OPTIONS: AlchemyItemType[] = [
+	'POTION',
+	'OIL',
+	'DECOCTION',
+	'BOMB',
+	'MUTAGEN',
+	'OTHER'
+];
+
+export const MASTERY_TIER_OPTIONS: MasteryTier[] = ['NOVICE', 'JOURNEYMAN', 'MASTER'];
+
+export const RARITY_OPTIONS: IngredientRarity[] = ['EVERYWHERE', 'COMMON', 'POOR', 'RARE'];
+
+/** Canonical substance order — the server seeds these nine rows at creation. */
+export const SUBSTANCE_ORDER: Substance[] = [
+	'VITRIOL',
+	'REBIS',
+	'AETHER',
+	'QUEBRITH',
+	'HYDRAGENUM',
+	'VERMILION',
+	'SOL',
+	'CAELUM',
+	'FULGUR'
+];
+
+/**
+ * Characters created before the alchemy module have an empty `substanceStore`,
+ * since seeding only runs at creation. Rather than depend on a backfill, the sheet
+ * always renders the canonical nine and merges whatever the server sent by
+ * substance — so it's correct for seeded, empty, partial or reordered stores, and
+ * the rows persist on the next save.
+ */
+export function normalizeSubstanceStore(rows: SubstanceHolding[]): SubstanceHolding[] {
+	return SUBSTANCE_ORDER.map(
+		(substance) =>
+			rows.find((r) => r.substance === substance) ?? {
+				id: crypto.randomUUID(),
+				substance,
+				quantity: 0
+			}
+	);
+}
+
+/**
+ * How many recipes can be held in memory at once. One pool spanning diagrams AND
+ * formulae — the rulebook's cap reads "recipes (diagrams or formulae)", not one
+ * allowance per system.
+ *
+ * Uses the character's normal (max) INT rather than the drained current value, so a
+ * head injury doesn't retroactively invalidate recipes already memorised.
+ *
+ * ⚠️ ASSUMPTION: cap = INT exactly. The backend describes the cap as "INT-bounded"
+ * but doesn't state a multiplier and has no constant for it yet (`memorized` is
+ * unvalidated server-side). If the real rule is INT×2 or similar, change it here —
+ * this is the only place the number is defined.
+ */
+export function memorizedCap(statistics: Statistics): number {
+	return statistics.intelligence || 0;
+}
+
+export function memorizedCount(recipes: Recipe[]): number {
+	return recipes.filter((r) => r.memorized).length;
+}
+
+/** Defaults to a formula; the Gear tab will pass 'DIAGRAM' for crafting recipes. */
+export function createDefaultRecipe(type: RecipeType = 'FORMULA'): Recipe {
+	return {
+		id: crypto.randomUUID(),
+		name: '',
+		type,
+		alchemyType: type === 'FORMULA' ? 'POTION' : null,
+		craftedType: '',
+		tier: 'NOVICE',
+		craftingDc: 0,
+		craftingTime: '',
+		components: [],
+		toxicityPercent: 0,
+		requiresForge: false,
+		writtenCopy: false,
+		memorized: false,
+		cost: 0,
+		effectText: '',
+		ingredientsText: ''
+	};
+}
+
+/** Fungible by default (any material yielding the substance works, per alchemy). */
+export function createDefaultComponent(): RecipeComponent {
+	return { id: crypto.randomUUID(), substance: 'VITRIOL', materialName: '', quantity: 1 };
+}
+
+/** Alchemy always supplies the group's substance; Gear will pass null for crafting materials. */
+export function createDefaultMaterial(substance: Substance | null = null): Material {
+	return {
+		id: crypto.randomUUID(),
+		name: '',
+		yieldsSubstance: substance,
+		rarity: null,
+		location: '',
+		yieldQuantity: '',
+		forageDc: 0,
+		weight: 0,
+		cost: 0,
+		quantityHeld: 0,
+		notes: ''
+	};
+}
+
+export function createDefaultAlchemicalItem(): AlchemicalItem {
+	return {
+		id: crypto.randomUUID(),
+		name: '',
+		type: 'POTION',
+		quantity: 1,
+		toxicityPercent: 0,
+		duration: '',
+		weight: 0,
+		effectText: ''
+	};
+}
+
+/** Taking a dose: carries its own toxicity over to the active list. */
+export function createEffectFromItem(item: AlchemicalItem): ActiveAlchemyEffect {
+	return {
+		id: crypto.randomUUID(),
+		name: item.name,
+		type: item.type,
+		toxicityPercent: item.toxicityPercent,
+		durationRemaining: item.duration,
+		effectText: item.effectText
+	};
+}
+
+export function createDefaultEffect(): ActiveAlchemyEffect {
+	return {
+		id: crypto.randomUUID(),
+		name: '',
+		type: 'POTION',
+		toxicityPercent: 0,
+		durationRemaining: '',
+		effectText: ''
+	};
+}
+
+export function createDefaultCraftedItem(): CraftedItem {
+	return { id: crypto.randomUUID(), name: '', type: '', qualityNotes: '' };
+}
+
+export function createDefaultAbility(branch: number, tier: number): ProfessionAbility {
+	return {
+		id: crypto.randomUUID(),
+		name: '',
+		governingStat: null,
+		description: '',
+		level: 0,
+		currentLevel: 0,
+		branch,
+		tier
+	};
+}
+
+/** The 3x3 ability tree, filled out from whatever is stored so every slot renders. */
+export function abilityGrid(abilities: ProfessionAbility[]): ProfessionAbility[][] {
+	return [0, 1, 2].map((branch) =>
+		[0, 1, 2].map(
+			(tier) =>
+				abilities.find((a) => a.branch === branch && a.tier === tier) ??
+				createDefaultAbility(branch, tier)
+		)
+	);
+}
+
 export function statValue(character: WitcherCharacter, stat: WitcherStat): number {
 	switch (stat) {
 		case 'INTELLIGENCE':
@@ -200,6 +996,7 @@ export function ensureDefaults(c: WitcherCharacter): void {
 		magicalPerksNotes: '',
 		gearPackageNotes: ''
 	};
+	c.professionInfo.abilities ??= [];
 	c.statistics ??= {
 		intelligence: 1,
 		reflexes: 1,
@@ -213,10 +1010,22 @@ export function ensureDefaults(c: WitcherCharacter): void {
 		gameType: 'AVERAGE'
 	};
 	c.derivedStats ??= {
-		vigor: 0,
-		stun: 0,
-		healthPoints: 0,
-		stamina: 0,
+		maxVigor: 0,
+		committedVigor: 0,
+		availableVigor: 0,
+		maxStun: 0,
+		currentStun: 0,
+		maxHealthPoints: 0,
+		currentHealthPoints: 0,
+		maxStamina: 0,
+		currentStamina: 0,
+		woundThreshold: 0,
+		currentToxicity: 0,
+		toxicityThreshold: 0,
+		totalWeight: 0,
+		encumbrancePenalty: 0,
+		deadliftCapacity: 0,
+		armorEncumbranceValue: 0,
 		recovery: 0,
 		encumbrance: 0,
 		run: 0,
@@ -226,17 +1035,34 @@ export function ensureDefaults(c: WitcherCharacter): void {
 		kickDamage: ''
 	};
 	c.skills ??= [];
+	c.levelingInfo ??= {
+		level: 1,
+		reputation: 0,
+		creationComplete: false,
+		improvementPointsEarned: 0,
+		improvementPointsAvailable: 0
+	};
 	c.lifepathEvents ??= [];
-	c.meleeWeapons ??= [];
-	c.rangedWeapons ??= [];
+	c.weapons ??= [];
+	c.wealth ??= { crowns: 0, notes: '' };
 	c.armor ??= [];
 	c.equipment ??= [];
-	c.knownFormulae ??= [];
+	c.recipes ??= [];
 	c.craftedItems ??= [];
-	c.knownSigns ??= [];
-	c.knownSpells ??= [];
-	c.knownInvocations ??= [];
-	c.knownRituals ??= [];
-	c.knownHexes ??= [];
+	c.materials ??= [];
+	c.alchemicalItems ??= [];
+	c.activeAlchemyEffects ??= [];
+	// Always the canonical nine, whatever the server sent (see normalizeSubstanceStore).
+	c.substanceStore = normalizeSubstanceStore(c.substanceStore ?? []);
+	c.magicalEffects ??= [];
+	// Absent on every character made before the critical-wound build-out. The three
+	// per-state modifier lists are normalized too, since the editor pushes into them.
+	c.criticalWounds ??= [];
+	for (const wound of c.criticalWounds) {
+		wound.untreatedModifiers ??= [];
+		wound.stabilizedModifiers ??= [];
+		wound.treatedModifiers ??= [];
+	}
+	c.optionalRules ??= { encumbranceEnabled: false };
 	c.sessions ??= [];
 }

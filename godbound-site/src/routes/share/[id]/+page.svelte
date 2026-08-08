@@ -32,7 +32,7 @@
 	{:else if error || !char}
 		<div class="prompt-card"><p>{error ?? 'Character not found.'}</p></div>
 	{:else}
-		<SplashHeader title={char.name} highlight="" subtitle={char.goal || 'A Godbound of the Ascension'} />
+		<SplashHeader title={char.name} highlight="" subtitle={char.goal || 'Shared character sheet'} />
 
 		<CharacterSheet draft={char} editable={false} />
 	{/if}

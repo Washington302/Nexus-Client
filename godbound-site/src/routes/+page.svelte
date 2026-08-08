@@ -11,11 +11,18 @@
 </script>
 
 <div class="page">
-	<SplashHeader title="Godbound" highlight="Sky" subtitle="Chronicle your ascension" />
+	<SplashHeader
+		title="Scribe"
+		highlight="Sheets"
+		subtitle="A character tool for the Godbound roleplaying game"
+	/>
 
 	<div class="gb-panel" style="text-align:center;">
 		<p style="margin-bottom:16px; color:var(--muted-foreground);">
-			Track your Godbound character, campaign roster, and chronicle in one place.
+			Track your character, campaign roster, and chronicle in one place. Free, with no paywalls.
+		</p>
+		<p style="margin-bottom:16px; font-size:12px; color:var(--muted-foreground);">
+			Unofficial fan work — see <a href="/legal" style="color:var(--gold-bright);">About &amp; Legal</a>.
 		</p>
 		{#if !session.userId}
 			<div>

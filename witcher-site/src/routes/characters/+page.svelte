@@ -135,7 +135,7 @@
 					bind:value={newName}
 					required
 					class="comic-input"
-					placeholder="e.g. Geralt of Rivia"
+					placeholder="Character name"
 				/>
 			</div>
 			<div class="field-group">

@@ -103,7 +103,7 @@
 	{:else if loadError || !campaign}
 		<div class="prompt-card"><p>{loadError ?? 'Campaign not found.'}</p></div>
 	{:else}
-		<SplashHeader title={campaign.name} highlight="" subtitle={campaign.setting ?? 'Mutants & Masterminds Campaign'} />
+		<SplashHeader title={campaign.name} highlight="" subtitle={campaign.setting ?? 'Campaign'} />
 
 		<ComicPanel header="★ Roster" color="blue">
 			<div class="roster-list">

@@ -7,7 +7,13 @@
 <nav class="site-nav">
 	<div class="nav-inner">
 		<div class="nav-left">
-			<a href="/" class="nav-brand">The Witcher — Journal</a>
+			<!-- The product name leads; the game it serves is a descriptive subtitle.
+			     Required by WITCHER_CONTENT_POLICY.md — the official title may not be
+			     the app name. -->
+			<a href="/" class="nav-brand">
+				Scribe Sheets
+				<span class="nav-brand-blurb">for The Witcher TTRPG</span>
+			</a>
 			<div class="nav-sep"></div>
 			<a href="/characters" class="nav-link">Characters</a>
 			<a href="/log" class="nav-link">Log</a>
@@ -34,6 +40,7 @@
 						<a href="/characters" class="dropdown-item">My Characters</a>
 						<a href="/log" class="dropdown-item">Log</a>
 						<a href="/profile" class="dropdown-item">Profile</a>
+						<a href="/legal" class="dropdown-item">About &amp; Legal</a>
 						<button onclick={logout} class="dropdown-item signout">Sign Out</button>
 					</div>
 				{/if}

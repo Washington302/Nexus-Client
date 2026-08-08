@@ -47,14 +47,31 @@
   ">
 
     <div style="display: flex; align-items: center; gap: 24px;">
+      <!-- The product name leads; the game it serves is a descriptive subtitle only.
+           The official game title may not be used as the app name. -->
       <a href="/" style="
-        font-family: {S.fontHeadline};
-        font-size: 18px;
-        font-weight: 800;
-        color: {COLORS.white};
+        display: flex;
+        flex-direction: column;
         text-decoration: none;
-        letter-spacing: -0.01em;
-      ">NEXUS</a>
+        white-space: nowrap;
+      ">
+        <span style="
+          font-family: {S.fontHeadline};
+          font-size: 18px;
+          font-weight: 800;
+          color: {COLORS.white};
+          letter-spacing: -0.01em;
+          line-height: 1.1;
+        ">Scribe Sheets</span>
+        <span style="
+          font-family: {S.fontBody};
+          font-size: 9px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: {COLORS.outlineVar};
+        ">for Ars Magica</span>
+      </a>
 
       {#if saga}
         <div style="
@@ -204,6 +221,7 @@
               ['Dashboard', '/dashboard'],
               ['Profile', '/profile'],
               ['Settings', '/settings'],
+              ['About & Legal', '/legal'],
             ] as [label, href]}
               <a {href}
                 onclick={() => menuOpen = false}

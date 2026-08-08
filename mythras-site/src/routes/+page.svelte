@@ -11,8 +11,8 @@
 
 <div class="page">
 	<div class="list-header">
-		<h1 class="list-title">Mythic Workbook</h1>
-		<p class="list-subtitle">Mythras Character Sheet &middot; Digital Companion</p>
+		<h1 class="list-title">Scribe Sheets</h1>
+		<p class="list-subtitle">A character tool for the Mythras roleplaying game</p>
 	</div>
 
 	<div class="panel-full" style="width:100%;">

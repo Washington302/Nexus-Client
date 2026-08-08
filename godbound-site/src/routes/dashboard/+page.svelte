@@ -12,7 +12,7 @@
 </script>
 
 <div class="page">
-	<SplashHeader title="Godbound" highlight="Dashboard" subtitle="Your command center" />
+	<SplashHeader title="Your" highlight="Dashboard" subtitle="Your command center" />
 
 	<div class="card-grid">
 		{#each cards as card}

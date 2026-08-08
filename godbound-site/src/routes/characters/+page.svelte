@@ -35,7 +35,7 @@
 </script>
 
 <div class="page">
-	<SplashHeader title="My" highlight="Godbound" subtitle="All your ascended in one place" />
+	<SplashHeader title="My" highlight="Characters" subtitle="All your characters in one place" />
 
 	{#if characters.length === 0}
 		<div class="prompt-card" style="text-align:center;">
@@ -77,7 +77,7 @@
 {#if showNewChar}
 	<div class="modal-overlay" onclick={() => (showNewChar = false)} onkeydown={(e) => e.key === 'Escape' && (showNewChar = false)} role="presentation">
 		<div class="modal-box" onclick={(e) => e.stopPropagation()} role="dialog" tabindex="-1" onkeydown={(e) => e.key === 'Escape' && (showNewChar = false)}>
-			<h2 class="modal-title">New Godbound</h2>
+			<h2 class="modal-title">New Character</h2>
 			{#if createError}
 				<div class="modal-error">{createError}</div>
 			{/if}

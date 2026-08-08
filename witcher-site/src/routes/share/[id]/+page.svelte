@@ -3,7 +3,7 @@
 	import { api } from '$lib/services/api';
 	import type { WitcherCharacter } from '$lib/services/api';
 	import { normalizeCharacterFromApi, label } from '$lib/utils/character';
-	import StatsSheet from '$lib/components/StatsSheet.svelte';
+	import CharacterSheet from '$lib/components/CharacterSheet.svelte';
 
 	let char = $state<WitcherCharacter | null>(null);
 	let error = $state<string | null>(null);
@@ -44,6 +44,6 @@
 			</p>
 		</div>
 
-		<StatsSheet draft={char} editable={false} />
+		<CharacterSheet draft={char} editable={false} />
 	{/if}
 </div>

@@ -13,16 +13,21 @@
 </script>
 
 <div class="landing">
-	<SplashHeader title="Unofficial " highlight="Mutants &amp; Masterminds" subtitle="Superhero Roleplaying · Character Manager" />
+	<SplashHeader
+		title="Scribe "
+		highlight="Sheets"
+		subtitle="A character tool for the Mutants &amp; Masterminds roleplaying game"
+	/>
 
-	<div class="speech-bubble">
-		★ Welcome to the ultimate Unofficial Mutants &amp; Masterminds character manager! ★
-	</div>
+	<div class="speech-bubble">★ Welcome to your superhero character manager! ★</div>
 
 	<div class="panel-grid">
 		<ComicPanel header="★ Get Started" color="blue">
 			<div style="font-family:'Nunito',sans-serif;font-size:11px;line-height:1.6;color:var(--ink);">
-				<p style="margin-bottom:10px;">Create and manage your superhero characters with our comic-style character sheet.</p>
+				<p style="margin-bottom:10px;">Create and manage your superhero characters with our comic-style character sheet. Free, with no paywalls.</p>
+				<p style="margin-bottom:10px;font-size:10px;">
+					Unofficial fan work — see <a href="/legal" style="color:var(--danger);font-weight:700;">About &amp; Legal</a>.
+				</p>
 				{#if !session.userId}
 					<div style="margin-top:12px;">
 						<a href="/auth/login" class="cta-btn">Sign In</a>
@@ -58,7 +63,7 @@
 
 	<div class="signature-band">
 		<div class="sig-dots"></div>
-		<span style="position:relative;z-index:1;">★ UNOFFICIAL MUTANTS &amp; MASTERMINDS · CHARACTER MANAGER ★</span>
+		<span style="position:relative;z-index:1;">★ SCRIBE SHEETS · CHARACTER MANAGER ★</span>
 	</div>
 </div>
 

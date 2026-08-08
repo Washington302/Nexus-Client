@@ -85,7 +85,7 @@
       font-size: 13px;
       color: {COLORS.inkMuted};
       margin: 0;
-    ">Register a new NEXUS account.</p>
+    ">Register a new Scribe Sheets account.</p>
 
     {#if error}
       <div style="

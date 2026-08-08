@@ -19,7 +19,7 @@
 		<div class="sidebar-avatar">{(session.activeCharacter?.name ?? 'G').charAt(0).toUpperCase()}</div>
 		<div>
 			<p class="sidebar-header-title">{session.activeCharacter?.name ?? 'No Character'}</p>
-			<p class="sidebar-header-sub">Godbound of the Word</p>
+			<p class="sidebar-header-sub">Character Sheet</p>
 		</div>
 	</div>
 

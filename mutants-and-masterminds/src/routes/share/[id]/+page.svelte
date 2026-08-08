@@ -46,5 +46,5 @@
 		</ComicPanel>
 	</div>
 {:else if char}
-	<CharacterSheet draft={char} editable={false} headerTitle="Shared File · " />
+	<CharacterSheet draft={char} editable={false} headerTitle="Shared File · Scribe " />
 {/if}

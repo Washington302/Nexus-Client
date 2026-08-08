@@ -28,7 +28,7 @@
 	let {
 		draft,
 		editable = false,
-		headerTitle = 'Unofficial ',
+		headerTitle = 'Scribe ',
 		saving = false,
 		saveError = null,
 		saveSuccess = false,
@@ -408,7 +408,7 @@
 </script>
 
 <div class="comic-wrap">
-	<SplashHeader title={headerTitle} highlight="Mutants &amp; Masterminds" subtitle="Superhero Roleplaying · Character Sheet" />
+	<SplashHeader title={headerTitle} highlight="Sheets" subtitle="Superhero Roleplaying · Character Sheet" />
 
 	<div class="speech-bubble">
 		★ The tactical interface — built for heroes who need data <em>fast</em>. ★
@@ -689,7 +689,7 @@
 
 	<div class="signature-band" style="margin-top: 16px;">
 		<div class="sig-dots"></div>
-		<span style="position: relative; z-index: 1;">★ UNOFFICIAL MUTANTS &amp; MASTERMINDS · CHARACTER SHEET · POWER LEVEL {draft.powerLevel} ★</span>
+		<span style="position: relative; z-index: 1;">★ SCRIBE SHEETS · CHARACTER SHEET · POWER LEVEL {draft.powerLevel} ★</span>
 	</div>
 </div>
 

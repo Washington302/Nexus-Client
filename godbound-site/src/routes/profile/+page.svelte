@@ -4,7 +4,7 @@
 </script>
 
 <div class="page">
-	<SplashHeader title="Godbound" highlight="Profile" subtitle="Your account details" />
+	<SplashHeader title="Your" highlight="Profile" subtitle="Your account details" />
 
 	{#if session.userId}
 		<div class="gb-panel">

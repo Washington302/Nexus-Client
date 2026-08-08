@@ -2,11 +2,13 @@
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
 	import ComicPanel from '$lib/components/ComicPanel.svelte';
 
-	const sites: { key: string; label: string; desc: string; href: string }[] = [
-		{ key: 'godbound', label: 'Godbound', desc: 'Divine-powered heroes reshaping a broken world.', href: '' },
-		{ key: 'mythras', label: 'Mythras', desc: 'Gritty, skill-based fantasy roleplaying.', href: '' },
-		{ key: 'witcher', label: 'The Witcher', desc: 'Monster hunting in a grim, morally gray world.', href: '' },
-		{ key: 'arsmagica', label: 'Ars Magica', desc: 'Wizards, covenants, and the fall of an age of magic.', href: '' },
+	// Every sheet ships under the same product name; the game each one serves is a
+	// descriptive line beneath it, never the card's title.
+	const sites: { key: string; label: string; game: string; desc: string; href: string }[] = [
+		{ key: 'godbound', label: 'Scribe Sheets', game: 'for Godbound', desc: 'Divine-powered heroes reshaping a broken world.', href: '' },
+		{ key: 'mythras', label: 'Scribe Sheets', game: 'for Mythras', desc: 'Gritty, skill-based fantasy roleplaying.', href: '' },
+		{ key: 'witcher', label: 'Scribe Sheets', game: 'for The Witcher TTRPG', desc: 'Monster hunting in a grim, morally gray world.', href: '' },
+		{ key: 'arsmagica', label: 'Scribe Sheets', game: 'for Ars Magica', desc: 'Wizards, covenants, and the fall of an age of magic.', href: '' },
 	];
 </script>
 
@@ -20,6 +22,7 @@
 					<a href={site.href} class="site-card {site.key}" target="_blank" rel="noopener noreferrer">
 						<div class="site-card-header">
 							<span class="site-card-label">{site.label}</span>
+							<span class="site-card-game">{site.game}</span>
 						</div>
 						<p class="site-card-desc">{site.desc}</p>
 						<span class="site-card-open">Visit &#8594;</span>
@@ -28,6 +31,7 @@
 					<div class="site-card {site.key} pending">
 						<div class="site-card-header">
 							<span class="site-card-label">{site.label}</span>
+							<span class="site-card-game">{site.game}</span>
 						</div>
 						<p class="site-card-desc">{site.desc}</p>
 						<span class="site-card-open">Deploying soon</span>
@@ -62,6 +66,17 @@
 	.site-card-label {
 		font-size: 20px;
 		font-weight: 700;
+		display: block;
+	}
+	/* The game name lives here, small, under the product name — never as the title. */
+	.site-card-game {
+		display: block;
+		font-size: 10px;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		opacity: 0.75;
+		margin-top: 2px;
 	}
 	.site-card-desc {
 		font-size: 13px;

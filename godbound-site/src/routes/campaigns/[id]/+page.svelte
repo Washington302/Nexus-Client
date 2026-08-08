@@ -102,7 +102,7 @@
 	{:else if loadError || !campaign}
 		<div class="prompt-card"><p>{loadError ?? 'Campaign not found.'}</p></div>
 	{:else}
-		<SplashHeader title={campaign.name} highlight="" subtitle={campaign.setting ?? 'Godbound Campaign'} />
+		<SplashHeader title={campaign.name} highlight="" subtitle={campaign.setting ?? 'Campaign'} />
 
 		<div class="gb-panel">
 			<div class="gb-panel-header">Roster</div>

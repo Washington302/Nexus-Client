@@ -267,7 +267,7 @@
 				<div class="settings-preview-box">
 					<p style="font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted-foreground); margin-bottom:8px;">Preview Rendering</p>
 					<div class="settings-preview-title">A Call to Might</div>
-					<p class="settings-preview-body">The Godbound exerts their will upon the world, turning the tides of fate with effortless grace.</p>
+					<p class="settings-preview-body">Your character exerts their will upon the world, turning the tides of fate with effortless grace.</p>
 				</div>
 			</div>
 		</div>
