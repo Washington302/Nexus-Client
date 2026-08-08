@@ -1,8 +1,9 @@
 <script lang="ts">
-	import type { WitcherCharacter } from '$lib/services/api';
-	import { label, listToText, GAME_TYPE_OPTIONS } from '$lib/utils/character';
+	import type { WitcherCharacter, DerivedTarget } from '$lib/services/api';
+	import { label, GAME_TYPE_OPTIONS, effectiveDerived, lifepathValue } from '$lib/utils/character';
 	import AttributeTable from '$lib/components/AttributeTable.svelte';
 	import CriticalWounds from '$lib/components/CriticalWounds.svelte';
+	import RacialPerks from '$lib/components/RacialPerks.svelte';
 	import Panel from '$lib/components/Panel.svelte';
 	import SheetSection from '$lib/components/SheetSection.svelte';
 	import IdentityEditor from '$lib/components/IdentityEditor.svelte';
@@ -21,6 +22,14 @@
 		onOpenEdit?: () => void;
 		onCancelEdit?: () => void;
 	} = $props();
+
+	/** The Homeland lifepath entry, shown in Identity as Origin. */
+	const origin = $derived(lifepathValue(draft.lifepathEvents, 'Homeland'));
+
+	/** One derived value after every active wound and perk that targets it. */
+	function withModifiers(value: number, target: DerivedTarget): number {
+		return effectiveDerived(value, draft.criticalWounds, draft.raceInfo.perks, target);
+	}
 </script>
 
 <div class="sheet-body-grid">
@@ -32,6 +41,7 @@
 				statistics={draft.statistics}
 				derivedStats={draft.derivedStats}
 				criticalWounds={draft.criticalWounds}
+				perks={draft.raceInfo.perks}
 				{editable}
 			/>
 		</Panel>
@@ -40,8 +50,14 @@
 		     Effective column there. -->
 		<CriticalWounds {draft} {editable} {onOpenEdit} {onCancelEdit} />
 
-		<!-- Every value here is recalculated server-side from Statistics, so this
-		     panel is read-only and has no edit affordance. -->
+		<!-- Next to the wounds because they feed the same Effective column, from the
+		     opposite direction. -->
+		<RacialPerks {draft} {editable} {onOpenEdit} {onCancelEdit} />
+
+		<!-- Recalculated server-side from Statistics, so these are read-only. The
+		     numbers shown are after any wound or perk targeting them — a Dwarf's
+		     Strong perk adds +25 Encumbrance, Heart Damage quarters SPD-derived
+		     movement — since the server deliberately stores its own value unmodified. -->
 		<Panel header="Combat &amp; Movement" color="plain">
 			<div class="derived-grid">
 				<div class="derived-item">
@@ -54,23 +70,27 @@
 				</div>
 				<div class="derived-item">
 					<div class="derived-label">Melee Dmg</div>
-					<div class="derived-value">{draft.derivedStats.meleeDamageBonus}</div>
+					<div class="derived-value">
+						{withModifiers(draft.derivedStats.meleeDamageBonus, 'MELEE_DAMAGE_BONUS')}
+					</div>
 				</div>
 				<div class="derived-item">
 					<div class="derived-label">Run</div>
-					<div class="derived-value">{draft.derivedStats.run}</div>
+					<div class="derived-value">{withModifiers(draft.derivedStats.run, 'RUN')}</div>
 				</div>
 				<div class="derived-item">
 					<div class="derived-label">Leap</div>
-					<div class="derived-value">{draft.derivedStats.leap}</div>
+					<div class="derived-value">{withModifiers(draft.derivedStats.leap, 'LEAP')}</div>
 				</div>
 				<div class="derived-item">
 					<div class="derived-label">Recovery</div>
-					<div class="derived-value">{draft.derivedStats.recovery}</div>
+					<div class="derived-value">{withModifiers(draft.derivedStats.recovery, 'RECOVERY')}</div>
 				</div>
 				<div class="derived-item">
 					<div class="derived-label">Encumbrance</div>
-					<div class="derived-value">{draft.derivedStats.encumbrance}</div>
+					<div class="derived-value">
+						{withModifiers(draft.derivedStats.encumbrance, 'ENCUMBRANCE')}
+					</div>
 				</div>
 			</div>
 		</Panel>
@@ -94,6 +114,31 @@
 					<div class="field-hdr">Name</div>
 					<div class="field-value">{draft.name}</div>
 				</div>
+				{#if draft.age || draft.gender}
+					<div class="grid-2">
+						{#if draft.age}
+							<div class="field-group">
+								<div class="field-hdr">Age</div>
+								<div class="field-value">{draft.age}</div>
+							</div>
+						{/if}
+						{#if draft.gender}
+							<div class="field-group">
+								<div class="field-hdr">Gender</div>
+								<div class="field-value">{draft.gender}</div>
+							</div>
+						{/if}
+					</div>
+				{/if}
+				<!-- Origin is not a field of its own: Homeland is a rollable lifepath table
+				     with mechanical effects, so it lives in lifepathEvents and is surfaced
+				     here rather than being stored twice and drifting apart. -->
+				{#if origin}
+					<div class="field-group">
+						<div class="field-hdr">Origin</div>
+						<div class="field-value">{origin}</div>
+					</div>
+				{/if}
 				<div class="field-group">
 					<div class="field-hdr">Visibility</div>
 					<div class="field-value">{draft.public ? 'Public (shareable link)' : 'Private'}</div>
@@ -118,10 +163,10 @@
 						{draft.raceInfo.race ? label(draft.raceInfo.race) : '—'}
 					</div>
 				</div>
-				{#if draft.raceInfo.racialTraits.length > 0}
+				{#if draft.raceInfo.socialStanding}
 					<div class="field-group">
-						<div class="field-hdr">Racial Traits</div>
-						<div class="field-value">{listToText(draft.raceInfo.racialTraits)}</div>
+						<div class="field-hdr">Social Standing</div>
+						<div class="field-value">{draft.raceInfo.socialStanding}</div>
 					</div>
 				{/if}
 				<div class="field-group">

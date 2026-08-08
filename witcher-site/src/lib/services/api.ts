@@ -152,7 +152,10 @@ export type WitcherSkillName =
 
 export interface RaceInfo {
 	race: Race | null;
-	racialTraits: string[];
+	/** Free text on the backend, not an enum — Feared, Hated, Equal and whatever a
+	 *  table invents. The numbers it implies are entered as perk modifiers. */
+	socialStanding: string;
+	perks: RacialPerk[];
 }
 
 /**
@@ -594,26 +597,58 @@ export type WoundState = 'UNTREATED' | 'STABILIZED' | 'TREATED';
 /** Broader than ArmorLocation: the crit tables call out limbs individually. */
 export type WoundLocation = 'HEAD' | 'TORSO' | 'ARM' | 'LEG';
 
+/** A server-computed value a modifier can target, so effects like Septic Shock's
+ *  quartered Stamina resolve numerically instead of sitting in free text. */
+export type DerivedTarget =
+	| 'STAMINA'
+	| 'HEALTH_POINTS'
+	| 'RECOVERY'
+	| 'STUN'
+	| 'VIGOR_THRESHOLD'
+	| 'ENCUMBRANCE'
+	| 'RUN'
+	| 'LEAP'
+	| 'MELEE_DAMAGE_BONUS'
+	| 'STOPPING_POWER';
+
 /**
- * One penalty a wound imposes. Nullable-discriminator, same as RecipeComponent and
- * Material: whichever target field is set says what it hits.
+ * One adjustment to a value, shared by every system that makes them — critical wounds
+ * and racial perks today, decoctions and Places of Power later. Nullable-discriminator,
+ * same as RecipeComponent and Material: whichever target field is set says what it hits.
  *
- * A single wound can carry both kinds at once — Septic Shock quarters Stamina *and*
+ * A single source can carry several at once — Septic Shock quarters Stamina *and*
  * applies -3 to four stats, which is five rows.
  */
-export interface WoundModifier {
+export interface StatModifier {
 	id: string;
 	/** A core statistic, e.g. Concussion's -2 to INT/REF/DEX. */
 	stat: WitcherStat | null;
 	/** A skill, e.g. Compound Leg Fracture quartering Dodge/Escape and Athletics. */
 	skill: WitcherSkillName | null;
-	/** Anything that is neither, e.g. Septic Shock's "Stamina". Free text — not computed. */
+	/** A derived value, e.g. Septic Shock's quartered Stamina. */
+	derivedTarget: DerivedTarget | null;
+	/** Anything not numeric at all — "quadruple damage from head wounds". Not computed. */
 	otherTarget: string;
-	/** Written negative, e.g. -2. Applied on top of any multiplier. */
-	flatPenalty: number;
-	/** 1.0 none, 0.5 halved, 0.25 quartered. */
+	/** Signed: negative for a wound penalty, positive for a perk. Applied after the multiplier. */
+	flatModifier: number;
+	/** 1.0 none, 0.5 halved, 0.25 quartered, 2.0 doubled. */
 	multiplier: number;
 	notes: string;
+}
+
+/**
+ * A racial or narrative perk. A perk with no modifiers is simply a narrative trait,
+ * which is what replaced the old free-text `racialTraits`.
+ *
+ * Deliberately not folded into the stored maxima server-side: perks aren't purchased,
+ * so counting them would break the chargen point budgets. The client applies them.
+ */
+export interface RacialPerk {
+	id: string;
+	name: string;
+	description: string;
+	modifiers: StatModifier[];
+	active: boolean;
 }
 
 export interface CriticalWound {
@@ -623,9 +658,9 @@ export interface CriticalWound {
 	location: WoundLocation | null;
 	state: WoundState;
 	bleeding: boolean;
-	untreatedModifiers: WoundModifier[];
-	stabilizedModifiers: WoundModifier[];
-	treatedModifiers: WoundModifier[];
+	untreatedModifiers: StatModifier[];
+	stabilizedModifiers: StatModifier[];
+	treatedModifiers: StatModifier[];
 	effectText: string;
 	stabilizedText: string;
 	treatedText: string;
@@ -643,6 +678,17 @@ export interface WitcherCharacter {
 	player?: string | null;
 	description?: string | null;
 	portraitUrl?: string | null;
+	/**
+	 * NOT YET ON THE BACKEND — the shared `Character` base class has no `age`/`gender`,
+	 * so these are accepted (200) and silently dropped on save until it does. See §8 of
+	 * BACKEND-REQUESTS.md. The editor says so rather than pretending they persist.
+	 *
+	 * Free text for gender, deliberately: an enum would need a backend change every time
+	 * a table wants something not on the list, the same reasoning applied to
+	 * `raceInfo.socialStanding`.
+	 */
+	age?: number | null;
+	gender?: string | null;
 	public: boolean;
 	campaignId?: string | null;
 	raceInfo: RaceInfo;

@@ -1,5 +1,12 @@
 <script lang="ts">
-	import type { Statistics, GameType, DerivedStats, CriticalWound } from '$lib/services/api';
+	import type {
+		Statistics,
+		GameType,
+		DerivedStats,
+		CriticalWound,
+		RacialPerk,
+		WitcherStat
+	} from '$lib/services/api';
 	import {
 		STAT_TABLE_ORDER,
 		STAT_ABBREV,
@@ -22,23 +29,72 @@
 		statistics,
 		derivedStats,
 		criticalWounds = [],
+		perks = [],
 		editable = true
 	}: {
 		statistics: Statistics;
 		derivedStats: DerivedStats;
 		criticalWounds?: CriticalWound[];
+		perks?: RacialPerk[];
 		editable?: boolean;
 	} = $props();
 
 	const condition = $derived(healthCondition(derivedStats));
 	const penalties = $derived(
-		STAT_TABLE_ORDER.map((stat) => statPenalty(statistics, derivedStats, criticalWounds, stat))
+		STAT_TABLE_ORDER.map((stat) =>
+			statPenalty(statistics, derivedStats, criticalWounds, perks, stat)
+		)
 	);
 	const anyImpaired = $derived(penalties.some((p) => p.impaired));
 
+	const anyDrained = $derived(
+		STAT_TABLE_ORDER.some(
+			(stat) => currentStatValue(statistics, stat) < statistics[STAT_TO_STATISTICS_FIELD[stat]]
+		)
+	);
+
+	/**
+	 * Mirrors the server's `syncCurrentToRaisedMax`: an undamaged Current rides along
+	 * with a change to Maximum, so building a character never means typing every number
+	 * twice. The server already does this on save — doing it here too means the column
+	 * is right *while* you build, instead of looking stale until the next round trip.
+	 *
+	 * A damaged Current (below the old Maximum) is left alone: that's a real drain, and
+	 * raising the ceiling shouldn't heal it.
+	 */
+	function setMaximum(stat: WitcherStat, next: number | null | undefined) {
+		const maxField = STAT_TO_STATISTICS_FIELD[stat];
+		const curField = STAT_TO_CURRENT_FIELD[stat];
+		const previousMax = statistics[maxField];
+		const current = statistics[curField];
+		statistics[maxField] = next as number;
+		if (typeof next === 'number' && (current == null || current >= previousMax)) {
+			statistics[curField] = next;
+		}
+	}
+
+	/**
+	 * Clears stat drain — the thing Current exists to track. Deliberately does NOT
+	 * touch critical wounds or the health conditions: those reduce the stat without
+	 * ever writing to Current, so a reset that appeared to clear them would be lying.
+	 *
+	 * Writes the max rather than unsetting the field. Both display identically, but an
+	 * explicit number keeps `syncCurrentToRaisedMax` reading the stat as undamaged, and
+	 * avoids sending a null the backend types as a primitive int.
+	 */
+	function resetCurrentToMaximum() {
+		for (const stat of STAT_TABLE_ORDER) {
+			statistics[STAT_TO_CURRENT_FIELD[stat]] = statistics[STAT_TO_STATISTICS_FIELD[stat]];
+		}
+	}
+
 	/** Spells out which parts produced the number, so a reduced stat is never unexplained. */
 	function penaltyTitle(p: (typeof penalties)[number]): string {
-		const parts = [`Base ${p.base}`];
+		const parts = [
+			p.perkModifier
+				? `Base ${p.base} (perks ${p.perkModifier > 0 ? '+' : '−'}${Math.abs(p.perkModifier)})`
+				: `Base ${p.base}`
+		];
 		if (p.multiplierPenalty > 0) {
 			// Named as a fraction: compounded multipliers produce values like 1/16 that
 			// are far more recognisable than the −9 they happen to work out to.
@@ -98,7 +154,7 @@
 		>
 			<span class="attr-row-label">{STAT_ABBREV[stat]}</span>
 			<InlineNumber
-				bind:value={statistics[maxField]}
+				bind:value={() => statistics[maxField], (v) => setMaximum(stat, v)}
 				min={1}
 				label="{STAT_ABBREV[stat]} maximum"
 				viewClass="attr-value"
@@ -119,8 +175,9 @@
 			{#if anyImpaired}
 				<span
 					class="attr-value effective"
-					class:reduced={penalty.impaired}
-					title={penalty.impaired ? penaltyTitle(penalty) : 'No penalty applies to this statistic.'}
+					class:reduced={penalty.effective < penalty.purchased}
+					class:raised={penalty.effective > penalty.purchased}
+					title={penalty.impaired ? penaltyTitle(penalty) : 'Nothing is modifying this statistic.'}
 				>
 					{penalty.effective}
 				</span>
@@ -138,5 +195,19 @@
 		<p class="attr-warning">
 			Over the {statistics.gameType.toLowerCase()} point pool — the server will reject this on save.
 		</p>
+	{/if}
+
+	{#if editable}
+		<button
+			type="button"
+			class="reset-current-btn"
+			onclick={resetCurrentToMaximum}
+			disabled={!anyDrained}
+			title={anyDrained
+				? 'Restores every drained statistic. Critical wounds are unaffected.'
+				: 'No statistic is drained.'}
+		>
+			Reset Current to Maximum
+		</button>
 	{/if}
 </div>

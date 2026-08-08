@@ -8,7 +8,8 @@
 		MASTERY_TIER_OPTIONS,
 		createDefaultMagicalEffect,
 		committedVigor,
-		staminaUpkeep
+		staminaUpkeep,
+		effectiveDerived
 	} from '$lib/utils/character';
 	import InlineNumber from '$lib/components/InlineNumber.svelte';
 	import Panel from '$lib/components/Panel.svelte';
@@ -30,7 +31,17 @@
 	// maintenance: each active effect ties up its vigorUpkeep until it ends. Summed
 	// locally as well as server-side so the number moves as effects are toggled.
 	const committed = $derived(committedVigor(draft.magicalEffects));
-	const threshold = $derived(draft.derivedStats.maxVigor);
+	// Dimeritium lowers the ceiling and Places of Power raise it, both as modifiers
+	// targeting VIGOR_THRESHOLD — so the number you channel against isn't always the
+	// stored one. The stored value stays the player's to edit.
+	const threshold = $derived(
+		effectiveDerived(
+			draft.derivedStats.maxVigor,
+			draft.criticalWounds,
+			draft.raceInfo.perks,
+			'VIGOR_THRESHOLD'
+		)
+	);
 	const available = $derived(Math.max(0, threshold - committed));
 	const upkeep = $derived(staminaUpkeep(draft.magicalEffects));
 	const overCommitted = $derived(committed > threshold);

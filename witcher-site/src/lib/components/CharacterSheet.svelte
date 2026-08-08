@@ -38,7 +38,12 @@
 	class="page"
 	style="display:flex; flex-direction:column; gap: var(--stack-md); max-width: 1200px;"
 >
-	<VitalsBar derivedStats={draft.derivedStats} {editable} />
+	<VitalsBar
+		derivedStats={draft.derivedStats}
+		criticalWounds={draft.criticalWounds}
+		perks={draft.raceInfo.perks}
+		{editable}
+	/>
 
 	<SheetTabs active={activeTab} onSelect={(tab) => (activeTab = tab)} />
 
