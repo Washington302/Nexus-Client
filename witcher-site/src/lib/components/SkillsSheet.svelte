@@ -147,6 +147,7 @@
 				draft.statistics,
 				draft.derivedStats,
 				draft.criticalWounds,
+				draft.raceInfo.perks,
 				stat
 			)}
 			{#if editable}

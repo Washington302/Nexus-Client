@@ -1,17 +1,16 @@
 <script lang="ts">
-	import type { WitcherCharacter, CriticalWound, WoundModifier } from '$lib/services/api';
+	import type { WitcherCharacter, CriticalWound, StatModifier } from '$lib/services/api';
 	import {
 		label,
 		activeModifiers,
+		modifierText,
 		createDefaultCriticalWound,
-		createDefaultWoundModifier,
 		WOUND_SEVERITY_OPTIONS,
 		WOUND_STATE_OPTIONS,
-		WOUND_LOCATION_OPTIONS,
-		WOUND_MULTIPLIER_OPTIONS,
-		STAT_TABLE_ORDER
+		WOUND_LOCATION_OPTIONS
 	} from '$lib/utils/character';
 	import SheetSection from '$lib/components/SheetSection.svelte';
+	import StatModifierRows from '$lib/components/StatModifierRows.svelte';
 
 	let {
 		draft,
@@ -30,22 +29,17 @@
 	// state change rather than re-entering every modifier.
 	let editingState = $state<'untreated' | 'stabilized' | 'treated'>('untreated');
 
-	// The character's own seeded skills, rather than a separate constant — it is the
-	// same fixed 44 the backend owns, so there is nothing to keep in sync.
-	const skillOptions = $derived(
-		[...draft.skills].sort((a, b) => label(a.skillName).localeCompare(label(b.skillName)))
-	);
-
-	const MODIFIER_LIST_KEY = {
-		UNTREATED: 'untreatedModifiers',
-		STABILIZED: 'stabilizedModifiers',
-		TREATED: 'treatedModifiers'
-	} as const;
-
-	function modifiersFor(wound: CriticalWound, which: typeof editingState): WoundModifier[] {
+	function modifiersFor(wound: CriticalWound, which: typeof editingState): StatModifier[] {
 		if (which === 'treated') return wound.treatedModifiers;
 		if (which === 'stabilized') return wound.stabilizedModifiers;
 		return wound.untreatedModifiers;
+	}
+
+	/** Write-back half of the binding into whichever state's list is being edited. */
+	function setModifiers(wound: CriticalWound, which: typeof editingState, value: StatModifier[]) {
+		if (which === 'treated') wound.treatedModifiers = value;
+		else if (which === 'stabilized') wound.stabilizedModifiers = value;
+		else wound.untreatedModifiers = value;
 	}
 
 	function addWound() {
@@ -53,28 +47,6 @@
 	}
 	function removeWound(id: string) {
 		draft.criticalWounds = draft.criticalWounds.filter((w) => w.id !== id);
-	}
-	function addModifier(wound: CriticalWound) {
-		modifiersFor(wound, editingState).push(createDefaultWoundModifier());
-	}
-	function removeModifier(wound: CriticalWound, id: string) {
-		const key = MODIFIER_LIST_KEY[editingState.toUpperCase() as keyof typeof MODIFIER_LIST_KEY] as
-			'untreatedModifiers' | 'stabilizedModifiers' | 'treatedModifiers';
-		wound[key] = wound[key].filter((m) => m.id !== id);
-	}
-
-	/** One modifier as a readable line, e.g. "REF −2" or "Dodge/Escape quartered". */
-	function modifierText(mod: WoundModifier): string {
-		const target = mod.stat
-			? label(mod.stat)
-			: mod.skill
-				? label(mod.skill)
-				: mod.otherTarget || 'Unspecified';
-		const bits: string[] = [];
-		if (mod.multiplier === 0.5) bits.push('halved');
-		else if (mod.multiplier === 0.25) bits.push('quartered');
-		if (mod.flatPenalty) bits.push(`−${Math.abs(mod.flatPenalty)}`);
-		return bits.length ? `${target} ${bits.join(', ')}` : target;
 	}
 </script>
 
@@ -182,71 +154,15 @@
 					{/each}
 				</div>
 
-				{#each modifiersFor(wound, editingState) as mod (mod.id)}
-					<div class="list-card nested">
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Statistic</div>
-								<select class="input-demo" bind:value={mod.stat}>
-									<option value={null}>&mdash;</option>
-									{#each STAT_TABLE_ORDER as opt}
-										<option value={opt}>{label(opt)}</option>
-									{/each}
-								</select>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Skill</div>
-								<select class="input-demo" bind:value={mod.skill}>
-									<option value={null}>&mdash;</option>
-									{#each skillOptions as opt (opt.id)}
-										<option value={opt.skillName}>{label(opt.skillName)}</option>
-									{/each}
-								</select>
-							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Flat Penalty</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									max="0"
-									bind:value={mod.flatPenalty}
-								/>
-								<span class="field-hint">Negative, e.g. −2.</span>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Multiplier</div>
-								<select class="input-demo" bind:value={mod.multiplier}>
-									{#each WOUND_MULTIPLIER_OPTIONS as opt}
-										<option value={opt.value}>{opt.label}</option>
-									{/each}
-								</select>
-							</div>
-						</div>
-						<div class="field-group">
-							<div class="field-hdr">Other Target</div>
-							<input
-								class="input-demo"
-								type="text"
-								bind:value={mod.otherTarget}
-								placeholder="Stamina, damage from head wounds…"
-							/>
-							<span class="field-hint">
-								Recorded for reference — only Statistic and Skill are calculated.
-							</span>
-						</div>
-						<button
-							type="button"
-							class="remove-row-btn"
-							aria-label="Remove modifier"
-							onclick={() => removeModifier(wound, mod.id)}>✕</button
-						>
-					</div>
-				{/each}
-				<button type="button" class="add-row-btn" onclick={() => addModifier(wound)}
-					>+ Add {label(editingState)} Penalty</button
-				>
+				{#key editingState}
+					<StatModifierRows
+						bind:modifiers={
+							() => modifiersFor(wound, editingState), (v) => setModifiers(wound, editingState, v)
+						}
+						skills={draft.skills}
+						addLabel="+ Add {label(editingState)} Penalty"
+					/>
+				{/key}
 
 				<label class="finish-creation">
 					<input type="checkbox" bind:checked={wound.bleeding} />

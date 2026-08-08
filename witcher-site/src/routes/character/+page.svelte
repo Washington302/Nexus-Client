@@ -77,12 +77,28 @@
 		saveError = null;
 		saveSuccess = false;
 		try {
+			// What we actually sent, so we can tell afterwards whether the player kept
+			// editing while the request was in flight.
+			const sent = JSON.stringify(draft);
 			const updated = await api.character.update(draft.id, draft);
 			if (session.activeCharacter) {
 				Object.assign(session.activeCharacter, updated);
 			}
-			originalSnapshot = JSON.stringify(draft);
-			cancelAutosave();
+
+			// Adopt the server's copy. It is authoritative for everything it recomputes —
+			// synced current stats, derived stats, skill totals, the I.P. balance — and
+			// without this none of those corrections reach the sheet until a page reload,
+			// because the draft-rebuilding effect deliberately ignores same-id updates.
+			if (JSON.stringify(draft) === sent) {
+				Object.assign(draft, normalizeCharacterFromApi(updated));
+				originalSnapshot = JSON.stringify(draft);
+				cancelAutosave();
+			} else {
+				// Edits landed mid-flight. Leave them alone and treat what we sent as the
+				// saved state, so the diff effect schedules another autosave for them —
+				// which is also why cancelAutosave() must not run on this path.
+				originalSnapshot = sent;
+			}
 			saveSuccess = true;
 			setTimeout(() => (saveSuccess = false), 2000);
 		} catch (e) {

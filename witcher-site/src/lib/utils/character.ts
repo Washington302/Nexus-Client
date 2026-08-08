@@ -8,7 +8,9 @@ import type {
 	Statistics,
 	DerivedStats,
 	CriticalWound,
-	WoundModifier,
+	StatModifier,
+	RacialPerk,
+	DerivedTarget,
 	WoundState,
 	WoundSeverity,
 	WoundLocation,
@@ -399,7 +401,7 @@ export function healthCondition(derived: DerivedStats): HealthCondition {
 }
 
 /** The modifier list matching a wound's current state — the tables print one column per state. */
-export function activeModifiers(wound: CriticalWound): WoundModifier[] {
+export function activeModifiers(wound: CriticalWound): StatModifier[] {
 	if (wound.state === 'TREATED') return wound.treatedModifiers ?? [];
 	if (wound.state === 'STABILIZED') return wound.stabilizedModifiers ?? [];
 	return wound.untreatedModifiers ?? [];
@@ -415,7 +417,9 @@ function nearDeathRelief(wounds: CriticalWound[]): number {
 }
 
 export interface StatPenalty {
-	/** Working base: the player-owned current value, falling back to the max. */
+	/** The bought value before perks — what the point-buy budget counts. */
+	purchased: number;
+	/** Working base: the purchased value once active perks are applied. */
 	base: number;
 	/** What you actually roll with. */
 	effective: number;
@@ -428,9 +432,16 @@ export interface StatPenalty {
 	multiplier: number;
 	/** Reduction from flat wound penalties, after per-wound herb relief. */
 	flatPenalty: number;
+	/** Signed total from active racial perks, applied to the base before anything else. */
+	perkModifier: number;
 	condition: HealthCondition;
 	/** True when anything at all is reducing the stat. */
 	impaired: boolean;
+}
+
+/** Modifiers from every perk that is switched on. */
+export function activePerkModifiers(perks: RacialPerk[]): StatModifier[] {
+	return (perks ?? []).filter((p) => p.active).flatMap((p) => p.modifiers ?? []);
 }
 
 /**
@@ -446,17 +457,27 @@ export function statPenalty(
 	statistics: Statistics,
 	derived: DerivedStats,
 	wounds: CriticalWound[],
+	perks: RacialPerk[],
 	stat: WitcherStat
 ): StatPenalty {
-	const base = currentStatValue(statistics, stat);
 	const condition = healthCondition(derived);
 	const list = wounds ?? [];
+
+	// 0. Racial perks raise (or lower) the base itself. They are deliberately kept out
+	//    of the stored maxima server-side, because they aren't purchased and would
+	//    corrupt the chargen budgets — so the sheet is the only place they get applied.
+	//    ASSUMPTION: a perk is part of your statistic, so the Wound Threshold halves the
+	//    perk-boosted value rather than the purchased one.
+	const perkMods = activePerkModifiers(perks).filter((m) => m.stat === stat);
+	const perkModifier = perkMods.reduce((sum, m) => sum + (m.flatModifier || 0), 0);
+	const purchased = currentStatValue(statistics, stat);
+	const base = Math.max(0, applyMultipliers(purchased, perkMultipliers(perkMods)) + perkModifier);
 
 	// 1. Multipliers compound. Two quarterings is a sixteenth, not a quarter.
 	const multipliers: number[] = [];
 	for (const wound of list) {
 		for (const mod of activeModifiers(wound)) {
-			if (mod.stat === stat && mod.multiplier > 0 && mod.multiplier < 1) {
+			if (mod.stat === stat && mod.multiplier > 0 && mod.multiplier !== 1) {
 				multipliers.push(mod.multiplier);
 			}
 		}
@@ -481,7 +502,7 @@ export function statPenalty(
 	for (const wound of list) {
 		let woundFlat = 0;
 		for (const mod of activeModifiers(wound)) {
-			if (mod.stat === stat) woundFlat += Math.abs(mod.flatPenalty || 0);
+			if (mod.stat === stat) woundFlat += Math.abs(mod.flatModifier || 0);
 		}
 		if (woundFlat > 0) {
 			flatPenalty += Math.max(0, woundFlat - (wound.numbingHerbsApplied ? NUMBING_HERB_RELIEF : 0));
@@ -491,15 +512,48 @@ export function statPenalty(
 	// Floored at 0: a statistic can be reduced to nothing, but never past it.
 	const effective = Math.max(0, afterMultipliers - conditionPenalty - flatPenalty);
 	return {
+		purchased,
 		base,
 		effective,
 		conditionPenalty,
 		multiplierPenalty,
 		multiplier,
 		flatPenalty,
+		perkModifier,
 		condition,
-		impaired: effective < base
+		// Compared against the purchased value, so a perk bonus reads as a change worth
+		// showing rather than being hidden by having raised its own baseline.
+		impaired: effective !== purchased
 	};
+}
+
+/** Multipliers a perk applies (the Fiend decoction doubles ENC), excluding no-ops. */
+function perkMultipliers(mods: StatModifier[]): number[] {
+	return mods.filter((m) => m.multiplier > 0 && m.multiplier !== 1).map((m) => m.multiplier);
+}
+
+/**
+ * Net effect of every active wound and perk on one server-computed value — what
+ * `DerivedTarget` exists for. Septic Shock quartering Stamina and a Dwarf's innate
+ * Stopping Power both land here rather than in free text.
+ *
+ * Returns the adjusted number; the caller decides what to do with it, since the
+ * server's own value stays authoritative for storage.
+ */
+export function effectiveDerived(
+	value: number,
+	wounds: CriticalWound[],
+	perks: RacialPerk[],
+	target: DerivedTarget
+): number {
+	const woundMods = (wounds ?? []).flatMap((w) =>
+		activeModifiers(w).filter((m) => m.derivedTarget === target)
+	);
+	const perkMods = activePerkModifiers(perks).filter((m) => m.derivedTarget === target);
+	const all = [...perkMods, ...woundMods];
+	const multiplied = applyMultipliers(value, perkMultipliers(all));
+	const flat = all.reduce((sum, m) => sum + (m.flatModifier || 0), 0);
+	return Math.max(0, multiplied + flat);
 }
 
 /** What you roll with, after every wound and condition penalty. */
@@ -507,33 +561,43 @@ export function effectiveStat(
 	statistics: Statistics,
 	derived: DerivedStats,
 	wounds: CriticalWound[],
+	perks: RacialPerk[],
 	stat: WitcherStat
 ): number {
-	return statPenalty(statistics, derived, wounds, stat).effective;
+	return statPenalty(statistics, derived, wounds, perks, stat).effective;
 }
 
 /**
- * Flat + multiplier reduction a wound imposes on one skill directly (Compound Leg
- * Fracture quarters Dodge/Escape and Athletics). Separate from the stat path: this
- * hits the skill's own points, not its governing stat.
+ * Net effect on one skill's own points, from wounds (Compound Leg Fracture quarters
+ * Dodge/Escape) and perks (an Elf's Marksman adds +2 Archery) alike. Separate from the
+ * stat path: this hits the skill's points, not its governing statistic.
+ *
+ * `flat` is signed here, unlike the stat path — a perk bonus and a wound penalty both
+ * land in it, and the wound half is herb-relieved before they're combined.
  */
-export function skillWoundPenalty(
+export function skillModifiers(
 	wounds: CriticalWound[],
+	perks: RacialPerk[],
 	skill: WitcherSkillName
 ): { multipliers: number[]; flat: number } {
 	const list = wounds ?? [];
 	const multipliers: number[] = [];
 	let flat = 0;
+
+	const perkMods = activePerkModifiers(perks).filter((m) => m.skill === skill);
+	multipliers.push(...perkMultipliers(perkMods));
+	flat += perkMods.reduce((sum, m) => sum + (m.flatModifier || 0), 0);
+
 	for (const wound of list) {
 		let woundFlat = 0;
 		for (const mod of activeModifiers(wound)) {
 			if (mod.skill !== skill) continue;
 			// Compound, as on stats — a Leg Fracture and a second quartering is a sixteenth.
-			if (mod.multiplier > 0 && mod.multiplier < 1) multipliers.push(mod.multiplier);
-			woundFlat += Math.abs(mod.flatPenalty || 0);
+			if (mod.multiplier > 0 && mod.multiplier !== 1) multipliers.push(mod.multiplier);
+			woundFlat += Math.abs(mod.flatModifier || 0);
 		}
 		if (woundFlat > 0) {
-			flat += Math.max(0, woundFlat - (wound.numbingHerbsApplied ? NUMBING_HERB_RELIEF : 0));
+			flat -= Math.max(0, woundFlat - (wound.numbingHerbsApplied ? NUMBING_HERB_RELIEF : 0));
 		}
 	}
 	return { multipliers, flat };
@@ -549,34 +613,89 @@ export function effectiveSkillTotal(
 	statistics: Statistics,
 	derived: DerivedStats,
 	wounds: CriticalWound[],
+	perks: RacialPerk[],
 	skill: Skill
 ): number {
-	const stat = effectiveStat(statistics, derived, wounds, skill.governingStat);
-	const { multipliers, flat } = skillWoundPenalty(wounds, skill.skillName);
-	const points = Math.max(0, applyMultipliers(skill.points || 0, multipliers) - flat);
+	const stat = effectiveStat(statistics, derived, wounds, perks, skill.governingStat);
+	const { multipliers, flat } = skillModifiers(wounds, perks, skill.skillName);
+	const points = Math.max(0, applyMultipliers(skill.points || 0, multipliers) + flat);
 	return stat + points;
+}
+
+/** A skill's points after perks and wounds — the stat half is added separately. */
+export function effectiveSkillPoints(
+	wounds: CriticalWound[],
+	perks: RacialPerk[],
+	skill: Skill
+): number {
+	const { multipliers, flat } = skillModifiers(wounds, perks, skill.skillName);
+	return Math.max(0, applyMultipliers(skill.points || 0, multipliers) + flat);
 }
 
 export const WOUND_SEVERITY_OPTIONS: WoundSeverity[] = ['SIMPLE', 'COMPLEX', 'DIFFICULT', 'DEADLY'];
 export const WOUND_STATE_OPTIONS: WoundState[] = ['UNTREATED', 'STABILIZED', 'TREATED'];
 export const WOUND_LOCATION_OPTIONS: WoundLocation[] = ['HEAD', 'TORSO', 'ARM', 'LEG'];
 
-/** 1.0 / 0.5 / 0.25, as the backend's WoundModifier.multiplier expects. */
-export const WOUND_MULTIPLIER_OPTIONS: { value: number; label: string }[] = [
+/** As StatModifier.multiplier expects. Doubling exists for perks and decoctions —
+ *  the Fiend decoction doubles Encumbrance — so this isn't penalties-only. */
+export const MULTIPLIER_OPTIONS: { value: number; label: string }[] = [
 	{ value: 1, label: 'None' },
 	{ value: 0.5, label: 'Halved' },
-	{ value: 0.25, label: 'Quartered' }
+	{ value: 0.25, label: 'Quartered' },
+	{ value: 2, label: 'Doubled' }
 ];
 
-export function createDefaultWoundModifier(): WoundModifier {
+export const DERIVED_TARGET_OPTIONS: DerivedTarget[] = [
+	'STAMINA',
+	'HEALTH_POINTS',
+	'RECOVERY',
+	'STUN',
+	'VIGOR_THRESHOLD',
+	'ENCUMBRANCE',
+	'RUN',
+	'LEAP',
+	'MELEE_DAMAGE_BONUS',
+	'STOPPING_POWER'
+];
+
+export function createDefaultStatModifier(): StatModifier {
 	return {
 		id: crypto.randomUUID(),
 		stat: null,
 		skill: null,
+		derivedTarget: null,
 		otherTarget: '',
-		flatPenalty: 0,
+		flatModifier: 0,
 		multiplier: 1,
 		notes: ''
+	};
+}
+
+/** One modifier as a readable line — "REF −2", "Archery +2", "Stamina quartered". */
+export function modifierText(mod: StatModifier): string {
+	const target = mod.stat
+		? label(mod.stat)
+		: mod.skill
+			? label(mod.skill)
+			: mod.derivedTarget
+				? label(mod.derivedTarget)
+				: mod.otherTarget || 'Unspecified';
+	const bits: string[] = [];
+	if (mod.multiplier === 0.5) bits.push('halved');
+	else if (mod.multiplier === 0.25) bits.push('quartered');
+	else if (mod.multiplier === 2) bits.push('doubled');
+	if (mod.flatModifier)
+		bits.push(`${mod.flatModifier > 0 ? '+' : '−'}${Math.abs(mod.flatModifier)}`);
+	return bits.length ? `${target} ${bits.join(', ')}` : target;
+}
+
+export function createDefaultRacialPerk(): RacialPerk {
+	return {
+		id: crypto.randomUUID(),
+		name: '',
+		description: '',
+		modifiers: [],
+		active: true
 	};
 }
 
@@ -986,8 +1105,6 @@ export function normalizeCharacterFromApi(raw: WitcherCharacter): WitcherCharact
 
 /** Ensures older/incomplete drafts have every array/object field the sheet reads from. */
 export function ensureDefaults(c: WitcherCharacter): void {
-	c.raceInfo ??= { race: null, racialTraits: [] };
-	c.raceInfo.racialTraits ??= [];
 	c.professionInfo ??= {
 		profession: null,
 		definingSkillName: '',
@@ -1055,6 +1172,22 @@ export function ensureDefaults(c: WitcherCharacter): void {
 	// Always the canonical nine, whatever the server sent (see normalizeSubstanceStore).
 	c.substanceStore = normalizeSubstanceStore(c.substanceStore ?? []);
 	c.magicalEffects ??= [];
+	// `perks` replaced the old free-text `racialTraits`. Any character written before
+	// that rename comes back with traits and no perks; a perk with no modifiers *is* a
+	// narrative trait, so they convert losslessly rather than being dropped.
+	c.raceInfo ??= { race: null, socialStanding: '', perks: [] };
+	c.raceInfo.socialStanding ??= '';
+	c.raceInfo.perks ??= [];
+	const legacyTraits = (c.raceInfo as unknown as { racialTraits?: string[] }).racialTraits;
+	if (c.raceInfo.perks.length === 0 && Array.isArray(legacyTraits)) {
+		c.raceInfo.perks = legacyTraits
+			.filter((t) => t.trim().length > 0)
+			.map((t) => ({ ...createDefaultRacialPerk(), name: t.trim() }));
+	}
+	for (const perk of c.raceInfo.perks) {
+		perk.modifiers ??= [];
+	}
+
 	// Absent on every character made before the critical-wound build-out. The three
 	// per-state modifier lists are normalized too, since the editor pushes into them.
 	c.criticalWounds ??= [];

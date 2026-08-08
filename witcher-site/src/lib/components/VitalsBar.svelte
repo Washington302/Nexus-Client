@@ -1,13 +1,34 @@
 <script lang="ts">
-	import type { DerivedStats } from '$lib/services/api';
+	import type { DerivedStats, CriticalWound, RacialPerk } from '$lib/services/api';
+	import { effectiveDerived } from '$lib/utils/character';
 	import InlineNumber from '$lib/components/InlineNumber.svelte';
 
 	// The `max*` values are server-derived and read-only here. The `current*` pools are
 	// live-play state the player edits constantly (damage, spent Vigor, Stun loss), so
 	// they are click-to-edit rather than being buried behind an edit modal.
 	// The server clamps current down to max on save; HP is allowed to go negative.
-	let { derivedStats, editable = true }: { derivedStats: DerivedStats; editable?: boolean } =
-		$props();
+	let {
+		derivedStats,
+		criticalWounds = [],
+		perks = [],
+		editable = true
+	}: {
+		derivedStats: DerivedStats;
+		criticalWounds?: CriticalWound[];
+		perks?: RacialPerk[];
+		editable?: boolean;
+	} = $props();
+
+	// Wounds and perks can target these maxima directly — Septic Shock quarters Stamina,
+	// Heart Damage quarters it again. The server stores its own value untouched, so this
+	// is a display-time resolution rather than a write.
+	const maxHealthPoints = $derived(
+		effectiveDerived(derivedStats.maxHealthPoints, criticalWounds, perks, 'HEALTH_POINTS')
+	);
+	const maxStamina = $derived(
+		effectiveDerived(derivedStats.maxStamina, criticalWounds, perks, 'STAMINA')
+	);
+	const maxStun = $derived(effectiveDerived(derivedStats.maxStun, criticalWounds, perks, 'STUN'));
 
 	function pct(current: number, max: number): number {
 		if (max <= 0) return 0;
@@ -39,18 +60,18 @@
 					editClass="vial-input"
 					{editable}
 				/>
-				<span class="vial-max">/ {derivedStats.maxHealthPoints}</span>
+				<span class="vial-max">/ {maxHealthPoints}</span>
 			</span>
 		</div>
 		<div class="vial-bar">
 			<div
 				class="vial-fill hp"
-				style="width: {pct(derivedStats.currentHealthPoints, derivedStats.maxHealthPoints)}%"
+				style="width: {pct(derivedStats.currentHealthPoints, maxHealthPoints)}%"
 			></div>
 			{#if derivedStats.woundThreshold > 0 && derivedStats.maxHealthPoints > 0}
 				<div
 					class="wound-marker"
-					style="left: {pct(derivedStats.woundThreshold, derivedStats.maxHealthPoints)}%"
+					style="left: {pct(derivedStats.woundThreshold, maxHealthPoints)}%"
 					title="Wound threshold: {derivedStats.woundThreshold}"
 				></div>
 			{/if}
@@ -68,13 +89,13 @@
 					editClass="vial-input"
 					{editable}
 				/>
-				<span class="vial-max">/ {derivedStats.maxStamina}</span>
+				<span class="vial-max">/ {maxStamina}</span>
 			</span>
 		</div>
 		<div class="vial-bar">
 			<div
 				class="vial-fill stamina"
-				style="width: {pct(derivedStats.currentStamina, derivedStats.maxStamina)}%"
+				style="width: {pct(derivedStats.currentStamina, maxStamina)}%"
 			></div>
 		</div>
 	</div>
@@ -94,14 +115,11 @@
 					editClass="vial-input"
 					{editable}
 				/>
-				<span class="vial-max">/ {derivedStats.maxStun}</span>
+				<span class="vial-max">/ {maxStun}</span>
 			</span>
 		</div>
 		<div class="vial-bar">
-			<div
-				class="vial-fill stun"
-				style="width: {pct(derivedStats.currentStun, derivedStats.maxStun)}%"
-			></div>
+			<div class="vial-fill stun" style="width: {pct(derivedStats.currentStun, maxStun)}%"></div>
 		</div>
 	</div>
 </section>

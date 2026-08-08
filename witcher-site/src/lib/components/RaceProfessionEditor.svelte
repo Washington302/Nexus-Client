@@ -1,12 +1,6 @@
 <script lang="ts">
 	import type { WitcherCharacter } from '$lib/services/api';
-	import {
-		RACE_OPTIONS,
-		PROFESSION_OPTIONS,
-		label,
-		listToText,
-		textToList
-	} from '$lib/utils/character';
+	import { RACE_OPTIONS, PROFESSION_OPTIONS, label } from '$lib/utils/character';
 
 	let { draft }: { draft: WitcherCharacter } = $props();
 </script>
@@ -21,15 +15,8 @@
 	</select>
 </div>
 
-<div class="field-group">
-	<div class="field-hdr">Racial Traits</div>
-	<textarea
-		class="input-demo"
-		rows="2"
-		value={listToText(draft.raceInfo.racialTraits)}
-		oninput={(e) => (draft.raceInfo.racialTraits = textToList(e.currentTarget.value))}></textarea>
-	<span class="field-hint">Comma-separated.</span>
-</div>
+<!-- Traits moved to the Racial Perks panel, where they can carry real modifiers
+     instead of being a comma-separated string that nothing could act on. -->
 
 <div class="field-group">
 	<div class="field-hdr">Profession</div>

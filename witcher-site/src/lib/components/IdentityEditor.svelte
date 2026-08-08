@@ -9,6 +9,24 @@
 	<input class="input-demo" type="text" bind:value={draft.name} />
 </div>
 
+<!-- Age and Gender have no home on the backend yet, so they are accepted and dropped
+     on save. Flagged in the UI rather than left to look like a bug — see §8 of
+     BACKEND-REQUESTS.md. Delete the hint once the fields ship. -->
+<div class="grid-2">
+	<div class="field-group">
+		<div class="field-hdr">Age</div>
+		<input class="input-demo input-num" type="number" min="0" bind:value={draft.age} />
+	</div>
+	<div class="field-group">
+		<div class="field-hdr">Gender</div>
+		<input class="input-demo" type="text" bind:value={draft.gender} />
+	</div>
+</div>
+<span class="field-hint" style="display:block;margin:-4px 0 12px;">
+	Age and Gender are not stored yet — the backend has no field for them, so they reset on save.
+	Everything else here persists.
+</span>
+
 <div class="field-group">
 	<div class="field-hdr">Portrait Image URL</div>
 	<input class="input-demo" type="url" bind:value={draft.portraitUrl} placeholder="https://..." />

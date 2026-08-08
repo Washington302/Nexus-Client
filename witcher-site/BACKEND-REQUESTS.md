@@ -1,5 +1,13 @@
 # nexus-core — Witcher module requests
 
+> **Status 2026-08-08.** §2 and §4b are **fixed** in the backend's working tree but
+> **not deployed** — verified against the live API, which still returns
+> `flatPenalty` and `raceInfo.racialTraits`. Everything below therefore still
+> describes production. The frontend has NOT been migrated to the new field names;
+> doing so before that deploy would break the live app.
+>
+> One open question on the new work, raised in §6.
+
 Handoff from the `witcher-site` frontend. **Superseded — most of this shipped.**
 Kept as the running list of what's still outstanding.
 
@@ -160,6 +168,87 @@ Still unresolved:
   drained BODY lowers max HP/Stun/Stamina/ENC and drained SPD lowers Run/Leap? It
   currently reads max, which is why the `current*` stat change was safe and
   additive.
+
+---
+
+## 6. `racialTraits` → `perks`: what happens to existing data?
+
+The undeployed work replaces `RaceInfo.racialTraits` (`List<String>`) with
+`RaceInfo.perks` (`List<RacialPerk>`). The changelog doesn't mention a migration for
+documents already carrying traits.
+
+Unless something converts them, every existing character's racial traits are dropped
+the first time it is saved after the deploy: the client stops sending `racialTraits`,
+and nothing populates `perks` from it. The model makes the conversion trivial and
+lossless — the changelog itself notes "a perk with no modifiers _is_ a narrative
+trait" — so each string becomes `{ name: <trait>, description: "", modifiers: [],
+active: true }`.
+
+Needed either as a one-off backfill or lazily on read. Worth confirming before the
+deploy rather than after, since the data is gone by the time anyone notices.
+
+Frontend side: `RaceProfessionEditor` currently edits traits as a comma-separated
+textarea via `listToText`/`textToList`. That becomes a structured list-of-perks editor
+with a `StatModifier` sub-editor — the `CriticalWounds` modifier rows are the same
+shape and can be lifted into a shared component when the rename lands.
+
+---
+
+## 7. Deploy ordering
+
+Three renames break the wire format in both directions:
+
+| Was                                         | Now                       |
+| ------------------------------------------- | ------------------------- |
+| `criticalWounds[].*Modifiers[].flatPenalty` | `flatModifier`            |
+| `raceInfo.racialTraits`                     | `raceInfo.perks`          |
+| —                                           | `raceInfo.socialStanding` |
+
+The frontend can be made order-independent by reading `flatModifier ?? flatPenalty`
+and writing both keys — the backend ignores unknown properties, so both versions
+accept it. Worth doing only if the two deploys can't be coordinated; otherwise a
+straight rename after the backend ships is cleaner.
+
+---
+
+## 8. `age` and `gender` on the shared `Character` base
+
+Neither exists anywhere today. Confirmed by reading the model, not the API:
+`Generic/Models/Character.java` holds `id`, `userId`, `gameSystem`, `createdAt`,
+`updatedAt`, `name`, `player`, `description`, `portraitUrl`, `isPublic`; the Witcher
+subclass adds only game-specific blocks.
+
+**Requested on the base class, not on `WitcherCharacter`.** Age and gender aren't
+Witcher-specific — every character in all five sheets has them, and putting them on
+the subclass means adding them again for the next game. The base class is where the
+other identity fields already live.
+
+```java
+private Integer age;        // nullable: unknown age is normal, and 0 is not a sane default
+private String gender = ""; // free text
+```
+
+`gender` as free text rather than an enum, for the same reason the backend already
+made `socialStanding` a String: an enum needs a backend change and a redeploy every
+time a table wants a value that isn't on the list.
+
+`age` as a nullable `Integer` rather than a primitive `int` — a primitive would default
+to 0 and make "unset" indistinguishable from "a newborn", and it would also trip the
+`FAIL_ON_NULL_FOR_PRIMITIVES` problem in §1 for any client that omits it.
+
+**Frontend status:** typed and editable now, with the editor stating plainly that they
+do not persist yet. When the fields land, the only change needed is deleting that hint
+— the binding and round-trip are already in place.
+
+**Not requested: `origin`.** The Witcher lifepath makes Homeland a rollable table with
+mechanical effects (Nilfgaard grants +1 Intimidation), so it is already a
+`lifepathEvent` with category `Homeland`. The sheet surfaces that under Identity as
+"Origin". A separate string field would store the same fact twice and let the two
+drift apart.
+
+---
+
+## 5b. Settled
 
 Settled, so it doesn't get re-raised:
 
