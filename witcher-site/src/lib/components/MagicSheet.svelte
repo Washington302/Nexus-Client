@@ -14,6 +14,7 @@
 	import InlineNumber from '$lib/components/InlineNumber.svelte';
 	import Panel from '$lib/components/Panel.svelte';
 	import SheetSection from '$lib/components/SheetSection.svelte';
+	import AccordionRow from '$lib/components/AccordionRow.svelte';
 
 	let {
 		draft,
@@ -62,13 +63,44 @@
 		if (e) e.active = false;
 	}
 	function addEffect(type: MagicType) {
-		draft.magicalEffects.push(createDefaultMagicalEffect(type));
+		const effect = createDefaultMagicalEffect(type);
+		draft.magicalEffects.push(effect);
+		// A brand-new effect has nothing to summarize in its collapsed header, so open
+		// it immediately — otherwise "Add" would look like it did nothing. Reassigned
+		// rather than mutated in place: plain $state(new Set()) doesn't proxy Set
+		// mutators, only reassignment of the binding is guaranteed reactive.
+		expanded = new Set(expanded).add(effect.id);
 	}
 
-	/** Casting above remaining headroom is overexertion: 5 HP per point over. */
+	/** Casting above remaining headroom is overexertion: 5 HP per point over. Only
+	 *  meaningful when there's a number to check — a relational cost like Dispel's
+	 *  (staCost stays 0) has nothing to compare against available Vigor. */
 	function overexertionCost(effect: MagicalEffect): number {
+		if (effect.variableStaCost && effect.staCost === 0) return 0;
 		const over = effect.staCost - available;
 		return over > 0 ? over * 5 : 0;
+	}
+
+	/** "Variable" is the printed value; the cap (if any) rides along as a parenthetical
+	 *  rather than being hidden, since a Sign's cap is still a number worth seeing. */
+	function staCostLabel(effect: MagicalEffect): string {
+		if (!effect.variableStaCost) return String(effect.staCost);
+		return effect.staCost > 0 ? `Variable (max ${effect.staCost})` : 'Variable';
+	}
+	function dcLabel(effect: MagicalEffect): string {
+		if (!effect.variableDifficultyCheck) return String(effect.difficultyCheck);
+		return effect.difficultyCheck > 0 ? `Variable (~${effect.difficultyCheck})` : 'Variable';
+	}
+
+	// Edit rows are collapsed by default: a full effect form is nine field-groups plus
+	// a textarea, and Amhir's own Magic tab (7 effects) made "just keep scrolling" the
+	// actual complaint. Keyed by id rather than stored on the effect itself — this is
+	// purely a UI state, not something that should round-trip to the server.
+	let expanded = $state(new Set<string>());
+	function toggleExpanded(id: string) {
+		if (expanded.has(id)) expanded.delete(id);
+		else expanded.add(id);
+		expanded = new Set(expanded);
 	}
 </script>
 
@@ -200,15 +232,19 @@
 								</span>
 							</div>
 							<span class="effect-meta">
-								STA {effect.staCost}
-								{#if effect.difficultyCheck}&middot; DC {effect.difficultyCheck}{/if}
+								STA {staCostLabel(effect)}
+								{#if effect.difficultyCheck || effect.variableDifficultyCheck}
+									&middot; DC {dcLabel(effect)}
+								{/if}
 								{#if effect.range}&middot; {effect.range}{/if}
 								{#if effect.duration}&middot; {effect.duration}{/if}
 								{#if effect.defense}&middot; vs {effect.defense}{/if}
 							</span>
-							{#if effect.staCost > available}
+							{#if overexertionCost(effect) > 0}
 								<span class="effect-meta over-cost">
-									Overexertion: {overexertionCost(effect)} HP at current headroom
+									{#if effect.variableStaCost}Overexertion at the full cost:
+									{:else}Overexertion:
+									{/if}{overexertionCost(effect)} HP at current headroom
 								</span>
 							{/if}
 							{#if openBranch === 'RITUAL' && (effect.components || effect.preparationTime)}
@@ -229,137 +265,166 @@
 				{/if}
 			{/snippet}
 			{#snippet edit()}
+				<!-- Collapsed by default: a full effect form is nine field-groups plus a
+				     description, and with a Magic tab this full (7 effects on one real
+				     character) "just keep scrolling" was the actual complaint. Each row
+				     opens independently, same interaction as the Skills tab's stat groups. -->
 				{#each branchEffects as effect (effect.id)}
-					<div class="list-card">
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Name</div>
-								<input class="input-demo" type="text" bind:value={effect.name} placeholder="Name" />
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Tier</div>
-								<select class="input-demo" bind:value={effect.tier}>
-									<option value={null}>&mdash;</option>
-									{#each MASTERY_TIER_OPTIONS as opt}
-										<option value={opt}>{label(opt)}</option>
-									{/each}
-								</select>
-							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">STA Cost</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={effect.staCost}
-								/>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Element</div>
-								<select class="input-demo" bind:value={effect.element}>
-									<option value={null}>&mdash;</option>
-									{#each MAGIC_ELEMENT_OPTIONS as opt}
-										<option value={opt}>{label(opt)}</option>
-									{/each}
-								</select>
-								<span class="field-hint">Selects the fumble effect.</span>
-							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Range</div>
-								<input class="input-demo" type="text" bind:value={effect.range} />
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Duration</div>
-								<input class="input-demo" type="text" bind:value={effect.duration} />
-							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Defense</div>
-								<input class="input-demo" type="text" bind:value={effect.defense} />
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">DC</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={effect.difficultyCheck}
-								/>
-							</div>
-						</div>
-
-						{#if openBranch === 'RITUAL'}
+					<AccordionRow
+						id={effect.id}
+						open={expanded.has(effect.id)}
+						onToggle={() => toggleExpanded(effect.id)}
+						onRemove={() =>
+							(draft.magicalEffects = draft.magicalEffects.filter((x) => x.id !== effect.id))}
+						removeLabel="Remove {label(openBranch)}"
+					>
+						{#snippet header()}
+							<span class="effect-name">{effect.name || 'Unnamed'}</span>
+							<span class="attribute-card-meta">
+								<span class="effect-meta">
+									STA {staCostLabel(effect)}
+									{#if effect.difficultyCheck || effect.variableDifficultyCheck}
+										&middot; DC {dcLabel(effect)}
+									{/if}
+								</span>
+								<span class="attribute-chevron" aria-hidden="true"></span>
+							</span>
+						{/snippet}
+						{#snippet body()}
 							<div class="grid-2">
 								<div class="field-group">
-									<div class="field-hdr">Components</div>
-									<input class="input-demo" type="text" bind:value={effect.components} />
+									<div class="field-hdr">Name</div>
+									<input
+										class="input-demo"
+										type="text"
+										bind:value={effect.name}
+										placeholder="Name"
+									/>
 								</div>
 								<div class="field-group">
-									<div class="field-hdr">Preparation Time</div>
-									<input class="input-demo" type="text" bind:value={effect.preparationTime} />
+									<div class="field-hdr">Tier</div>
+									<select class="input-demo" bind:value={effect.tier}>
+										<option value={null}>&mdash;</option>
+										{#each MASTERY_TIER_OPTIONS as opt}
+											<option value={opt}>{label(opt)}</option>
+										{/each}
+									</select>
 								</div>
 							</div>
-						{/if}
-						{#if openBranch === 'HEX'}
 							<div class="grid-2">
 								<div class="field-group">
-									<div class="field-hdr">Requirement To Lift</div>
-									<input class="input-demo" type="text" bind:value={effect.requirementToLift} />
+									<div class="field-hdr">STA Cost</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={effect.staCost}
+									/>
+									<label class="checkbox-row">
+										<input type="checkbox" bind:checked={effect.variableStaCost} />
+										<span>Variable — a stated maximum, or 0 if relational (see Effect text).</span>
+									</label>
 								</div>
 								<div class="field-group">
-									<div class="field-hdr">Danger</div>
-									<input class="input-demo" type="text" bind:value={effect.danger} />
+									<div class="field-hdr">Element</div>
+									<select class="input-demo" bind:value={effect.element}>
+										<option value={null}>&mdash;</option>
+										{#each MAGIC_ELEMENT_OPTIONS as opt}
+											<option value={opt}>{label(opt)}</option>
+										{/each}
+									</select>
+									<span class="field-hint">Selects the fumble effect.</span>
 								</div>
 							</div>
-						{/if}
-
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Vigor Upkeep</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={effect.vigorUpkeep}
-								/>
-								<span class="field-hint">Held while maintained.</span>
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Range</div>
+									<input class="input-demo" type="text" bind:value={effect.range} />
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Duration</div>
+									<input class="input-demo" type="text" bind:value={effect.duration} />
+								</div>
 							</div>
-							<div class="field-group">
-								<div class="field-hdr">STA Upkeep</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={effect.staUpkeep}
-								/>
-								<span class="field-hint">Per round.</span>
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Defense</div>
+									<input class="input-demo" type="text" bind:value={effect.defense} />
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">DC</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={effect.difficultyCheck}
+									/>
+									<label class="checkbox-row">
+										<input type="checkbox" bind:checked={effect.variableDifficultyCheck} />
+										<span>Variable — depends on conditions at cast time.</span>
+									</label>
+								</div>
 							</div>
-						</div>
 
-						<div class="field-group">
-							<div class="field-hdr">Effect</div>
-							<textarea class="input-demo" rows="3" bind:value={effect.effect}></textarea>
-						</div>
+							{#if openBranch === 'RITUAL'}
+								<div class="grid-2">
+									<div class="field-group">
+										<div class="field-hdr">Components</div>
+										<input class="input-demo" type="text" bind:value={effect.components} />
+									</div>
+									<div class="field-group">
+										<div class="field-hdr">Preparation Time</div>
+										<input class="input-demo" type="text" bind:value={effect.preparationTime} />
+									</div>
+								</div>
+							{/if}
+							{#if openBranch === 'HEX'}
+								<div class="grid-2">
+									<div class="field-group">
+										<div class="field-hdr">Requirement To Lift</div>
+										<input class="input-demo" type="text" bind:value={effect.requirementToLift} />
+									</div>
+									<div class="field-group">
+										<div class="field-hdr">Danger</div>
+										<input class="input-demo" type="text" bind:value={effect.danger} />
+									</div>
+								</div>
+							{/if}
 
-						<label class="finish-creation">
-							<input type="checkbox" bind:checked={effect.active} />
-							<span>Maintained — commits its Vigor until ended.</span>
-						</label>
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Vigor Upkeep</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={effect.vigorUpkeep}
+									/>
+									<span class="field-hint">Held while maintained.</span>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">STA Upkeep</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={effect.staUpkeep}
+									/>
+									<span class="field-hint">Per round.</span>
+								</div>
+							</div>
 
-						<button
-							type="button"
-							class="remove-row-btn"
-							aria-label="Remove {label(openBranch)}"
-							onclick={() =>
-								(draft.magicalEffects = draft.magicalEffects.filter((x) => x.id !== effect.id))}
-							>✕</button
-						>
-					</div>
+							<div class="field-group">
+								<div class="field-hdr">Effect</div>
+								<textarea class="input-demo" rows="3" bind:value={effect.effect}></textarea>
+							</div>
+
+							<label class="finish-creation">
+								<input type="checkbox" bind:checked={effect.active} />
+								<span>Maintained — commits its Vigor until ended.</span>
+							</label>
+						{/snippet}
+					</AccordionRow>
 				{/each}
 				<button type="button" class="add-row-btn" onclick={() => addEffect(openBranch)}
 					>+ Add {label(openBranch)}</button

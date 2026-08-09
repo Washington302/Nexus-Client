@@ -16,7 +16,8 @@
 		statPointsSpent,
 		GAME_TYPE_POOL,
 		statPenalty,
-		healthCondition
+		healthCondition,
+		fractionLabel
 	} from '$lib/utils/character';
 	import InlineNumber from '$lib/components/InlineNumber.svelte';
 
@@ -107,11 +108,6 @@
 		}
 		if (p.flatPenalty > 0) parts.push(`wound penalties −${p.flatPenalty}`);
 		return `${parts.join(', ')} = ${p.effective}`;
-	}
-
-	/** 0.0625 → "1/16". Multipliers are only ever products of halves and quarters. */
-	function fractionLabel(multiplier: number): string {
-		return multiplier > 0 && multiplier < 1 ? `1/${Math.round(1 / multiplier)}` : '1';
 	}
 
 	const spent = $derived(statPointsSpent(statistics));

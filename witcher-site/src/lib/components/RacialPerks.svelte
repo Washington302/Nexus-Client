@@ -4,6 +4,7 @@
 	import { modifierText, createDefaultRacialPerk } from '$lib/utils/character';
 	import SheetSection from '$lib/components/SheetSection.svelte';
 	import StatModifierRows from '$lib/components/StatModifierRows.svelte';
+	import AccordionRow from '$lib/components/AccordionRow.svelte';
 
 	// Perks replaced the old comma-separated traits box. A perk with no modifiers is
 	// still just a narrative trait, so nothing is lost by the change — but one that
@@ -25,10 +26,20 @@
 	} = $props();
 
 	function addPerk() {
-		draft.raceInfo.perks.push(createDefaultRacialPerk());
+		const perk = createDefaultRacialPerk();
+		draft.raceInfo.perks.push(perk);
+		expanded = new Set(expanded).add(perk.id);
 	}
 	function removePerk(id: string) {
 		draft.raceInfo.perks = draft.raceInfo.perks.filter((p) => p.id !== id);
+	}
+
+	// Collapsed by default — see AccordionRow. Keyed by id, not stored on the perk.
+	let expanded = $state(new Set<string>());
+	function toggleExpanded(id: string) {
+		if (expanded.has(id)) expanded.delete(id);
+		else expanded.add(id);
+		expanded = new Set(expanded);
 	}
 </script>
 
@@ -80,31 +91,42 @@
 		</div>
 
 		{#each draft.raceInfo.perks as perk (perk.id)}
-			<div class="list-card">
-				<div class="field-group">
-					<div class="field-hdr">Name</div>
-					<input class="input-demo" type="text" bind:value={perk.name} placeholder="Perk" />
-				</div>
-				<div class="field-group">
-					<div class="field-hdr">Description</div>
-					<textarea class="input-demo" rows="2" bind:value={perk.description}></textarea>
-					<span class="field-hint">A perk with no modifiers is simply a narrative trait.</span>
-				</div>
+			<AccordionRow
+				id={perk.id}
+				open={expanded.has(perk.id)}
+				onToggle={() => toggleExpanded(perk.id)}
+				onRemove={() => removePerk(perk.id)}
+				removeLabel="Remove perk"
+			>
+				{#snippet header()}
+					<span class="effect-name">{perk.name || 'Unnamed perk'}</span>
+					<span class="attribute-card-meta">
+						{#if perk.modifiers.length > 0}
+							<span class="effect-meta">{perk.modifiers.map(modifierText).join(' · ')}</span>
+						{/if}
+						{#if !perk.active}<span class="pill">Inactive</span>{/if}
+						<span class="attribute-chevron" aria-hidden="true"></span>
+					</span>
+				{/snippet}
+				{#snippet body()}
+					<div class="field-group">
+						<div class="field-hdr">Name</div>
+						<input class="input-demo" type="text" bind:value={perk.name} placeholder="Perk" />
+					</div>
+					<div class="field-group">
+						<div class="field-hdr">Description</div>
+						<textarea class="input-demo" rows="2" bind:value={perk.description}></textarea>
+						<span class="field-hint">A perk with no modifiers is simply a narrative trait.</span>
+					</div>
 
-				<StatModifierRows bind:modifiers={perk.modifiers} skills={draft.skills} />
+					<StatModifierRows bind:modifiers={perk.modifiers} skills={draft.skills} />
 
-				<label class="finish-creation">
-					<input type="checkbox" bind:checked={perk.active} />
-					<span>Active — applies its modifiers to the sheet.</span>
-				</label>
-
-				<button
-					type="button"
-					class="remove-row-btn"
-					aria-label="Remove perk"
-					onclick={() => removePerk(perk.id)}>✕</button
-				>
-			</div>
+					<label class="finish-creation">
+						<input type="checkbox" bind:checked={perk.active} />
+						<span>Active — applies its modifiers to the sheet.</span>
+					</label>
+				{/snippet}
+			</AccordionRow>
 		{/each}
 		<button type="button" class="add-row-btn" onclick={addPerk}>+ Add Perk</button>
 	{/snippet}

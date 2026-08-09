@@ -98,20 +98,7 @@
 			{/snippet}
 		</SheetSection>
 
-		<SheetSection
-			{editable}
-			onOpen={onOpenEdit}
-			onCancel={onCancelEdit}
-			title="Early Life"
-			color="gold"
-		>
-			{#snippet view()}
-				{@render flavorView(EARLY_LIFE_CATEGORIES)}
-			{/snippet}
-			{#snippet edit()}
-				{@render flavorEdit(EARLY_LIFE_CATEGORIES)}
-			{/snippet}
-		</SheetSection>
+		
 
 		<SheetSection
 			{editable}
@@ -130,6 +117,21 @@
 	</section>
 
 	<div class="sheet-side-column">
+		<SheetSection
+			{editable}
+			onOpen={onOpenEdit}
+			onCancel={onCancelEdit}
+			title="Early Life"
+			color="gold"
+		>
+			{#snippet view()}
+				{@render flavorView(EARLY_LIFE_CATEGORIES)}
+			{/snippet}
+			{#snippet edit()}
+				{@render flavorEdit(EARLY_LIFE_CATEGORIES)}
+			{/snippet}
+		</SheetSection>
+		
 		<SheetSection
 			{editable}
 			onOpen={onOpenEdit}

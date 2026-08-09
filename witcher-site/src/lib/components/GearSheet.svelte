@@ -18,6 +18,7 @@
 	} from '$lib/utils/character';
 	import Panel from '$lib/components/Panel.svelte';
 	import SheetSection from '$lib/components/SheetSection.svelte';
+	import AccordionRow from '$lib/components/AccordionRow.svelte';
 
 	let {
 		draft,
@@ -45,15 +46,31 @@
 
 	function addCraftingMaterial() {
 		// null substance is what makes it a crafting material rather than alchemical.
-		draft.materials.push(createDefaultMaterial(null));
+		const mat = createDefaultMaterial(null);
+		draft.materials.push(mat);
+		expand(mat.id);
 	}
 	function addDiagram() {
-		draft.recipes.push(createDefaultRecipe('DIAGRAM'));
+		const dia = createDefaultRecipe('DIAGRAM');
+		draft.recipes.push(dia);
+		expand(dia.id);
 	}
 	function toggleWeaponType(weapon: { weaponTypes: string[] }, type: string) {
 		weapon.weaponTypes = weapon.weaponTypes.includes(type)
 			? weapon.weaponTypes.filter((t) => t !== type)
 			: [...weapon.weaponTypes, type];
+	}
+
+	// Collapsed by default — see AccordionRow. One shared set for every list on this
+	// tab: ids are UUIDs, so they can't collide across armor/weapons/materials/diagrams.
+	let expanded = $state(new Set<string>());
+	function toggleExpanded(id: string) {
+		if (expanded.has(id)) expanded.delete(id);
+		else expanded.add(id);
+		expanded = new Set(expanded);
+	}
+	function expand(id: string) {
+		expanded = new Set(expanded).add(id);
 	}
 </script>
 
@@ -178,102 +195,122 @@
 			{/snippet}
 			{#snippet edit()}
 				{#each draft.armor as piece, i (piece.id)}
-					<div class="list-card">
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Name</div>
-								<input
-									class="input-demo"
-									type="text"
-									bind:value={piece.name}
-									placeholder="Armor name"
-								/>
+					<AccordionRow
+						id={piece.id}
+						open={expanded.has(piece.id)}
+						onToggle={() => toggleExpanded(piece.id)}
+						onRemove={() => (draft.armor = draft.armor.filter((_, x) => x !== i))}
+						removeLabel="Remove armor"
+					>
+						{#snippet header()}
+							<span class="effect-name">{piece.name || 'Unnamed'}</span>
+							<span class="attribute-card-meta">
+								<span class="effect-meta">
+									SP {piece.currentStoppingPower}/{piece.maxStoppingPower} &middot; EV {piece.encumbranceValue}
+								</span>
+								<span class="attribute-chevron" aria-hidden="true"></span>
+							</span>
+						{/snippet}
+						{#snippet body()}
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Name</div>
+									<input
+										class="input-demo"
+										type="text"
+										bind:value={piece.name}
+										placeholder="Armor name"
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Location</div>
+									<select class="input-demo" bind:value={piece.location}>
+										<option value={null}>&mdash;</option>
+										{#each ARMOR_LOCATION_OPTIONS as opt}
+											<option value={opt}>{label(opt)}</option>
+										{/each}
+									</select>
+								</div>
+							</div>
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">SP (current)</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={piece.currentStoppingPower}
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">SP (max)</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={piece.maxStoppingPower}
+									/>
+								</div>
+							</div>
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">EV</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={piece.encumbranceValue}
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Weight</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										step="0.1"
+										bind:value={piece.weight}
+									/>
+								</div>
+							</div>
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Enhancement Slots</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={piece.enhancementSlots}
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Cost</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={piece.cost}
+									/>
+								</div>
 							</div>
 							<div class="field-group">
-								<div class="field-hdr">Location</div>
-								<select class="input-demo" bind:value={piece.location}>
-									<option value={null}>&mdash;</option>
-									{#each ARMOR_LOCATION_OPTIONS as opt}
-										<option value={opt}>{label(opt)}</option>
-									{/each}
-								</select>
+								<div class="field-hdr">Effect</div>
+								<textarea class="input-demo" rows="2" bind:value={piece.effect}></textarea>
 							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">SP (current)</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={piece.currentStoppingPower}
-								/>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">SP (max)</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={piece.maxStoppingPower}
-								/>
-							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">EV</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={piece.encumbranceValue}
-								/>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Weight</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									step="0.1"
-									bind:value={piece.weight}
-								/>
-							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Enhancement Slots</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={piece.enhancementSlots}
-								/>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Cost</div>
-								<input class="input-demo input-num" type="number" min="0" bind:value={piece.cost} />
-							</div>
-						</div>
-						<div class="field-group">
-							<div class="field-hdr">Effect</div>
-							<textarea class="input-demo" rows="2" bind:value={piece.effect}></textarea>
-						</div>
-						<label class="finish-creation">
-							<input type="checkbox" bind:checked={piece.equipped} />
-							<span>Worn — its EV counts against REF and DEX.</span>
-						</label>
-						<button
-							type="button"
-							class="remove-row-btn"
-							aria-label="Remove armor"
-							onclick={() => (draft.armor = draft.armor.filter((_, x) => x !== i))}>✕</button
-						>
-					</div>
+							<label class="finish-creation">
+								<input type="checkbox" bind:checked={piece.equipped} />
+								<span>Worn — its EV counts against REF and DEX.</span>
+							</label>
+						{/snippet}
+					</AccordionRow>
 				{/each}
 				<button
 					type="button"
 					class="add-row-btn"
-					onclick={() => draft.armor.push(createDefaultArmor())}>+ Add Armor</button
+					onclick={() => {
+						const a = createDefaultArmor();
+						draft.armor.push(a);
+						expand(a.id);
+					}}>+ Add Armor</button
 				>
 			{/snippet}
 		</SheetSection>
@@ -322,148 +359,164 @@
 			{/snippet}
 			{#snippet edit()}
 				{#each draft.weapons as weapon, i (weapon.id)}
-					<div class="list-card">
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Name</div>
-								<input
-									class="input-demo"
-									type="text"
-									bind:value={weapon.name}
-									placeholder="Weapon name"
-								/>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Damage</div>
-								<input class="input-demo" type="text" bind:value={weapon.damage} />
-							</div>
-						</div>
-
-						<div class="field-hdr">Damage Types</div>
-						<div class="type-toggles">
-							{#each WEAPON_TYPE_OPTIONS as t}
-								<label class="type-toggle">
+					<AccordionRow
+						id={weapon.id}
+						open={expanded.has(weapon.id)}
+						onToggle={() => toggleExpanded(weapon.id)}
+						onRemove={() => (draft.weapons = draft.weapons.filter((_, x) => x !== i))}
+						removeLabel="Remove weapon"
+					>
+						{#snippet header()}
+							<span class="effect-name">
+								{weapon.name ||
+									'Unnamed'}{#if weapon.quantity > 1}&nbsp;&times;{weapon.quantity}{/if}
+							</span>
+							<span class="attribute-card-meta">
+								<span class="effect-meta">{weapon.damage || '—'}</span>
+								<span class="attribute-chevron" aria-hidden="true"></span>
+							</span>
+						{/snippet}
+						{#snippet body()}
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Name</div>
 									<input
-										type="checkbox"
-										checked={weapon.weaponTypes.includes(t)}
-										onchange={() => toggleWeaponType(weapon, t)}
+										class="input-demo"
+										type="text"
+										bind:value={weapon.name}
+										placeholder="Weapon name"
 									/>
-									<span>{label(t)}</span>
-								</label>
-							{/each}
-						</div>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Damage</div>
+									<input class="input-demo" type="text" bind:value={weapon.damage} />
+								</div>
+							</div>
 
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Weapon Accuracy</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									bind:value={weapon.weaponAccuracy}
-								/>
+							<div class="field-hdr">Damage Types</div>
+							<div class="type-toggles">
+								{#each WEAPON_TYPE_OPTIONS as t}
+									<label class="type-toggle">
+										<input
+											type="checkbox"
+											checked={weapon.weaponTypes.includes(t)}
+											onchange={() => toggleWeaponType(weapon, t)}
+										/>
+										<span>{label(t)}</span>
+									</label>
+								{/each}
+							</div>
+
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Weapon Accuracy</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										bind:value={weapon.weaponAccuracy}
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Hands</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="1"
+										bind:value={weapon.hands}
+									/>
+								</div>
+							</div>
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Reliability (current)</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={weapon.currentReliability}
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Reliability (max)</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={weapon.maxReliability}
+									/>
+								</div>
+							</div>
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Range</div>
+									<input class="input-demo" type="text" bind:value={weapon.range} />
+									<span class="field-hint">Blank for melee.</span>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Concealment</div>
+									<select class="input-demo" bind:value={weapon.concealment}>
+										<option value={null}>&mdash;</option>
+										{#each CONCEALMENT_OPTIONS as opt}
+											<option value={opt}>{label(opt)}</option>
+										{/each}
+									</select>
+								</div>
+							</div>
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Enhancement Slots</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={weapon.enhancementSlots}
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Availability</div>
+									<select class="input-demo" bind:value={weapon.availability}>
+										<option value={null}>&mdash;</option>
+										{#each AVAILABILITY_OPTIONS as opt}
+											<option value={opt}>{label(opt)}</option>
+										{/each}
+									</select>
+								</div>
+							</div>
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Quantity</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={weapon.quantity}
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Weight</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										step="0.1"
+										bind:value={weapon.weight}
+									/>
+								</div>
 							</div>
 							<div class="field-group">
-								<div class="field-hdr">Hands</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="1"
-									bind:value={weapon.hands}
-								/>
+								<div class="field-hdr">Effect</div>
+								<textarea class="input-demo" rows="2" bind:value={weapon.effect}></textarea>
 							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Reliability (current)</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={weapon.currentReliability}
-								/>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Reliability (max)</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={weapon.maxReliability}
-								/>
-							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Range</div>
-								<input class="input-demo" type="text" bind:value={weapon.range} />
-								<span class="field-hint">Blank for melee.</span>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Concealment</div>
-								<select class="input-demo" bind:value={weapon.concealment}>
-									<option value={null}>&mdash;</option>
-									{#each CONCEALMENT_OPTIONS as opt}
-										<option value={opt}>{label(opt)}</option>
-									{/each}
-								</select>
-							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Enhancement Slots</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={weapon.enhancementSlots}
-								/>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Availability</div>
-								<select class="input-demo" bind:value={weapon.availability}>
-									<option value={null}>&mdash;</option>
-									{#each AVAILABILITY_OPTIONS as opt}
-										<option value={opt}>{label(opt)}</option>
-									{/each}
-								</select>
-							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Quantity</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={weapon.quantity}
-								/>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Weight</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									step="0.1"
-									bind:value={weapon.weight}
-								/>
-							</div>
-						</div>
-						<div class="field-group">
-							<div class="field-hdr">Effect</div>
-							<textarea class="input-demo" rows="2" bind:value={weapon.effect}></textarea>
-						</div>
-						<button
-							type="button"
-							class="remove-row-btn"
-							aria-label="Remove weapon"
-							onclick={() => (draft.weapons = draft.weapons.filter((_, x) => x !== i))}>✕</button
-						>
-					</div>
+						{/snippet}
+					</AccordionRow>
 				{/each}
 				<button
 					type="button"
 					class="add-row-btn"
-					onclick={() => draft.weapons.push(createDefaultWeapon())}>+ Add Weapon</button
+					onclick={() => {
+						const w = createDefaultWeapon();
+						draft.weapons.push(w);
+						expand(w.id);
+					}}>+ Add Weapon</button
 				>
 			{/snippet}
 		</SheetSection>
@@ -546,69 +599,77 @@
 			{/snippet}
 			{#snippet edit()}
 				{#each materials as mat (mat.id)}
-					<div class="list-card">
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Material</div>
-								<input
-									class="input-demo"
-									type="text"
-									bind:value={mat.name}
-									placeholder="Material name"
-								/>
+					<AccordionRow
+						id={mat.id}
+						open={expanded.has(mat.id)}
+						onToggle={() => toggleExpanded(mat.id)}
+						onRemove={() => (draft.materials = draft.materials.filter((m) => m.id !== mat.id))}
+						removeLabel="Remove material"
+					>
+						{#snippet header()}
+							<span class="effect-name">{mat.name || 'Unnamed'} &times;{mat.quantityHeld}</span>
+							<span class="attribute-card-meta">
+								{#if mat.rarity}<span class="effect-meta">{label(mat.rarity)}</span>{/if}
+								<span class="attribute-chevron" aria-hidden="true"></span>
+							</span>
+						{/snippet}
+						{#snippet body()}
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Material</div>
+									<input
+										class="input-demo"
+										type="text"
+										bind:value={mat.name}
+										placeholder="Material name"
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Held</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={mat.quantityHeld}
+									/>
+								</div>
+							</div>
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Weight</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										step="0.1"
+										bind:value={mat.weight}
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Rarity</div>
+									<select class="input-demo" bind:value={mat.rarity}>
+										<option value={null}>&mdash;</option>
+										{#each AVAILABILITY_OPTIONS as opt}
+											<option value={opt}>{label(opt)}</option>
+										{/each}
+									</select>
+								</div>
 							</div>
 							<div class="field-group">
-								<div class="field-hdr">Held</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={mat.quantityHeld}
-								/>
-							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Weight</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									step="0.1"
-									bind:value={mat.weight}
-								/>
+								<div class="field-hdr">Found</div>
+								<input class="input-demo" type="text" bind:value={mat.location} />
 							</div>
 							<div class="field-group">
-								<div class="field-hdr">Rarity</div>
-								<select class="input-demo" bind:value={mat.rarity}>
-									<option value={null}>&mdash;</option>
-									{#each AVAILABILITY_OPTIONS as opt}
-										<option value={opt}>{label(opt)}</option>
+								<div class="field-hdr">Yields Substance</div>
+								<select class="input-demo" bind:value={mat.yieldsSubstance}>
+									<option value={null}>&mdash; None (crafting material) &mdash;</option>
+									{#each SUBSTANCE_ORDER as sub}
+										<option value={sub}>{label(sub)}</option>
 									{/each}
 								</select>
+								<span class="field-hint">Setting one moves it to the Alchemy tab.</span>
 							</div>
-						</div>
-						<div class="field-group">
-							<div class="field-hdr">Found</div>
-							<input class="input-demo" type="text" bind:value={mat.location} />
-						</div>
-						<div class="field-group">
-							<div class="field-hdr">Yields Substance</div>
-							<select class="input-demo" bind:value={mat.yieldsSubstance}>
-								<option value={null}>&mdash; None (crafting material) &mdash;</option>
-								{#each SUBSTANCE_ORDER as sub}
-									<option value={sub}>{label(sub)}</option>
-								{/each}
-							</select>
-							<span class="field-hint">Setting one moves it to the Alchemy tab.</span>
-						</div>
-						<button
-							type="button"
-							class="remove-row-btn"
-							aria-label="Remove material"
-							onclick={() => (draft.materials = draft.materials.filter((m) => m.id !== mat.id))}
-							>✕</button
-						>
-					</div>
+						{/snippet}
+					</AccordionRow>
 				{/each}
 				<button type="button" class="add-row-btn" onclick={addCraftingMaterial}
 					>+ Add Material</button
@@ -659,91 +720,99 @@
 			{/snippet}
 			{#snippet edit()}
 				{#each diagramList as dia (dia.id)}
-					<div class="list-card">
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Name</div>
-								<input
-									class="input-demo"
-									type="text"
-									bind:value={dia.name}
-									placeholder="Diagram name"
-								/>
+					<AccordionRow
+						id={dia.id}
+						open={expanded.has(dia.id)}
+						onToggle={() => toggleExpanded(dia.id)}
+						onRemove={() => (draft.recipes = draft.recipes.filter((r) => r.id !== dia.id))}
+						removeLabel="Remove diagram"
+					>
+						{#snippet header()}
+							<span class="effect-name">{dia.name || 'Unnamed diagram'}</span>
+							<span class="attribute-card-meta">
+								<span class="effect-meta">DC {dia.craftingDc}</span>
+								<span class="attribute-chevron" aria-hidden="true"></span>
+							</span>
+						{/snippet}
+						{#snippet body()}
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Name</div>
+									<input
+										class="input-demo"
+										type="text"
+										bind:value={dia.name}
+										placeholder="Diagram name"
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Produces</div>
+									<input class="input-demo" type="text" bind:value={dia.craftedType} />
+								</div>
 							</div>
-							<div class="field-group">
-								<div class="field-hdr">Produces</div>
-								<input class="input-demo" type="text" bind:value={dia.craftedType} />
+							<div class="grid-2">
+								<div class="field-group">
+									<div class="field-hdr">Crafting DC</div>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="0"
+										bind:value={dia.craftingDc}
+									/>
+								</div>
+								<div class="field-group">
+									<div class="field-hdr">Time</div>
+									<input class="input-demo" type="text" bind:value={dia.craftingTime} />
+								</div>
 							</div>
-						</div>
-						<div class="grid-2">
-							<div class="field-group">
-								<div class="field-hdr">Crafting DC</div>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="0"
-									bind:value={dia.craftingDc}
-								/>
-							</div>
-							<div class="field-group">
-								<div class="field-hdr">Time</div>
-								<input class="input-demo" type="text" bind:value={dia.craftingTime} />
-							</div>
-						</div>
 
-						<div class="field-hdr">Components</div>
-						<span class="field-hint">
-							Named materials only — diagrams don't allow substitution.
-						</span>
-						{#each dia.components as comp, ci (comp.id)}
-							<div class="bg-row">
-								<input
-									class="input-demo"
-									type="text"
-									bind:value={comp.materialName}
-									placeholder="Material"
-								/>
-								<input
-									class="input-demo input-num"
-									type="number"
-									min="1"
-									bind:value={comp.quantity}
-								/>
-								<button
-									type="button"
-									class="remove-row-btn"
-									aria-label="Remove component"
-									onclick={() => (dia.components = dia.components.filter((_, x) => x !== ci))}
-									>✕</button
-								>
-							</div>
-						{/each}
-						<button
-							type="button"
-							class="add-row-btn"
-							onclick={() => {
-								const c = createDefaultComponent();
-								c.substance = null;
-								dia.components.push(c);
-							}}>+ Add Component</button
-						>
+							<div class="field-hdr">Components</div>
+							<span class="field-hint">
+								Named materials only — diagrams don't allow substitution.
+							</span>
+							{#each dia.components as comp, ci (comp.id)}
+								<div class="bg-row">
+									<input
+										class="input-demo"
+										type="text"
+										bind:value={comp.materialName}
+										placeholder="Material"
+									/>
+									<input
+										class="input-demo input-num"
+										type="number"
+										min="1"
+										bind:value={comp.quantity}
+									/>
+									<button
+										type="button"
+										class="remove-row-btn"
+										aria-label="Remove component"
+										onclick={() => (dia.components = dia.components.filter((_, x) => x !== ci))}
+										>✕</button
+									>
+								</div>
+							{/each}
+							<button
+								type="button"
+								class="add-row-btn"
+								onclick={() => {
+									const c = createDefaultComponent();
+									c.substance = null;
+									dia.components.push(c);
+								}}>+ Add Component</button
+							>
 
-						<label class="finish-creation">
-							<input type="checkbox" bind:checked={dia.requiresForge} />
-							<span>Requires a forge.</span>
-						</label>
-						<label class="finish-creation">
-							<input type="checkbox" bind:checked={dia.writtenCopy} />
-							<span>Written copy — +2 when crafting from it.</span>
-						</label>
-						<button
-							type="button"
-							class="remove-row-btn"
-							aria-label="Remove diagram"
-							onclick={() => (draft.recipes = draft.recipes.filter((r) => r.id !== dia.id))}
-							>✕</button
-						>
-					</div>
+							<label class="finish-creation">
+								<input type="checkbox" bind:checked={dia.requiresForge} />
+								<span>Requires a forge.</span>
+							</label>
+							<label class="finish-creation">
+								<input type="checkbox" bind:checked={dia.writtenCopy} />
+								<span>Written copy — +2 when crafting from it.</span>
+							</label>
+						{/snippet}
+					</AccordionRow>
 				{/each}
 				<button type="button" class="add-row-btn" onclick={addDiagram}>+ Add Diagram</button>
 			{/snippet}
