@@ -1820,6 +1820,39 @@ select.input-demo {
 	font-family: var(--font-mono);
 	font-size: 10px;
 }
+/* Specializable rows (Language, Fine Arts, Performance) grow a second line for the
+   subject text — the base 3-column grid has no room for it alongside name/points/total. */
+.skill-edit-row.specializable {
+	grid-template-columns: 1fr 60px 44px;
+	row-gap: 4px;
+}
+.skill-edit-subject-row {
+	grid-column: 1 / -1;
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+.skill-edit-subject {
+	flex: 1;
+	font-size: 12px;
+}
+.skill-edit-warning {
+	grid-column: 1 / -1;
+	font-family: var(--font-mono);
+	font-size: 10px;
+	color: var(--error);
+}
+.skill-edit-add {
+	margin: 4px 0 8px;
+	font-size: 11px;
+}
+.skill-specialization {
+	font-family: var(--font-body);
+	font-size: 12px;
+	color: var(--on-surface-variant);
+	font-style: italic;
+	margin-left: 2px;
+}
 .skill-edit-total {
 	font-family: var(--font-body);
 	font-size: 13px;

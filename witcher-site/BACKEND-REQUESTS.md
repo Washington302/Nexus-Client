@@ -1,10 +1,16 @@
 # nexus-core — Witcher module requests
 
-> **Status 2026-08-08.** §2 and §4b are **fixed** in the backend's working tree but
-> **not deployed** — verified against the live API, which still returns
-> `flatPenalty` and `raceInfo.racialTraits`. Everything below therefore still
-> describes production. The frontend has NOT been migrated to the new field names;
-> doing so before that deploy would break the live app.
+> **Status 2026-08-08 (later).** The Defining-Skill and skill-specialization rework
+> IS deployed — verified against the live API. §2/§4b/§9's field renames were also
+> live by this point (the "not deployed" note below is stale; the changelog's deploy
+> column has now been wrong in both directions). The frontend is migrated to match.
+> Two new findings from that migration are in §10.
+
+> **2026-08-08 (earlier, superseded above).** §2 and §4b are **fixed** in the
+> backend's working tree but **not deployed** — verified against the live API, which
+> still returns `flatPenalty` and `raceInfo.racialTraits`. Everything below
+> therefore still describes production. The frontend has NOT been migrated to the
+> new field names; doing so before that deploy would break the live app.
 >
 > One open question on the new work, raised in §6.
 
@@ -245,6 +251,69 @@ mechanical effects (Nilfgaard grants +1 Intimidation), so it is already a
 `lifepathEvent` with category `Homeland`. The sheet surfaces that under Identity as
 "Origin". A separate string field would store the same fact twice and let the two
 drift apart.
+
+---
+
+## 9. `validateStatBudget` allows 9 points more than the pool
+
+```java
+int baseline = 9; // each of the 9 stats starts at 1
+int spent = <sum of nine stats> - baseline;
+if (spent > allowed)   // allowed = 60 for AVERAGE
+```
+
+Subtracting the baseline makes the largest legal **sum** `pool + 9` — 69 on an AVERAGE
+game rather than 60.
+
+`GameType` describes itself as "the point pool used to purchase the 9 Statistics", and
+60 across nine stats averages 6.67, which is average on a 1–10 scale. The baseline
+reading puts it at 7.67 for a game type called Average. The subtraction would only be
+right if the nine starting 1s were free _on top of_ the pool, and nothing seeds stats
+to 1 at creation.
+
+Requested: drop `- baseline` so `spent` is the plain sum.
+
+**The frontend has already made this change** — the sheet now shows `60 max` and warns
+above 60. It is deliberately the stricter of the two, so it can never call a character
+legal that the table wouldn't allow; the cost is that between 61 and 69 the sheet warns
+while the server still saves without complaint. That gap closes when this ships.
+
+---
+
+## 10. Migration findings from the Defining-Skill / specialization rework
+
+### 10a. Existing characters lost their Defining Skill silently
+
+`applyProfessionDefaults` — which seeds the trunk `ProfessionAbility` row from
+`WitcherProfessionData` — is called at exactly one site, the **create** path in
+`WitcherCharacterController`. It never runs on update, so a character made before
+this deploy simply loses its Defining Skill: the old `definingSkillName` field is
+gone, and nothing back-fills the trunk row in its place.
+
+Confirmed on the test character (`Witcher` profession): its `abilities` list now
+holds only the unrelated ability it had before ("Cold Read"); "Witcher Training" is
+not there in any form. Not recoverable client-side — the old field's text isn't in
+the new payload to convert, unlike the `racialTraits` → `perks` case in §6, where the
+old data was still present under a different key.
+
+This is the third time this shape of bug has appeared: a creation-only seeder plus a
+field rename or restructure equals silent, permanent data loss for every character
+that already exists. §6 (`racialTraits`) and the standing `seedSubstanceStore`
+backfill item are the other two. Low stakes while the site has no real users, but
+worth a single fix applied to the pattern rather than continuing to hit it once per
+feature — e.g. running the relevant `applyXDefaults` idempotently inside
+`recalculateAll` (skip if the expected row/field already exists) rather than only at
+creation.
+
+### 10b. `Skill.id` — confirm it's always non-null in practice
+
+The frontend's specialization editor keys remove-by-id (`draft.skills.filter(s =>
+s.id !== id)`), same as the wound/perk editors already do. `Skill.id` is typed
+optional in our TS (`id?: string`), inherited from before this session touched it,
+but every row we've observed round-trip has one. Wanted: confirmation this can't
+come back `null`/absent for a server-seeded row, the way `ProfessionAbility.id` did
+before the Jackson fix in §1 — if that's still a live risk here too, it's the same
+root cause and the same fix.
 
 ---
 

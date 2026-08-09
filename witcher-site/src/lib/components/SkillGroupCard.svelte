@@ -34,6 +34,9 @@
 				<div class="skill-row">
 					<span class="skill-row-name">
 						{label(skill.skillName)}
+						{#if skill.specialization}<span class="skill-specialization"
+								>({skill.specialization})</span
+							>{/if}
 						{#if skill.packageSkill}<span class="pkg-mark" title="Profession package skill">●</span
 							>{/if}
 						{#if skill.costPerLevel === 2}<span class="cost-mark" title="Costs 2 points per level"

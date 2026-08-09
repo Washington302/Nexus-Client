@@ -116,8 +116,14 @@
 
 	const spent = $derived(statPointsSpent(statistics));
 	const pool = $derived(GAME_TYPE_POOL[statistics.gameType as GameType] ?? 0);
-	// validateStatBudget subtracts a baseline of 1 per stat before comparing to the pool.
-	const overBudget = $derived(spent - STAT_TABLE_ORDER.length > pool);
+	// The pool is the total of the nine stats, not points bought on top of a free 1 in
+	// each: 60 across nine averages 6.67, which is what Average means on a 1-10 scale.
+	//
+	// The server disagrees for now — validateStatBudget subtracts a baseline of 9, so it
+	// accepts up to pool + 9. The sheet is deliberately the stricter of the two, so it
+	// can't tell you a character is legal that your table wouldn't allow. See §9 of
+	// BACKEND-REQUESTS.md.
+	const overBudget = $derived(spent > pool);
 </script>
 
 <div class="attr-table" class:impaired={anyImpaired}>
@@ -188,12 +194,14 @@
 	<div class="attr-total" class:with-effective={anyImpaired} class:over={overBudget}>
 		<span class="attr-row-label">Stat Total</span>
 		<span class="attr-total-value">{spent}</span>
-		<span class="attr-total-pool">{pool + STAT_TABLE_ORDER.length} max</span>
+		<span class="attr-total-pool">{pool} max</span>
 		{#if anyImpaired}<span></span>{/if}
 	</div>
 	{#if overBudget}
+		<!-- No longer promises a server rejection: the server's own budget is looser by 9
+		     until §9 lands, so between pool+1 and pool+9 it saves quite happily. -->
 		<p class="attr-warning">
-			Over the {statistics.gameType.toLowerCase()} point pool — the server will reject this on save.
+			{spent - pool} over the {statistics.gameType.toLowerCase()} point pool of {pool}.
 		</p>
 	{/if}
 
