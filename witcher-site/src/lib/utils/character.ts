@@ -324,6 +324,48 @@ export function skillsForStat(skills: Skill[], stat: WitcherStat): Skill[] {
 }
 
 /**
+ * Mirrors WitcherSkillName.isSpecializable() — must be kept in sync by hand, since the
+ * frontend has no way to read the backend enum's method. Trained per-subject rather
+ * than as one general competency (pg.51-54): Language is skill in a SPECIFIC language;
+ * Fine Arts and Performance both require naming a form each time the skill is taken.
+ */
+export const SPECIALIZABLE_SKILLS: readonly WitcherSkillName[] = [
+	'LANGUAGE',
+	'FINE_ARTS',
+	'PERFORMANCE'
+];
+
+export function isSpecializable(skillName: WitcherSkillName): boolean {
+	return SPECIALIZABLE_SKILLS.includes(skillName);
+}
+
+/**
+ * All rows sharing a skill name, so a specializable skill's several subjects
+ * (Elder Speech, Common Speech, ...) can be handled as one unit — added to, grouped,
+ * counted — while an ordinary skill's group is just its single row.
+ */
+export function skillRows(skills: Skill[], skillName: WitcherSkillName): Skill[] {
+	return skills.filter((s) => s.skillName === skillName);
+}
+
+/**
+ * A new subject for a specializable skill, cloned from an existing row of the same
+ * name so governingStat/packageSkill/costPerLevel — which don't vary by subject —
+ * come along automatically instead of being re-entered.
+ */
+export function createDefaultSpecialization(template: Skill): Skill {
+	return {
+		...template,
+		id: crypto.randomUUID(),
+		specialization: '',
+		points: 0,
+		currentPoints: 0,
+		total: 0,
+		currentTotal: 0
+	};
+}
+
+/**
  * Mirrors WitcherDerivedStatsService.recalculateSkills — a skill's total is its
  * governing stat's value plus the points invested. The server recomputes and
  * overwrites `skill.total` on every save, so this is a live preview of that value:
@@ -1054,16 +1096,39 @@ export function createDefaultAbility(branch: number, tier: number): ProfessionAb
 		level: 0,
 		currentLevel: 0,
 		branch,
-		tier
+		tier,
+		definingSkill: false
 	};
 }
 
+/** The trunk of the tree — Java's int fields default branch/tier to 0, same as the
+ *  grid's first slot, so `definingSkill` is what actually distinguishes it. */
+export function createDefaultDefiningSkill(): ProfessionAbility {
+	return { ...createDefaultAbility(0, 0), definingSkill: true };
+}
+
+/**
+ * The one ability row flagged as the trunk, mirroring the backend's
+ * `ProfessionInfo.getDefiningSkillAbility()`. Per the rulebook (pg.61) it sits beneath
+ * all three branches rather than occupying a grid slot, so this is a lookup, not a
+ * grid position.
+ */
+export function definingSkillAbility(abilities: ProfessionAbility[]): ProfessionAbility | null {
+	return abilities.find((a) => a.definingSkill) ?? null;
+}
+
 /** The 3x3 ability tree, filled out from whatever is stored so every slot renders. */
+/**
+ * The 3x3 branch/tier grid, EXCLUDING the Defining Skill trunk row. Without this
+ * exclusion the trunk (branch=0, tier=0 — Java's int default, same as the grid's own
+ * first slot) would collide with a real ability placed in that slot.
+ */
 export function abilityGrid(abilities: ProfessionAbility[]): ProfessionAbility[][] {
+	const gridAbilities = abilities.filter((a) => !a.definingSkill);
 	return [0, 1, 2].map((branch) =>
 		[0, 1, 2].map(
 			(tier) =>
-				abilities.find((a) => a.branch === branch && a.tier === tier) ??
+				gridAbilities.find((a) => a.branch === branch && a.tier === tier) ??
 				createDefaultAbility(branch, tier)
 		)
 	);
@@ -1107,11 +1172,9 @@ export function normalizeCharacterFromApi(raw: WitcherCharacter): WitcherCharact
 export function ensureDefaults(c: WitcherCharacter): void {
 	c.professionInfo ??= {
 		profession: null,
-		definingSkillName: '',
-		definingSkillNotes: '',
-		definingSkillPoints: 0,
 		magicalPerksNotes: '',
-		gearPackageNotes: ''
+		gearPackageNotes: '',
+		abilities: []
 	};
 	c.professionInfo.abilities ??= [];
 	c.statistics ??= {

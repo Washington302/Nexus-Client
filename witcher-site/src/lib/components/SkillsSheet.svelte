@@ -1,6 +1,14 @@
 <script lang="ts">
 	import type { WitcherCharacter } from '$lib/services/api';
-	import { STAT_TABLE_ORDER, skillsForStat, effectiveStat, label } from '$lib/utils/character';
+	import {
+		STAT_TABLE_ORDER,
+		skillsForStat,
+		effectiveStat,
+		definingSkillAbility,
+		createDefaultSpecialization,
+		label
+	} from '$lib/utils/character';
+	import type { Skill } from '$lib/services/api';
 	import SkillGroupCard from '$lib/components/SkillGroupCard.svelte';
 	import SkillGroupEditor from '$lib/components/SkillGroupEditor.svelte';
 	import EditableWrapper from '$lib/components/EditableWrapper.svelte';
@@ -63,8 +71,12 @@
 	// Mirrors validateSkillBudgets: package skills (plus the Defining Skill) draw on a
 	// 44-point pool, everything else draws on INT+REF. Shown live so you can see a
 	// budget break before the server rejects the save.
+	//
+	// The Defining Skill contributes its LEVEL directly, not level*costPerLevel — it's
+	// a ProfessionAbility now, which has no costPerLevel field, and the server's own
+	// validateSkillBudgets prices it the same way (packageSpent = definingAbility.level).
 	const packageSpent = $derived(
-		draft.professionInfo.definingSkillPoints +
+		(definingSkillAbility(draft.professionInfo.abilities)?.level ?? 0) +
 			draft.skills
 				.filter((s) => s.packageSkill)
 				.reduce((sum, s) => sum + s.points * s.costPerLevel, 0)
@@ -75,6 +87,15 @@
 			.reduce((sum, s) => sum + s.points * s.costPerLevel, 0)
 	);
 	const pickupAllowed = $derived(draft.statistics.intelligence + draft.statistics.reflexes);
+
+	// Add/remove change the length of draft.skills, which the per-stat filtered slice
+	// handed to the editor can't do on its own — these operate on the full array.
+	function addSpecialization(template: Skill) {
+		draft.skills.push(createDefaultSpecialization(template));
+	}
+	function removeSkill(id: string) {
+		draft.skills = draft.skills.filter((s) => s.id !== id);
+	}
 </script>
 
 <div class="sheet-body-grid">
@@ -162,7 +183,12 @@
 						<SkillGroupCard {stat} statValue={statVal} skills={skillsForStat(draft.skills, stat)} />
 					{/snippet}
 					{#snippet editForm()}
-						<SkillGroupEditor statValue={statVal} skills={skillsForStat(draft.skills, stat)} />
+						<SkillGroupEditor
+							statValue={statVal}
+							skills={skillsForStat(draft.skills, stat)}
+							onAddSpecialization={addSpecialization}
+							onRemoveSkill={removeSkill}
+						/>
 					{/snippet}
 				</EditableWrapper>
 			{:else}

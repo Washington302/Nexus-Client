@@ -167,6 +167,12 @@ export interface RaceInfo {
  * accepted (200) but silently dropped on save until it's added. Verified against the
  * deployed API: it ignores unknown properties rather than rejecting them.
  */
+/**
+ * One node of a profession's ability tree — including the Defining Skill, which is no
+ * longer a separate concept. Per the rulebook (pg.61) the Defining Skill sits beneath
+ * all three branches as the trunk, so it's just an ability row flagged
+ * `definingSkill: true`; `branch`/`tier` carry no meaning on that row.
+ */
 export interface ProfessionAbility {
 	id: string;
 	name: string;
@@ -180,16 +186,16 @@ export interface ProfessionAbility {
 	currentLevel: number;
 	branch: number;
 	tier: number;
+	/** True for exactly one row: the trunk of the tree, seeded at creation from the
+	 *  profession's reference skill. Found via `definingSkillAbility()`. */
+	definingSkill: boolean;
 }
 
 export interface ProfessionInfo {
 	profession: Profession | null;
-	definingSkillName: string;
-	definingSkillNotes: string;
-	definingSkillPoints: number;
 	magicalPerksNotes: string;
 	gearPackageNotes: string;
-	abilities?: ProfessionAbility[];
+	abilities: ProfessionAbility[];
 }
 
 /**
@@ -280,6 +286,12 @@ export interface DerivedStats {
 export interface Skill {
 	id?: string;
 	skillName: WitcherSkillName;
+	/** Blank for every ordinary skill. Freely settable for the three specializable
+	 *  skills (Language, Fine Arts, Performance) so a character can hold several rows
+	 *  of the same skillName, each a distinct subject — "Elder Speech" vs "Common
+	 *  Speech" for Language. The server rejects a duplicate or blank-duplicate
+	 *  specialization, and rejects more than one row of a non-specializable skill. */
+	specialization: string;
 	governingStat: WitcherStat;
 	/** Purchased points — monotonic, what creation budgets and Improvement Points buy. */
 	points: number;
