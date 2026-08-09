@@ -43,12 +43,27 @@
 		editing = true;
 	}
 
+	/** The HTML `max`/`min` attributes only affect the stepper arrows — typing "99"
+	 *  into a field capped at 15 is accepted by every browser without this. Clamped on
+	 *  commit rather than every keystroke so typing "1" then "15" doesn't get forced to
+	 *  the cap after the first digit. */
+	function clampToBounds() {
+		if (value == null) return;
+		if (max != null && value > max) value = max;
+		if (min != null && value < min) value = min;
+	}
+
+	function commit() {
+		clampToBounds();
+		editing = false;
+	}
+
 	function onkeydown(event: KeyboardEvent) {
 		if (event.key === 'Escape') {
 			value = stash;
 			editing = false;
 		} else if (event.key === 'Enter') {
-			editing = false;
+			commit();
 		}
 	}
 </script>
@@ -65,7 +80,7 @@
 		aria-label={label}
 		bind:value
 		use:focusOnMount
-		onblur={() => (editing = false)}
+		onblur={commit}
 		{onkeydown}
 	/>
 {:else}

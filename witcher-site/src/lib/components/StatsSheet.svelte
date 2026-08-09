@@ -36,28 +36,7 @@
 	<section class="attribute-column">
 		<!-- The attribute table edits inline (no modal): stats move during play, and
 		     max vs. current both live here so they exist in exactly one place. -->
-		<Panel header="Attributes" color="plain">
-			<AttributeTable
-				statistics={draft.statistics}
-				derivedStats={draft.derivedStats}
-				criticalWounds={draft.criticalWounds}
-				perks={draft.raceInfo.perks}
-				{editable}
-			/>
-		</Panel>
-
-		<!-- Sits directly under the attribute table because it is what drives the
-		     Effective column there. -->
-		<CriticalWounds {draft} {editable} {onOpenEdit} {onCancelEdit} />
-
-		<!-- Next to the wounds because they feed the same Effective column, from the
-		     opposite direction. -->
-		<RacialPerks {draft} {editable} {onOpenEdit} {onCancelEdit} />
-
-		<!-- Recalculated server-side from Statistics, so these are read-only. The
-		     numbers shown are after any wound or perk targeting them — a Dwarf's
-		     Strong perk adds +25 Encumbrance, Heart Damage quarters SPD-derived
-		     movement — since the server deliberately stores its own value unmodified. -->
+		
 		<Panel header="Combat &amp; Movement" color="plain">
 			<div class="derived-grid">
 				<div class="derived-item">
@@ -94,9 +73,33 @@
 				</div>
 			</div>
 		</Panel>
+
+			 <Panel header="Attributes" color="plain">
+			<AttributeTable
+				statistics={draft.statistics}
+				derivedStats={draft.derivedStats}
+				criticalWounds={draft.criticalWounds}
+				perks={draft.raceInfo.perks}
+				{editable}
+			/>
+		</Panel>
+
+		<!-- Sits directly under the attribute table because it is what drives the
+		     Effective column there. -->
+		<CriticalWounds {draft} {editable} {onOpenEdit} {onCancelEdit} />
+
+		<!-- Next to the wounds because they feed the same Effective column, from the
+		     opposite direction. -->
+		
+		<!-- Recalculated server-side from Statistics, so these are read-only. The
+		     numbers shown are after any wound or perk targeting them — a Dwarf's
+		     Strong perk adds +25 Encumbrance, Heart Damage quarters SPD-derived
+		     movement — since the server deliberately stores its own value unmodified. -->
+		
 	</section>
 
 	<div class="sheet-side-column">
+	
 		<SheetSection
 			{editable}
 			onOpen={onOpenEdit}
@@ -192,6 +195,8 @@
 				<RaceProfessionEditor {draft} />
 			{/snippet}
 		</SheetSection>
+		
+		<RacialPerks {draft} {editable} {onOpenEdit} {onCancelEdit} />
 
 		<SheetSection
 			{editable}
@@ -218,5 +223,7 @@
 				</div>
 			{/snippet}
 		</SheetSection>
+
+		
 	</div>
 </div>

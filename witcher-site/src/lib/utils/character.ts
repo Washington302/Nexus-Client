@@ -442,6 +442,27 @@ export function healthCondition(derived: DerivedStats): HealthCondition {
 	return 'NONE';
 }
 
+/**
+ * True for a `CriticalWound` row that's really a condition — a curse, disease, or
+ * hex rather than a located physical injury. Same backend object on purpose: a
+ * condition IS structurally a critical wound (name, per-state modifiers, notes), and
+ * the rulebook's own affliction rules ("halved/quartered Stamina until cured") reuse
+ * the identical stacking math wounds already use. Requesting a second backend type for
+ * something that shares every field would just be two names for one shape.
+ *
+ * Distinguished without a new field: `severity` (the SIMPLE/COMPLEX/DIFFICULT/DEADLY
+ * bonus-damage band) and `location` (HEAD/TORSO/ARM/LEG) are both concepts specific to
+ * the physical crit tables — nothing in the Nightmare Hex, Sewer Pox, or a Botchling's
+ * curse is banded by severity or sited on a limb. A row with neither set reads as a
+ * condition; setting either moves it back to Critical Wounds. A player who wants a
+ * located, severity-less crit is the one edge this heuristic gets wrong — accepted
+ * rather than asking the backend for a field whose only job is telling two UI boxes
+ * apart.
+ */
+export function isCondition(wound: CriticalWound): boolean {
+	return !wound.severity && !wound.location;
+}
+
 /** The modifier list matching a wound's current state — the tables print one column per state. */
 export function activeModifiers(wound: CriticalWound): StatModifier[] {
 	if (wound.state === 'TREATED') return wound.treatedModifiers ?? [];
@@ -678,10 +699,18 @@ export const WOUND_SEVERITY_OPTIONS: WoundSeverity[] = ['SIMPLE', 'COMPLEX', 'DI
 export const WOUND_STATE_OPTIONS: WoundState[] = ['UNTREATED', 'STABILIZED', 'TREATED'];
 export const WOUND_LOCATION_OPTIONS: WoundLocation[] = ['HEAD', 'TORSO', 'ARM', 'LEG'];
 
+/** "Lowers Stamina by a third" (Environmental Stress, pg. exposure rules) means a
+ *  third is LOST, i.e. two-thirds remain — distinct from "Quartered", where
+ *  three-quarters are lost. Named as a constant rather than a literal 2 / 3 so every
+ *  comparison against it (modifierText below, any future one) uses the identical
+ *  float rather than risking a second hand-typed approximation that fails ===. */
+export const REDUCED_BY_A_THIRD = 2 / 3;
+
 /** As StatModifier.multiplier expects. Doubling exists for perks and decoctions —
  *  the Fiend decoction doubles Encumbrance — so this isn't penalties-only. */
 export const MULTIPLIER_OPTIONS: { value: number; label: string }[] = [
 	{ value: 1, label: 'None' },
+	{ value: REDUCED_BY_A_THIRD, label: 'Reduced by a Third (×2/3)' },
 	{ value: 0.5, label: 'Halved' },
 	{ value: 0.25, label: 'Quartered' },
 	{ value: 2, label: 'Doubled' }
@@ -713,6 +742,37 @@ export function createDefaultStatModifier(): StatModifier {
 	};
 }
 
+function gcd(a: number, b: number): number {
+	return b === 0 ? a : gcd(b, a % b);
+}
+
+/**
+ * A multiplier as a small fraction — "1/16" for two stacked quarterings, "2/3" for
+ * Reduced by a Third, "1/6" for a quartering stacked on a thirding. Finds the
+ * simplest fraction within a hair of the value rather than assuming every multiplier
+ * is a power of two: the old `1/round(1/x)` version rendered 2/3 as "1/2", silently
+ * wrong, the moment REDUCED_BY_A_THIRD entered the mix.
+ */
+export function fractionLabel(multiplier: number): string {
+	if (multiplier <= 0) return '0';
+	if (multiplier >= 1) return '1';
+	let bestNum = 1;
+	let bestDen = 1;
+	let bestError = Infinity;
+	for (let den = 1; den <= 64; den++) {
+		const num = Math.round(multiplier * den);
+		if (num <= 0) continue;
+		const error = Math.abs(multiplier - num / den);
+		if (error < bestError - 1e-9) {
+			bestError = error;
+			bestNum = num;
+			bestDen = den;
+		}
+	}
+	const g = gcd(bestNum, bestDen);
+	return `${bestNum / g}/${bestDen / g}`;
+}
+
 /** One modifier as a readable line — "REF −2", "Archery +2", "Stamina quartered". */
 export function modifierText(mod: StatModifier): string {
 	const target = mod.stat
@@ -723,7 +783,8 @@ export function modifierText(mod: StatModifier): string {
 				? label(mod.derivedTarget)
 				: mod.otherTarget || 'Unspecified';
 	const bits: string[] = [];
-	if (mod.multiplier === 0.5) bits.push('halved');
+	if (mod.multiplier === REDUCED_BY_A_THIRD) bits.push('reduced by a third');
+	else if (mod.multiplier === 0.5) bits.push('halved');
 	else if (mod.multiplier === 0.25) bits.push('quartered');
 	else if (mod.multiplier === 2) bits.push('doubled');
 	if (mod.flatModifier)
@@ -840,6 +901,7 @@ export function createDefaultMagicalEffect(type: MagicType = 'SPELL'): MagicalEf
 		tier: 'NOVICE',
 		element: null,
 		staCost: 0,
+		variableStaCost: false,
 		effect: '',
 		range: '',
 		duration: '',
@@ -850,6 +912,7 @@ export function createDefaultMagicalEffect(type: MagicType = 'SPELL'): MagicalEf
 		components: '',
 		preparationTime: '',
 		difficultyCheck: 0,
+		variableDifficultyCheck: false,
 		requirementToLift: '',
 		danger: '',
 		notes: ''
@@ -1235,6 +1298,11 @@ export function ensureDefaults(c: WitcherCharacter): void {
 	// Always the canonical nine, whatever the server sent (see normalizeSubstanceStore).
 	c.substanceStore = normalizeSubstanceStore(c.substanceStore ?? []);
 	c.magicalEffects ??= [];
+	// Absent on any effect saved before variable STA/DC existed.
+	for (const effect of c.magicalEffects) {
+		effect.variableStaCost ??= false;
+		effect.variableDifficultyCheck ??= false;
+	}
 	// `perks` replaced the old free-text `racialTraits`. Any character written before
 	// that rename comes back with traits and no perks; a perk with no modifiers *is* a
 	// narrative trait, so they convert losslessly rather than being dropped.

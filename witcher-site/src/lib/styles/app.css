@@ -95,6 +95,15 @@
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
+	/* No scrollbar anywhere, ever — Firefox. Scrolling still works; only the bar is
+	   gone. One global rule so every current and future scrollable container (the
+	   .dialog and .content modals, .panel-body's height cap, the page itself) is
+	   covered without repeating this per element. */
+	scrollbar-width: none;
+}
+/* Chrome/Safari/Edge equivalent — no standard property exists for them. */
+*::-webkit-scrollbar {
+	display: none;
 }
 body {
 	background: var(--surface);
@@ -399,6 +408,13 @@ main {
 }
 .panel-body {
 	padding: var(--gutter);
+	/* Every card funnels through here (Panel is what EditableSectionCard renders too),
+	   so this is the one place that caps them all. Below the cap nothing changes —
+	   scroll only appears once content actually exceeds it — but a card with a full
+	   Profession Abilities tree or a dozen wounds stabilizes instead of pushing the
+	   whole page around. Matches the modal's own .content: max-height + overflow-y. */
+	max-height: 450px;
+	overflow-y: auto;
 }
 
 /* ── StatBubble ── */
@@ -891,6 +907,27 @@ main {
 	top: 6px;
 	right: 6px;
 }
+/* A collapsible list-card — every "+ Add X" list of multi-field records (Magic's
+   effects, wounds, perks, weapons, formulae, ingredients…) renders through
+   AccordionRow.svelte, which wraps this. Reuses .attribute-card-header/
+   .attribute-card-meta/.attribute-chevron verbatim (those are already colour-neutral
+   layout resets, not tied to the parchment attribute-card look) and only adds what's
+   specific to sitting inside a dark .list-card instead of a primary-container bubble. */
+.accordion-card .attribute-card-header {
+	/* Clears the absolutely-positioned remove button in the corner above. */
+	padding-right: 26px;
+}
+.accordion-card.open .attribute-card-header {
+	border-bottom: 1px solid var(--outline-variant);
+	padding-bottom: 8px;
+	margin-bottom: 10px;
+}
+.accordion-card.open .attribute-chevron {
+	transform: rotate(180deg);
+}
+.accordion-card-body .checkbox-row {
+	margin-top: 4px;
+}
 /* A modifier row inside a wound card — inset so the nesting is legible. */
 .list-card.nested {
 	background: var(--surface-container);
@@ -1291,13 +1328,22 @@ main {
 @media (min-width: 640px) {
 	.ability-branches {
 		grid-template-columns: 1fr 1fr 1fr;
+		/* Three tiers per branch is fixed (abilityGrid always pads to 3x3), so this can
+		   be a real grid — 3 explicit rows, filled column-first so branch 1's three
+		   cards land in column 1, branch 2's in column 2, and so on, matching the
+		   {#each branch}{#each ability}} markup order. Each row then sizes to its
+		   tallest card and every grid item stretches to fill it (the grid default),
+		   which is what keeps tier 1 lined up across all three branches regardless of
+		   how much text any one of them holds. */
+		grid-template-rows: repeat(3, auto);
+		grid-auto-flow: column;
 	}
 }
 .ability-branch {
-	display: flex;
-	flex-direction: column;
-	gap: var(--stack-sm);
-	min-width: 0;
+	/* Was its own flex column; now just unwraps so its three cards become direct grid
+	   items and can be placed into the real grid rows above instead of stacking
+	   independently of the other two branches. */
+	display: contents;
 }
 .ability-card {
 	border: 1px solid var(--outline-variant);
@@ -1308,6 +1354,10 @@ main {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
+	/* Grid items default to a content-based min-width, which could blow out a narrow
+	   column on a long unbroken name; explicitly allow the card to shrink. Carried over
+	   from .ability-branch now that its cards are direct grid children. */
+	min-width: 0;
 }
 .ability-card.one {
 	border-left-color: var(--tertiary);
@@ -1607,7 +1657,6 @@ main {
 	max-width: 640px;
 	max-height: 80vh;
 	overflow-y: auto;
-	scrollbar-width: none;
 	z-index: 101;
 	display: flex;
 	flex-direction: column;
@@ -1652,7 +1701,6 @@ main {
 	padding: 16px;
 	flex: 1;
 	overflow-y: auto;
-	scrollbar-width: none;
 }
 .error {
 	padding: 8px 16px;

@@ -522,7 +522,18 @@ export interface MagicalEffect {
 	type: MagicType | null;
 	tier: MasteryTier | null;
 	element: MagicElement | null;
+	/**
+	 * Two different things hide behind "Variable" in print, and only one is a number:
+	 *  - Player-chosen within a stated cap (basic Signs: "as much or as little power…
+	 *    Maximum 7 points"). `staCost` holds that cap when `variableStaCost` is set.
+	 *  - Relational, no numeric cap (Dispel: "half as many vigor points as the caster
+	 *    spent"). Nothing here can express that as a number, so `staCost` stays 0 and
+	 *    the rule lives in `effect` as prose.
+	 * The amount actually spent on one specific cast is a table-time choice, never
+	 * persisted — this field describes the effect, not a casting log.
+	 */
 	staCost: number;
+	variableStaCost: boolean;
 	effect: string;
 	range: string;
 	duration: string;
@@ -535,7 +546,10 @@ export interface MagicalEffect {
 	staUpkeep: number;
 	components: string;
 	preparationTime: string;
+	/** Same variable convention as staCost — Cleansing Ritual's DC is 12/15/18
+	 *  depending on what's being cleansed, not a fixed number. */
 	difficultyCheck: number;
+	variableDifficultyCheck: boolean;
 	requirementToLift: string;
 	danger: string;
 	notes: string;
