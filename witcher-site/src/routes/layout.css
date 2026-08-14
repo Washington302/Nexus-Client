@@ -1,3 +1,4 @@
 @import 'tailwindcss';
+@source '../../../shared/ui';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';

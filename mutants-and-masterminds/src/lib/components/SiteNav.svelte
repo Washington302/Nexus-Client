@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { COMIC, FONT } from '$lib/constants';
 	import { session, logout } from '$lib/stores/session.svelte';
 
 	let menuOpen = $state(false);

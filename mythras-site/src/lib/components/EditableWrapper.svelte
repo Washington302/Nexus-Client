@@ -1,5 +1,5 @@
 <script lang="ts">
-	import EditModal from './EditModal.svelte';
+	import EditModal from '@ui/EditModal.svelte';
 
 	let {
 		isEditable = false,

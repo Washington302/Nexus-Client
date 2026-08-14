@@ -16,7 +16,10 @@
 			pathname === '/' ||
 			pathname === '/legal' ||
 			pathname.startsWith('/auth/') ||
-			pathname.startsWith('/share/')
+			pathname.startsWith('/share/') ||
+			// The shared-component gallery is a dev-only verification surface;
+			// import.meta.env.DEV keeps it unreachable in production builds.
+			(import.meta.env.DEV && pathname.startsWith('/dev/'))
 		);
 	}
 
