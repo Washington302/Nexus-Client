@@ -78,7 +78,7 @@
 				required
 				minlength={8}
 				maxlength={40}
-				pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,40}"
+				pattern={PASSWORD_PATTERN.source}
 				class="gb-input"
 			/>
 			<span class="field-hint"

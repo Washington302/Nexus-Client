@@ -6,7 +6,6 @@
 	let {
 		title,
 		color,
-		headerIcon = '★',
 		view,
 		edit,
 		onOpen,
@@ -14,7 +13,6 @@
 	}: {
 		title: string;
 		color: 'red' | 'yellow' | 'blue' | 'dark';
-		headerIcon?: string;
 		view: Snippet;
 		edit: Snippet;
 		onOpen?: () => void;

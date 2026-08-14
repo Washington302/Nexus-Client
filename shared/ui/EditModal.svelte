@@ -1,17 +1,19 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+
 	let {
 		open = $bindable(false),
 		title = '',
 		onSave,
 		onCancel,
 		children
-	} = $props<{
-		open: boolean;
-		title: string;
+	}: {
+		open?: boolean;
+		title?: string;
 		onSave: () => Promise<void>;
 		onCancel?: () => void;
-		children?: any;
-	}>();
+		children?: Snippet;
+	} = $props();
 
 	let saving = $state(false);
 	let error = $state<string | null>(null);
@@ -38,9 +40,21 @@
 </script>
 
 {#if open}
-	<div class="backdrop" role="presentation" onclick={handleClose} onkeydown={(e) => e.key === 'Escape' && handleClose()} aria-label="Close modal"></div>
+	<div
+		class="backdrop"
+		role="presentation"
+		onclick={handleClose}
+		onkeydown={(e) => e.key === 'Escape' && handleClose()}
+		aria-label="Close modal"
+	></div>
 
-	<div class="dialog" role="dialog" aria-modal="true" tabindex="0" onkeydown={(e) => e.key === 'Escape' && handleClose()}>
+	<div
+		class="dialog"
+		role="dialog"
+		aria-modal="true"
+		tabindex="0"
+		onkeydown={(e) => e.key === 'Escape' && handleClose()}
+	>
 		<div class="header">
 			<span class="header-title">{title}</span>
 			<button class="close-btn" onclick={handleClose} disabled={saving}>&#10005;</button>
@@ -62,4 +76,3 @@
 		</div>
 	</div>
 {/if}
-

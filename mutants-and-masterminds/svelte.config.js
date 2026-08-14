@@ -5,7 +5,13 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
 	preprocess: vitePreprocess(),
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		// Shared components live in the sibling `shared/` directory, outside this
+		// app. See shared/ui/CONTRACT.md for the rules that keep that safe.
+		alias: {
+			'@ui': '../shared/ui',
+			'@shared': '../shared'
+		}
 	}
 };
 

@@ -9,7 +9,7 @@
 		STAT_ABBREV
 	} from '$lib/utils/character';
 	import AbilityCard from '$lib/components/AbilityCard.svelte';
-	import EditModal from '$lib/components/EditModal.svelte';
+	import EditModal from '@ui/EditModal.svelte';
 
 	// The profession's whole ability block: the Defining Skill pinned on top, then the
 	// 3x3 tree of free-form slots.
