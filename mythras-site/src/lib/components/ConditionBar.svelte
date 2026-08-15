@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { MythrasCharacter, FatigueLevel } from '$lib/services/api';
-	import Panel from '$lib/components/Panel.svelte';
-	import { focusOnMount } from '$lib/utils/actions';
+	import Panel from '@ui/Panel.svelte';
+	import { focusOnMount } from '@shared/utils/actions';
 
 	let { draft, editable = true }: { draft: MythrasCharacter; editable?: boolean } = $props();
 

@@ -21,12 +21,12 @@
 		createEffectFromItem,
 		createDefaultEffect
 	} from '$lib/utils/character';
-	import Panel from '$lib/components/Panel.svelte';
-	import SheetSection from '$lib/components/SheetSection.svelte';
-	import EditableWrapper from '$lib/components/EditableWrapper.svelte';
+	import Panel from '@ui/Panel.svelte';
+	import SheetSection from '@ui/SheetSection.svelte';
+	import EditableWrapper from '@ui/EditableWrapper.svelte';
 	import SubstanceGroupCard from '$lib/components/SubstanceGroupCard.svelte';
 	import SubstanceGroupEditor from '$lib/components/SubstanceGroupEditor.svelte';
-	import AccordionRow from '$lib/components/AccordionRow.svelte';
+	import AccordionRow from '@ui/AccordionRow.svelte';
 
 	let {
 		draft,

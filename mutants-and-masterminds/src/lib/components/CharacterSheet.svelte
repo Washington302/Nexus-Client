@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { abilityMod, effectResistance, resistanceLabel, recomputeCharacterCosts } from '$lib/utils/character';
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
-	import ComicPanel from '$lib/components/ComicPanel.svelte';
-	import StatBubble from '$lib/components/StatBubble.svelte';
+	import ComicPanel from '@ui/Panel.svelte';
+	import StatBubble from '@ui/StatBubble.svelte';
 	import SkillTable from '$lib/components/SkillTable.svelte';
 	import SheetSection from '$lib/components/SheetSection.svelte';
 	import IdentityPanel from '$lib/components/IdentityPanel.svelte';
@@ -10,7 +10,7 @@
 	import DefensesDisplay from '$lib/components/DefensesDisplay.svelte';
 	import DamageTrackEditor from '$lib/components/DamageTrackEditor.svelte';
 	import PowerDisplayCard from '$lib/components/PowerDisplayCard.svelte';
-	import SaveBar from '$lib/components/SaveBar.svelte';
+	import SaveBar from '@ui/SaveBar.svelte';
 	import AttackActionCard from '$lib/components/AttackActionCard.svelte';
 	import AbilitiesEditor from '$lib/components/editors/AbilitiesEditor.svelte';
 	import DefensesEditor from '$lib/components/editors/DefensesEditor.svelte';
@@ -684,7 +684,35 @@
 	</SheetSection>
 
 	{#if editable && onSave && onShare}
-		<SaveBar {saving} {saveError} {saveSuccess} {shareCopied} {autosaveDirty} {priorityOrder} {onSave} {onShare} onMove={movePriority} />
+		<SaveBar
+			{saving}
+			{saveError}
+			{saveSuccess}
+			{shareCopied}
+			{autosaveDirty}
+			{onSave}
+			{onShare}
+			shareCopiedLabel="Copied!"
+		>
+			{#snippet extra()}
+				<div class="priority-controls">
+					<span class="priority-label">Section order:</span>
+					{#each priorityOrder as key, i}
+						<div class="priority-item">
+							<span class="priority-name">{key}</span>
+							<button class="move-btn" onclick={() => movePriority(i, i - 1)} disabled={i === 0}
+								>&#9650;</button
+							>
+							<button
+								class="move-btn"
+								onclick={() => movePriority(i, i + 1)}
+								disabled={i === priorityOrder.length - 1}>&#9660;</button
+							>
+						</div>
+					{/each}
+				</div>
+			{/snippet}
+		</SaveBar>
 	{/if}
 
 	<div class="signature-band" style="margin-top: 16px;">

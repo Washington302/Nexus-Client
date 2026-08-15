@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { session } from '$lib/stores/session.svelte';
-	import ComicPanel from '$lib/components/ComicPanel.svelte';
+	import ComicPanel from '@ui/Panel.svelte';
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
 	import ThemeCustomizer from '$lib/components/ThemeCustomizer.svelte';
 </script>

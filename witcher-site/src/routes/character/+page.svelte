@@ -4,7 +4,7 @@
 	import type { WitcherCharacter } from '$lib/services/api';
 	import { normalizeCharacterFromApi } from '$lib/utils/character';
 	import CharacterSheet from '$lib/components/CharacterSheet.svelte';
-	import SaveBar from '$lib/components/SaveBar.svelte';
+	import SaveBar from '@ui/SaveBar.svelte';
 
 	let draft = $state<WitcherCharacter>(null!);
 	let saving = $state(false);
@@ -134,6 +134,7 @@
 			shareEnabled={draft.public}
 			onSave={saveCharacter}
 			onShare={shareCharacter}
+			shareDisabledTitle="Mark this character Public to enable sharing"
 		/>
 	</div>
 {/if}

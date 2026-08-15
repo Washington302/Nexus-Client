@@ -3,7 +3,7 @@
 	import { api } from '$lib/services/api';
 	import type { MnmCharacter } from '$lib/services/api';
 	import { normalizeCharacterFromApi } from '$lib/utils/character';
-	import ComicPanel from '$lib/components/ComicPanel.svelte';
+	import ComicPanel from '@ui/Panel.svelte';
 	import CharacterSheet from '$lib/components/CharacterSheet.svelte';
 
 	let char = $state<MnmCharacter | null>(null);

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import EditableSectionCard from '$lib/components/EditableSectionCard.svelte';
-	import Panel from '$lib/components/Panel.svelte';
+	import EditableSectionCard from './EditableSectionCard.svelte';
+	import Panel from './Panel.svelte';
 
 	// A panel that grows an edit affordance only when the sheet is editable.
 	// Read-only viewers (the share page) get the bare Panel, so the edit snippet
@@ -9,6 +9,7 @@
 	let {
 		title,
 		color = 'plain',
+		headerPrefix = '',
 		editable = false,
 		view,
 		edit,
@@ -16,7 +17,8 @@
 		onCancel
 	}: {
 		title: string;
-		color?: 'primary' | 'gold' | 'teal' | 'plain';
+		color?: string;
+		headerPrefix?: string;
 		editable?: boolean;
 		view: Snippet;
 		edit?: Snippet;
@@ -26,9 +28,9 @@
 </script>
 
 {#if editable && edit}
-	<EditableSectionCard {title} {color} {view} {edit} {onOpen} {onCancel} />
+	<EditableSectionCard {title} {color} {headerPrefix} {view} {edit} {onOpen} {onCancel} />
 {:else}
-	<Panel header={title} {color}>
+	<Panel header="{headerPrefix}{title}" {color}>
 		{@render view()}
 	</Panel>
 {/if}

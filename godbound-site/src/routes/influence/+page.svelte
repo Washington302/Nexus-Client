@@ -3,7 +3,7 @@
 	import { api } from '$lib/services/api';
 	import type { GodboundCharacter } from '$lib/services/api';
 	import { createDefaultInfluenceProject, createDefaultRealmChange, realmChangeCost } from '$lib/utils/character';
-	import SplashHeader from '$lib/components/SplashHeader.svelte';
+	import SplashHeader from '@ui/SplashHeader.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 
 	let draft = $state<GodboundCharacter | null>(null);

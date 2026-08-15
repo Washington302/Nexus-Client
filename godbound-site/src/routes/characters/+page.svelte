@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { session, loadActiveCharacter, setActiveCharacterById } from '$lib/stores/session.svelte';
 	import { api } from '$lib/services/api';
-	import SplashHeader from '$lib/components/SplashHeader.svelte';
+	import SplashHeader from '@ui/SplashHeader.svelte';
 
 	let showNewChar = $state(false);
 	let newName = $state('');

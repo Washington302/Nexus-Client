@@ -72,3 +72,37 @@ check after any change to `shared/ui`.
 | `.error` | EditModal | error message styling (save failures) |
 | `.footer` | EditModal | action row at the modal foot |
 | `.btn-cancel` / `.btn-save` | EditModal | secondary / primary buttons |
+| `.panel-full` | Panel | the panel frame |
+| `.panel-header` | Panel | header bar; **must be `position: relative`** if the app decorates it with a pseudo-element |
+| `.panel-label` | Panel | header text. The element is a `<span>`, so an app that needs block behaviour sets `display: block` (m&m does) |
+| `.panel-body` | Panel | panel content area |
+| `.edit-wrap` | EditableWrapper | `position: relative` — anchors the pencil button |
+| `.edit-btn` | EditableWrapper | the ✎ affordance, positioned against `.edit-wrap` |
+| *`.click-area`* | EditableWrapper | **intentionally unstyled** — see `unstyled.json` |
+| `.pill` + `.pill-*` | PillBadge | base pill, plus one modifier per variant the app uses (`primary`/`danger` in godbound & m&m; `primary`/`gold`/`error` in mythras & witcher) |
+| `.stat-bubble` / `.stat-num` / `.stat-num-*` / `.stat-lbl` | StatBubble | value bubble; one `.stat-num-*` modifier per colour the app passes |
+| `.splash-header` / `.splash-title` / `.splash-sub` | SplashHeader | page banner. Needs `position: relative` if the app decorates it with a pseudo-element |
+| `.splash-eyebrow` | SplashHeader | only rendered when an `eyebrow` is passed |
+
+Only the apps that **import** a component need its classes — `check-contract.mjs`
+follows each app's real `@ui/…` imports transitively, so godbound (which uses
+only PillBadge and SplashHeader) is never asked for `.panel-full`.
+
+### The colour token
+
+`Panel` emits its `color` prop verbatim as a second class on `.panel-header`
+(`<div class="panel-header gold">`), so each app keeps its own vocabulary —
+mythras/witcher use `gold`/`teal`/`plain`, m&m uses `red`/`yellow`/`blue`/`dark`
+— and no app has to rename a rule. A token with no matching rule simply matches
+nothing; that is exactly how mythras and witcher's default `primary` works,
+since `primary` *is* the base `.panel-header` style.
+
+Because the class is interpolated, the checker cannot verify it statically. It
+prints it as a note; verify colour variants by eye in the gallery.
+
+### Intentionally unstyled classes
+
+`shared/ui/unstyled.json` lists classes that carry no styling in *any* app, with
+a reason for each. The checker skips them but still prints them, so a deliberate
+omission never becomes a silent one. A class missing from **one** app but present
+in the others is a real bug — fix that app's stylesheet rather than listing it.

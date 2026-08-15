@@ -3,7 +3,7 @@
 	import { api } from '$lib/services/api';
 	import type { GodboundCharacter, Gift } from '$lib/services/api';
 	import { gameRules } from '$lib/stores/gameRules.svelte';
-	import SplashHeader from '$lib/components/SplashHeader.svelte';
+	import SplashHeader from '@ui/SplashHeader.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 
 	let draft = $state<GodboundCharacter | null>(null);

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { WitcherCharacter } from '$lib/services/api';
-	import IdentityHeader from '$lib/components/IdentityHeader.svelte';
+	import { goto } from '$app/navigation';
+	import IdentityHeader from '@ui/IdentityHeader.svelte';
 	import VitalsBar from '$lib/components/VitalsBar.svelte';
-	import SheetTabs, { type SheetTab } from '$lib/components/SheetTabs.svelte';
+	import Tabs from '@ui/Tabs.svelte';
 	import StatsSheet from '$lib/components/StatsSheet.svelte';
 	import SkillsSheet from '$lib/components/SkillsSheet.svelte';
 	import BackgroundSheet from '$lib/components/BackgroundSheet.svelte';
@@ -16,6 +17,18 @@
 	// Skills lives on its own tab, so hiding them would hide half the sheet — but
 	// `editable` still gates every edit affordance.
 	let { draft, editable = true }: { draft: WitcherCharacter; editable?: boolean } = $props();
+
+	// Which tabs this sheet has is witcher's business, so the list lives here
+	// rather than inside the shared Tabs component.
+	type SheetTab = 'stats' | 'skills' | 'background' | 'gear' | 'alchemy' | 'magic';
+	const SHEET_TABS: { id: SheetTab; label: string }[] = [
+		{ id: 'stats', label: 'Stats' },
+		{ id: 'skills', label: 'Skills' },
+		{ id: 'background', label: 'Background' },
+		{ id: 'gear', label: 'Gear' },
+		{ id: 'alchemy', label: 'Alchemy' },
+		{ id: 'magic', label: 'Magic' }
+	];
 
 	let activeTab = $state<SheetTab>('stats');
 
@@ -32,7 +45,12 @@
 	}
 </script>
 
-<IdentityHeader name={draft.name} portraitUrl={draft.portraitUrl} {editable} />
+<IdentityHeader
+	name={draft.name}
+	portraitUrl={draft.portraitUrl}
+	{editable}
+	onSettings={() => goto('/profile')}
+/>
 
 <div
 	class="page"
@@ -45,7 +63,7 @@
 		{editable}
 	/>
 
-	<SheetTabs active={activeTab} onSelect={(tab) => (activeTab = tab)} />
+	<Tabs tabs={SHEET_TABS} active={activeTab} onSelect={(tab) => (activeTab = tab as SheetTab)} />
 
 	{#if activeTab === 'skills'}
 		<SkillsSheet {draft} {editable} onOpenEdit={beginEdit} onCancelEdit={cancelEdit} />

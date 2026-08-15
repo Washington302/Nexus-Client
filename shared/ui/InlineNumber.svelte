@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { focusOnMount } from '$lib/utils/actions';
+	import { focusOnMount } from '@shared/utils/actions';
 
 	// Click-to-edit number. Live-play values (damage taken, a drained stat, the Vigor
 	// threshold) change constantly, so a modal per edit is too heavy — but a permanent

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { api } from '$lib/services/api';
 	import type { Campaign } from '$lib/services/api';
-	import SplashHeader from '$lib/components/SplashHeader.svelte';
+	import SplashHeader from '@ui/SplashHeader.svelte';
 
 	let campaigns = $state<Campaign[]>([]);
 	let loading = $state(true);

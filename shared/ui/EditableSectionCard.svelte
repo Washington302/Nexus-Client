@@ -1,18 +1,23 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import EditableWrapper from '$lib/components/EditableWrapper.svelte';
-	import Panel from '$lib/components/Panel.svelte';
+	import EditableWrapper from './EditableWrapper.svelte';
+	import Panel from './Panel.svelte';
 
+	// `headerPrefix` exists so m&m can keep its `★ ` header ornament without the
+	// shared component knowing anything about it. m&m supplies it once, from its
+	// local SheetSection wrapper.
 	let {
 		title,
-		color,
+		color = 'primary',
+		headerPrefix = '',
 		view,
 		edit,
 		onOpen,
 		onCancel
 	}: {
 		title: string;
-		color: 'primary' | 'gold' | 'teal' | 'plain';
+		color?: string;
+		headerPrefix?: string;
 		view?: Snippet;
 		edit?: Snippet;
 		onOpen?: () => void;
@@ -22,7 +27,7 @@
 
 <EditableWrapper {title} isEditable={true} onSave={async () => {}} {onOpen} {onCancel}>
 	{#snippet children()}
-		<Panel header={title} {color}>
+		<Panel header="{headerPrefix}{title}" {color}>
 			{@render view?.()}
 		</Panel>
 	{/snippet}

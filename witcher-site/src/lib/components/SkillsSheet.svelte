@@ -11,9 +11,9 @@
 	import type { Skill } from '$lib/services/api';
 	import SkillGroupCard from '$lib/components/SkillGroupCard.svelte';
 	import SkillGroupEditor from '$lib/components/SkillGroupEditor.svelte';
-	import EditableWrapper from '$lib/components/EditableWrapper.svelte';
+	import EditableWrapper from '@ui/EditableWrapper.svelte';
 	import ProfessionAbilities from '$lib/components/ProfessionAbilities.svelte';
-	import Panel from '$lib/components/Panel.svelte';
+	import Panel from '@ui/Panel.svelte';
 	import { api } from '$lib/services/api';
 
 	let {

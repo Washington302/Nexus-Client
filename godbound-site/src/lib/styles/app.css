@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
+@source '../../../../shared/ui';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
@@ -1010,4 +1011,18 @@ div.fraydie-select { cursor: default; }
 	.print-gift-active { color: #111111 !important; }
 	.print-section { break-inside: avoid; }
 	.print-word-block { break-inside: avoid; }
+}
+
+/* ── PillBadge variants ──
+   Were inline style= strings in the old local PillBadge; now modifier classes
+   so the shared component carries no colour knowledge. Values unchanged. */
+.pill-primary {
+	border-color: var(--gold);
+	background: var(--surface-elevated);
+	color: var(--gold);
+}
+.pill-danger {
+	border-color: var(--destructive);
+	background: var(--surface-elevated);
+	color: var(--destructive);
 }

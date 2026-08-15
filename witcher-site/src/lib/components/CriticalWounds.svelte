@@ -7,8 +7,8 @@
 		isCondition,
 		createDefaultCriticalWound
 	} from '$lib/utils/character';
-	import SheetSection from '$lib/components/SheetSection.svelte';
-	import AccordionRow from '$lib/components/AccordionRow.svelte';
+	import SheetSection from '@ui/SheetSection.svelte';
+	import AccordionRow from '@ui/AccordionRow.svelte';
 	import WoundEditor from '$lib/components/WoundEditor.svelte';
 
 	let {

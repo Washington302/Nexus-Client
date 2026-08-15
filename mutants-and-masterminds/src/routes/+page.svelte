@@ -2,8 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { session } from '$lib/stores/session.svelte';
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
-	import ComicPanel from '$lib/components/ComicPanel.svelte';
-	import PillBadge from '$lib/components/PillBadge.svelte';
+	import ComicPanel from '@ui/Panel.svelte';
+	import PillBadge from '@ui/PillBadge.svelte';
 
 	$effect(() => {
 		if (session.userId) {

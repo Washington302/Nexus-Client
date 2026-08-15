@@ -3,8 +3,8 @@
 	import { COMIC, FONT } from '$lib/constants';
 	import { session, loadActiveCharacter, setActiveCharacterById } from '$lib/stores/session.svelte';
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
-	import ComicPanel from '$lib/components/ComicPanel.svelte';
-	import PillBadge from '$lib/components/PillBadge.svelte';
+	import ComicPanel from '@ui/Panel.svelte';
+	import PillBadge from '@ui/PillBadge.svelte';
 
 	let showNewChar = $state(false);
 	let newName = $state('');

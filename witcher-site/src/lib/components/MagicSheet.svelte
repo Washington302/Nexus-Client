@@ -11,10 +11,10 @@
 		staminaUpkeep,
 		effectiveDerived
 	} from '$lib/utils/character';
-	import InlineNumber from '$lib/components/InlineNumber.svelte';
-	import Panel from '$lib/components/Panel.svelte';
-	import SheetSection from '$lib/components/SheetSection.svelte';
-	import AccordionRow from '$lib/components/AccordionRow.svelte';
+	import InlineNumber from '@ui/InlineNumber.svelte';
+	import Panel from '@ui/Panel.svelte';
+	import SheetSection from '@ui/SheetSection.svelte';
+	import AccordionRow from '@ui/AccordionRow.svelte';
 
 	let {
 		draft,

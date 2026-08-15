@@ -1,5 +1,5 @@
 <script lang="ts">
-	import PillBadge from './PillBadge.svelte';
+	import PillBadge from '@ui/PillBadge.svelte';
 	import ModifierBadge from './ModifierBadge.svelte';
 	import { perRankCostLabel } from '$lib/utils/character';
 

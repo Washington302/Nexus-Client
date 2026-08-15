@@ -2,9 +2,9 @@
 	import type { WitcherCharacter } from '$lib/services/api';
 	// `label` is deliberately not imported here: it would shadow the <label> element.
 	import { modifierText, createDefaultRacialPerk } from '$lib/utils/character';
-	import SheetSection from '$lib/components/SheetSection.svelte';
+	import SheetSection from '@ui/SheetSection.svelte';
 	import StatModifierRows from '$lib/components/StatModifierRows.svelte';
-	import AccordionRow from '$lib/components/AccordionRow.svelte';
+	import AccordionRow from '@ui/AccordionRow.svelte';
 
 	// Perks replaced the old comma-separated traits box. A perk with no modifiers is
 	// still just a narrative trait, so nothing is lost by the change — but one that

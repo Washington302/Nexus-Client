@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { session } from '$lib/stores/session.svelte';
-	import Panel from '$lib/components/Panel.svelte';
+	import Panel from '@ui/Panel.svelte';
 
 	const cards = [
 		{ href: '/characters', label: 'My Characters', desc: 'View and manage all your characters' },

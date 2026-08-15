@@ -6,7 +6,7 @@
 		SUBSTANCE_ORDER,
 		createDefaultMaterial
 	} from '$lib/utils/character';
-	import AccordionRow from '$lib/components/AccordionRow.svelte';
+	import AccordionRow from '@ui/AccordionRow.svelte';
 
 	// Edits one substance's extracted count plus the ingredients that yield it.
 	// `ingredients` is a filtered slice of draft.materials — filter() returns

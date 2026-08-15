@@ -4,8 +4,8 @@
 	import type { Campaign, CampaignRole, MnmCharacter } from '$lib/services/api';
 	import { session } from '$lib/stores/session.svelte';
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
-	import ComicPanel from '$lib/components/ComicPanel.svelte';
-	import PillBadge from '$lib/components/PillBadge.svelte';
+	import ComicPanel from '@ui/Panel.svelte';
+	import PillBadge from '@ui/PillBadge.svelte';
 
 	let campaign = $state<Campaign | null>(null);
 	let members = $state<Campaign['members']>([]);

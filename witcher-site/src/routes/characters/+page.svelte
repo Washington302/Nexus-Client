@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { session, loadActiveCharacter, setActiveCharacterById } from '$lib/stores/session.svelte';
-	import PillBadge from '$lib/components/PillBadge.svelte';
+	import PillBadge from '@ui/PillBadge.svelte';
 	import { RACE_OPTIONS, PROFESSION_OPTIONS, GAME_TYPE_OPTIONS, label } from '$lib/utils/character';
 	import type { Race, Profession, GameType } from '$lib/services/api';
 
