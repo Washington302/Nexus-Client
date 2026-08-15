@@ -3,7 +3,7 @@
 	import { api } from '$lib/services/api';
 	import type { GodboundCharacter } from '$lib/services/api';
 	import { normalizeCharacterFromApi } from '$lib/utils/character';
-	import SplashHeader from '$lib/components/SplashHeader.svelte';
+	import SplashHeader from '@ui/SplashHeader.svelte';
 	import CharacterSheet from '$lib/components/CharacterSheet.svelte';
 
 	let char = $state<GodboundCharacter | null>(null);

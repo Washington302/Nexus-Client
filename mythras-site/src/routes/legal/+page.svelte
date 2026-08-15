@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Panel from '$lib/components/Panel.svelte';
+	import Panel from '@ui/Panel.svelte';
 
 	// The ORC Notice & Attribution below is mandatory and must appear verbatim.
 	// Do not reword it. See the Legal & Licensing Reference Guide.

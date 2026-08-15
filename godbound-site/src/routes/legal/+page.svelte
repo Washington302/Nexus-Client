@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SplashHeader from '$lib/components/SplashHeader.svelte';
+	import SplashHeader from '@ui/SplashHeader.svelte';
 
 	// The disclaimer below is mandatory and must appear verbatim. Do not reword it.
 	// See the Legal & Licensing Reference Guide.

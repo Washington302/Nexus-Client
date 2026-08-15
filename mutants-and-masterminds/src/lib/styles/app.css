@@ -74,18 +74,30 @@ main {
 	position: relative;
 	overflow: hidden;
 }
-.panel-header-dots {
+/* Halftone dot texture. Was a <div class="panel-header-dots"> rendered by the
+   old local ComicPanel; now a pseudo-element, so the shared Panel carries no
+   m&m-specific markup. `color` drives currentColor for the gradient. */
+.panel-header::before {
+	content: '';
 	position: absolute;
 	inset: 0;
 	background-image: radial-gradient(circle, currentColor 1.2px, transparent 1.2px);
 	background-size: 10px 10px;
 	opacity: 0.18;
+	color: white;
+	pointer-events: none;
+}
+.panel-header.yellow::before {
+	color: #8b6000;
 }
 .panel-header.red { background: var(--danger); }
 .panel-header.yellow { background: var(--highlight); }
 .panel-header.blue { background: var(--primary); }
 .panel-header.dark { background: var(--border); }
 .panel-label {
+	/* The shared Panel uses <span>; m&m's old ComicPanel used <div>. One line of
+	   CSS here beats a tag-name prop on the shared component. */
+	display: block;
 	font-family: 'Bangers', cursive;
 	font-size: 18px;
 	letter-spacing: 0.05em;
@@ -212,13 +224,6 @@ main {
 	padding: 24px 20px 20px;
 	margin-bottom: 16px;
 	box-shadow: 6px 6px 0 var(--border);
-}
-.dots-bg {
-	position: absolute;
-	inset: 0;
-	background-image: radial-gradient(circle, var(--highlight) 1.5px, transparent 1.5px);
-	background-size: 14px 14px;
-	opacity: 0.18;
 }
 .splash-eyebrow {
 	font-family: 'Oswald', sans-serif;
@@ -1313,3 +1318,63 @@ select.input-demo { appearance:none; cursor:pointer; }
 /* ── Miscellaneous ── */
 .stat-hint { font-family:'Oswald',sans-serif; font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent); }
 .complications-spacer { height:24px; }
+
+/* ── PillBadge variants ──
+   Were inline style= strings in the old local PillBadge; now modifier classes
+   so the shared component carries no colour knowledge. Values unchanged. */
+.pill-primary {
+	border-color: var(--primary);
+	background: var(--panel-bg);
+	color: var(--primary);
+}
+.pill-danger {
+	border-color: var(--danger);
+	background: var(--panel-bg);
+	color: var(--danger);
+}
+
+/* ── StatBubble variants ── (were style="color: {...}") */
+.stat-num-default {
+	color: var(--primary);
+}
+.stat-num-danger {
+	color: var(--danger);
+}
+.stat-num-success {
+	color: var(--success);
+}
+.stat-num-secondary {
+	color: var(--secondary);
+}
+
+/* Splash halftone texture — was a <div class="dots-bg"> inside SplashHeader. */
+.splash-header::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background-image: radial-gradient(circle, var(--highlight) 1.5px, transparent 1.5px);
+	background-size: 14px 14px;
+	opacity: 0.18;
+	pointer-events: none;
+}
+
+/* ── SaveBar share button ──
+   Previously emitted by SaveBar but defined in no stylesheet, so it rendered
+   as a bare browser button. Matches .save-btn's comic treatment at secondary
+   weight. */
+.share-btn {
+	font-family: 'Bangers', cursive;
+	font-size: 16px;
+	letter-spacing: 0.08em;
+	color: var(--ink);
+	background: var(--panel-bg);
+	border: 3px solid var(--border);
+	box-shadow: 3px 3px 0 var(--border);
+	padding: 8px 24px;
+	cursor: pointer;
+	text-transform: uppercase;
+}
+.share-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}

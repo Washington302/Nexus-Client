@@ -2,7 +2,7 @@
 	import { api } from '$lib/services/api';
 	import type { Campaign } from '$lib/services/api';
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
-	import PillBadge from '$lib/components/PillBadge.svelte';
+	import PillBadge from '@ui/PillBadge.svelte';
 
 	let campaigns = $state<Campaign[]>([]);
 	let loading = $state(true);

@@ -4,8 +4,8 @@
 	import AttributeTable from '$lib/components/AttributeTable.svelte';
 	import CriticalWounds from '$lib/components/CriticalWounds.svelte';
 	import RacialPerks from '$lib/components/RacialPerks.svelte';
-	import Panel from '$lib/components/Panel.svelte';
-	import SheetSection from '$lib/components/SheetSection.svelte';
+	import Panel from '@ui/Panel.svelte';
+	import SheetSection from '@ui/SheetSection.svelte';
 	import IdentityEditor from '$lib/components/IdentityEditor.svelte';
 	import RaceProfessionEditor from '$lib/components/RaceProfessionEditor.svelte';
 

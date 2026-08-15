@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { session, logout } from '$lib/stores/session.svelte';
 	import { goto } from '$app/navigation';
-	import Panel from '$lib/components/Panel.svelte';
+	import Panel from '@ui/Panel.svelte';
 	import ThemeEditor from '$lib/components/ThemeEditor.svelte';
 
 	async function handleLogout() {

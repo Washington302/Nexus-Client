@@ -4,7 +4,7 @@
 	import type { GodboundCharacter } from '$lib/services/api';
 	import { preferences, updatePreferences, TYPOGRAPHY_SCALE_OPTIONS } from '$lib/stores/preferences.svelte';
 	import { gameRules, updateGameRules } from '$lib/stores/gameRules.svelte';
-	import SplashHeader from '$lib/components/SplashHeader.svelte';
+	import SplashHeader from '@ui/SplashHeader.svelte';
 	import ThemeEditor from '$lib/components/ThemeEditor.svelte';
 
 	let actionNote = $state<string | null>(null);

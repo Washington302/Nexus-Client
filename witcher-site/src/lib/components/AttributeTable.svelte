@@ -19,7 +19,7 @@
 		healthCondition,
 		fractionLabel
 	} from '$lib/utils/character';
-	import InlineNumber from '$lib/components/InlineNumber.svelte';
+	import InlineNumber from '@ui/InlineNumber.svelte';
 
 	// Three values per stat, and they mean different things:
 	//   Maximum   — the chargen/normal value the point-buy budget validates against.

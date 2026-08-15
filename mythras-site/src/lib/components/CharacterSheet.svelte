@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { MythrasCharacter } from '$lib/services/api';
-	import SheetSection from '$lib/components/SheetSection.svelte';
+	import SheetSection from '@ui/SheetSection.svelte';
 	import ConditionBar from '$lib/components/ConditionBar.svelte';
 	import SkillsPanel from '$lib/components/SkillsPanel.svelte';
 	import IdentityPanel from '$lib/components/IdentityPanel.svelte';
@@ -8,7 +8,7 @@
 	import AttributesEditor from '$lib/components/AttributesEditor.svelte';
 	import CultsEditor from '$lib/components/CultsEditor.svelte';
 	import { computeEncMax, computeEncPenalty, listToText, textToList } from '$lib/utils/character';
-	import { focusOnMount } from '$lib/utils/actions';
+	import { focusOnMount } from '@shared/utils/actions';
 
 	// The whole sheet, for both the owner's editable view and the public share view.
 	// `editable` is the only switch: when false no editor is instantiated and the

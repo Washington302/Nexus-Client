@@ -3,7 +3,7 @@
 	import { api } from '$lib/services/api';
 	import type { WitcherCharacter } from '$lib/services/api';
 	import { createDefaultSession, createDefaultSessionNpc } from '$lib/utils/character';
-	import Panel from '$lib/components/Panel.svelte';
+	import Panel from '@ui/Panel.svelte';
 
 	let draft = $state<WitcherCharacter | null>(null);
 	let saving = $state(false);

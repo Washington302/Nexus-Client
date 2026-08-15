@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { session, logout } from '$lib/stores/session.svelte';
-	import SplashHeader from '$lib/components/SplashHeader.svelte';
+	import SplashHeader from '@ui/SplashHeader.svelte';
 </script>
 
 <div class="page">

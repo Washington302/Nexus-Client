@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { session } from '$lib/stores/session.svelte';
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
-	import ComicPanel from '$lib/components/ComicPanel.svelte';
+	import ComicPanel from '@ui/Panel.svelte';
 
 	const cards = [
 		{ href: '/characters', label: 'My Characters', desc: 'View and manage all your heroes' },

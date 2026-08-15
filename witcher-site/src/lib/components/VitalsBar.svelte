@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { DerivedStats, CriticalWound, RacialPerk } from '$lib/services/api';
 	import { effectiveDerived } from '$lib/utils/character';
-	import InlineNumber from '$lib/components/InlineNumber.svelte';
-	import Panel from '$lib/components/Panel.svelte';
+	import InlineNumber from '@ui/InlineNumber.svelte';
+	import Panel from '@ui/Panel.svelte';
 
 	// The `max*` values are server-derived and read-only here. The `current*` pools are
 	// live-play state the player edits constantly (damage, spent Vigor, Stun loss), so

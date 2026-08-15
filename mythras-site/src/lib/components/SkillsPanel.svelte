@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { MythrasCharacter } from '$lib/services/api';
-	import Panel from '$lib/components/Panel.svelte';
-	import EditableSectionCard from '$lib/components/EditableSectionCard.svelte';
+	import Panel from '@ui/Panel.svelte';
+	import EditableSectionCard from '@ui/EditableSectionCard.svelte';
 	import SkillTable from '$lib/components/SkillTable.svelte';
 	import SkillsEditor from '$lib/components/SkillsEditor.svelte';
 

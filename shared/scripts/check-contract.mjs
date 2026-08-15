@@ -48,9 +48,57 @@ function walk(dir, ext, out = []) {
 	return out;
 }
 
-const sharedFiles = walk(SHARED_UI, '.svelte');
+const SHARED_ROOT = join(SHARED_UI, '..');
+
+/**
+ * Only the shared components this app actually pulls in are its problem. An app
+ * that never imports Panel has no reason to define .panel-full, so start from
+ * the app's own `@ui/...` / `@shared/...` imports and follow them transitively
+ * through shared/ into the full reachable set.
+ */
+function reachableSharedFiles(root) {
+	const seen = new Set();
+	const queue = [];
+
+	const resolveSpec = (spec, fromDir) => {
+		if (spec.startsWith('@ui/')) return join(SHARED_UI, spec.slice(4));
+		if (spec.startsWith('@shared/')) return join(SHARED_ROOT, spec.slice(8));
+		if (spec.startsWith('./') || spec.startsWith('../')) return join(fromDir, spec);
+		return null;
+	};
+
+	const scan = (src, fromDir) => {
+		for (const m of src.matchAll(/from\s+['"]([^'"]+\.svelte)['"]/g)) {
+			const file = resolveSpec(m[1], fromDir);
+			if (file && !seen.has(file)) {
+				seen.add(file);
+				queue.push(file);
+			}
+		}
+	};
+
+	for (const f of walk(join(root, 'src'), '.svelte')) scan(readFileSync(f, 'utf8'), dirname(f));
+	while (queue.length) {
+		const f = queue.pop();
+		try {
+			scan(readFileSync(f, 'utf8'), dirname(f));
+		} catch {
+			/* a missing file is a build error, not a contract error */
+		}
+	}
+	// Only files under shared/ui define the class contract; shared/dev is scaffolding.
+	return [...seen].filter((f) => f.startsWith(SHARED_UI) && f.endsWith('.svelte'));
+}
+
+const allShared = walk(SHARED_UI, '.svelte');
+const sharedFiles = reachableSharedFiles(appRoot);
+const unusedHere = allShared.length - sharedFiles.length;
+
 if (sharedFiles.length === 0) {
-	console.log(`[contract] no shared components yet — nothing to check`);
+	console.log(
+		`[contract] ${appName} imports no shared components yet — nothing to check` +
+			(allShared.length ? ` (${allShared.length} available)` : '')
+	);
 	process.exit(0);
 }
 
@@ -103,9 +151,22 @@ const css = cssFiles.map((f) => readFileSync(f, 'utf8')).join('\n');
 const defines = (cls) =>
 	new RegExp(`\\.${cls.replace(/[-[\]{}()*+?.,\\^$|#]/g, '\\$&')}(?![A-Za-z0-9_-])`).test(css);
 
+// Classes declared as intentionally style-free (see shared/ui/unstyled.json).
+// They are excluded from the failure list but still printed, so a deliberate
+// omission stays visible rather than quietly becoming invisible.
+let allowlist = {};
+try {
+	allowlist = JSON.parse(readFileSync(join(SHARED_UI, 'unstyled.json'), 'utf8'));
+} catch {
+	/* no allowlist is fine */
+}
+const allowed = (cls) => cls !== '_readme' && Object.hasOwn(allowlist, cls);
+
 const missing = [...emitted.entries()]
-	.filter(([cls]) => !defines(cls))
+	.filter(([cls]) => !defines(cls) && !allowed(cls))
 	.map(([cls, files]) => ({ cls, files: [...files].join(', ') }));
+
+const intentionallyUnstyled = [...emitted.keys()].filter((cls) => allowed(cls) && !defines(cls));
 
 // ── 3. report ──────────────────────────────────────────────────────────────
 let failed = false;
@@ -133,6 +194,11 @@ if (missing.length) {
 	);
 }
 
+if (intentionallyUnstyled.length) {
+	console.warn(`\n[contract] note — ${intentionallyUnstyled.length} class(es) are intentionally unstyled:`);
+	for (const cls of intentionallyUnstyled) console.warn(`  .${cls} — ${allowlist[cls]}`);
+}
+
 if (dynamic.length) {
 	const list = [...new Set(dynamic.map((d) => `${d.value} (${d.file})`))];
 	console.warn(
@@ -144,6 +210,8 @@ if (dynamic.length) {
 if (failed) process.exit(1);
 
 console.log(
-	`[contract] ok — ${emitted.size} class(es) from ${sharedFiles.length} shared component(s) ` +
-		`are all defined in ${appName} (${cssFiles.length} stylesheet(s) scanned)`
+	`[contract] ok — ${emitted.size} class(es) from the ${sharedFiles.length} shared component(s) ` +
+		`${appName} imports are all defined (${cssFiles.length} stylesheet(s) scanned` +
+		(unusedHere > 0 ? `; ${unusedHere} shared component(s) not used here` : '') +
+		`)`
 );

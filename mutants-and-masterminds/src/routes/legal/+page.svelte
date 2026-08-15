@@ -1,6 +1,6 @@
 <script lang="ts">
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
-	import ComicPanel from '$lib/components/ComicPanel.svelte';
+	import ComicPanel from '@ui/Panel.svelte';
 
 	// OGL 1.0a compliance. Two hard requirements drive this page:
 	//   §10 — a copy of the License must ship with every copy of the Open Game

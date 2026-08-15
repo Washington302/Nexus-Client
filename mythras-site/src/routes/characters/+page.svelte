@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { session, loadActiveCharacter, setActiveCharacterById } from '$lib/stores/session.svelte';
-	import PillBadge from '$lib/components/PillBadge.svelte';
+	import PillBadge from '@ui/PillBadge.svelte';
 	import { CULTURE_OPTIONS } from '$lib/utils/character';
 
 	let showNewChar = $state(false);

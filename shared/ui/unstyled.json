@@ -1,0 +1,12 @@
+{
+	"_readme": [
+		"Classes that shared components emit deliberately WITHOUT styles, so the",
+		"contract checker does not report them as per-app oversights.",
+		"",
+		"Only add an entry when a class carries no styling in ANY consuming app. A",
+		"class missing from one app but present in the others is a real bug — fix",
+		"that app's stylesheet instead of listing it here. Every entry needs a",
+		"reason, and the checker still prints them on every run so they stay visible."
+	],
+	"click-area": "Structural wrapper around the children inside .edit-wrap. Has never carried styles in any app — .edit-btn is positioned against .edit-wrap, not this element. Kept because removing the div would change the layout nesting the sheets already rely on."
+}

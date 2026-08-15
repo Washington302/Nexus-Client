@@ -1,6 +1,6 @@
 <script lang="ts">
 	import SplashHeader from '$lib/components/SplashHeader.svelte';
-	import ComicPanel from '$lib/components/ComicPanel.svelte';
+	import ComicPanel from '@ui/Panel.svelte';
 
 	// Every sheet ships under the same product name; the game each one serves is a
 	// descriptive line beneath it, never the card's title.

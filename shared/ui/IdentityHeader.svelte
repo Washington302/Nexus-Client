@@ -1,12 +1,18 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-
 	// `editable` gates owner-only chrome: a public share viewer has no profile to open.
+	// The destination is a callback rather than a hardcoded route, because where the
+	// settings button leads is the consuming app's business, not this component's.
 	let {
 		name,
 		portraitUrl = null,
-		editable = true
-	}: { name: string; portraitUrl?: string | null; editable?: boolean } = $props();
+		editable = true,
+		onSettings
+	}: {
+		name: string;
+		portraitUrl?: string | null;
+		editable?: boolean;
+		onSettings?: () => void;
+	} = $props();
 </script>
 
 <header class="identity-bar">
@@ -20,9 +26,7 @@
 		</div>
 		<h1 class="identity-name">{name}</h1>
 	</div>
-	{#if editable}
-		<button class="identity-settings-btn" onclick={() => goto('/profile')} aria-label="Settings"
-			>⚙</button
-		>
+	{#if editable && onSettings}
+		<button class="identity-settings-btn" onclick={onSettings} aria-label="Settings">⚙</button>
 	{/if}
 </header>

@@ -10,7 +10,7 @@
 		createLifepathEvent,
 		removeLifepathEvent
 	} from '$lib/utils/character';
-	import SheetSection from '$lib/components/SheetSection.svelte';
+	import SheetSection from '@ui/SheetSection.svelte';
 
 	// Everything flavor-side. Each panel is a SheetSection like the rest of the sheet:
 	// read-only view, pencil opens a modal, Cancel restores via the parent's snapshot.

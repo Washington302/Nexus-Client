@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SplashHeader from '$lib/components/SplashHeader.svelte';
+	import SplashHeader from '@ui/SplashHeader.svelte';
 
 	const cards = [
 		{ href: '/characters', label: 'My Characters', desc: 'View and manage all your ascended' },

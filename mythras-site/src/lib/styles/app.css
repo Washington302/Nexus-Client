@@ -1719,3 +1719,44 @@ select.input-demo {
 	font-family: var(--font-body);
 	font-size: 13px;
 }
+
+/* ── PillBadge variants ──
+   Were an inline style= lookup table in the old local PillBadge; now modifier
+   classes so the shared component carries no colour knowledge. Values unchanged. */
+.pill-primary {
+	border-color: var(--primary);
+	background: var(--surface-container-lowest);
+	color: var(--primary);
+}
+.pill-gold {
+	border-color: var(--secondary-container);
+	background: var(--secondary-container);
+	color: var(--on-secondary-container);
+}
+.pill-error {
+	border-color: var(--error);
+	background: var(--error-container);
+	color: var(--on-error-container);
+}
+
+/* ── SaveBar share button ──
+   The shared SaveBar emits .share-btn. These rules are the former
+   `comic-btn secondary` values, moved onto a name that describes the button
+   rather than another game's design language. */
+.share-btn {
+	font-family: var(--font-display);
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	background: var(--surface-container-lowest);
+	color: var(--on-surface-variant);
+	border: 1px solid var(--outline-variant);
+	border-radius: var(--radius);
+	padding: 8px 20px;
+	cursor: pointer;
+	text-transform: uppercase;
+}
+.share-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import EditModal from '@ui/EditModal.svelte';
+	import type { Snippet } from 'svelte';
+	import EditModal from './EditModal.svelte';
 
 	let {
 		isEditable = false,
@@ -8,16 +9,16 @@
 		onOpen,
 		onCancel,
 		children,
-		editForm,
-	} = $props<{
-		isEditable: boolean;
-		title: string;
-		onSave: () => Promise<void>;
+		editForm
+	}: {
+		isEditable?: boolean;
+		title?: string;
+		onSave?: () => Promise<void>;
 		onOpen?: () => void;
 		onCancel?: () => void;
-		children?: any;
-		editForm?: any;
-	}>();
+		children?: Snippet;
+		editForm?: Snippet;
+	} = $props();
 
 	let editOpen = $state(false);
 
@@ -32,11 +33,7 @@
 		<div class="click-area">
 			{@render children?.()}
 		</div>
-		<button
-			class="edit-btn"
-			onclick={openEditor}
-			aria-label="Edit {title}"
-		>&#9998;</button>
+		<button class="edit-btn" onclick={openEditor} aria-label="Edit {title}">&#9998;</button>
 	</div>
 {:else}
 	{@render children?.()}
@@ -45,4 +42,3 @@
 <EditModal bind:open={editOpen} {title} {onSave} {onCancel}>
 	{@render editForm?.()}
 </EditModal>
-
