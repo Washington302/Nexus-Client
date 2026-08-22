@@ -40,6 +40,15 @@
       <span style="font-family:{S.fontHeadline}; font-size:20px; font-weight:800; color:{COLORS.ink};">Campaigns</span>
       <span style="font-family:{S.fontBody}; font-size:12px; color:{COLORS.inkMuted};">Start and manage your sagas</span>
     </a>
+
+    <a href="/sites" style="
+      display: flex; flex-direction: column; gap: 8px;
+      padding: 24px; background-color: {COLORS.bgLow}; border: 1px solid {COLORS.outlineVar};
+      border-radius: 8px; text-decoration: none; transition: border-color 0.15s;
+    " onmouseenter={(e) => (e.currentTarget as HTMLElement).style.borderColor = COLORS.red} onmouseleave={(e) => (e.currentTarget as HTMLElement).style.borderColor = COLORS.outlineVar}>
+      <span style="font-family:{S.fontHeadline}; font-size:20px; font-weight:800; color:{COLORS.ink};">Find My Other Sites</span>
+      <span style="font-family:{S.fontBody}; font-size:12px; color:{COLORS.inkMuted};">Links to the other apps I'm building</span>
+    </a>
   </div>
 
   {#if !session.userId}

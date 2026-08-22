@@ -8,6 +8,7 @@
 		{ href: '/influence', label: 'Dominion & Influence', desc: 'Track influence projects and realm changes' },
 		{ href: '/log', label: 'Adventure Log', desc: 'Chronicle your sessions and divine goals' },
 		{ href: '/campaigns', label: 'Campaign Manager', desc: 'Manage your Skies, rosters, and linked characters' },
+		{ href: '/sites', label: 'Find My Other Sites', desc: 'Links to the other apps I’m building' },
 	];
 </script>
 
