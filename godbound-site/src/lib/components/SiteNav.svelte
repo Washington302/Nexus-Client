@@ -11,6 +11,7 @@
 		{ href: '/influence', label: 'Influence' },
 		{ href: '/log', label: 'Log' },
 		{ href: '/campaigns', label: 'Campaigns' },
+		{ href: '/rules', label: 'Rules' },
 		{ href: '/dashboard', label: 'Dashboard' }
 	];
 
@@ -20,6 +21,7 @@
 		{ href: '/campaigns', label: 'My Campaigns' },
 		{ href: '/profile', label: 'Profile' },
 		{ href: '/settings', label: 'Settings' },
+		{ href: '/rules', label: 'Rules Reference' },
 		{ href: '/legal', label: 'About & Legal' }
 	];
 </script>

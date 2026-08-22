@@ -8,6 +8,7 @@
 		{ href: '/characters', label: 'Characters' },
 		{ href: '/campaigns', label: 'Campaigns' },
 		{ href: '/log', label: 'Log' },
+		{ href: '/rules', label: 'Rules' },
 		{ href: '/dashboard', label: 'Dashboard' }
 	];
 
@@ -17,6 +18,7 @@
 		{ href: '/campaigns', label: 'My Campaigns' },
 		{ href: '/log', label: 'Log' },
 		{ href: '/profile', label: 'Profile' },
+		{ href: '/rules', label: 'Rules Reference' },
 		{ href: '/legal', label: 'About & Legal' }
 	];
 </script>
