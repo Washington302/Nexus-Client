@@ -4,6 +4,7 @@
 	import EditModalSection from '@shared/dev/sections/EditModalSection.svelte';
 	import PanelSection from '@shared/dev/sections/PanelSection.svelte';
 	import PillSection from '@shared/dev/sections/PillSection.svelte';
+	import RulesReferenceSection from '@shared/dev/sections/RulesReferenceSection.svelte';
 	import SplashSection from '@shared/dev/sections/SplashSection.svelte';
 	import StatBubbleSection from '@shared/dev/sections/StatBubbleSection.svelte';
 </script>
@@ -16,5 +17,6 @@
 		<PillSection colors={['primary', 'danger']} />
 		<StatBubbleSection colors={['default', 'danger', 'success', 'secondary']} />
 		<SplashSection eyebrow="★ Character Sheet ★" />
+		<RulesReferenceSection />
 	{/snippet}
 </GalleryShell>

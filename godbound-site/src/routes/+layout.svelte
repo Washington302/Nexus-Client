@@ -12,10 +12,12 @@
 	let { children } = $props();
 
 	function isPublicRoute(pathname: string) {
-		// /legal must stay reachable signed-out — it carries the disclaimers.
+		// /legal and /rules must stay reachable signed-out — /legal carries the
+		// disclaimers, /rules is the player-facing rules summary.
 		return (
 			pathname === '/' ||
 			pathname === '/legal' ||
+			pathname === '/rules' ||
 			pathname.startsWith('/auth/') ||
 			pathname.startsWith('/share/') ||
 			// The shared-component gallery is a dev-only verification surface;

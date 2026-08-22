@@ -47,11 +47,64 @@
 			document.removeEventListener('pointerdown', onPointerDown);
 		};
 	});
+
+	// ── Primary links: inline row on wide screens, collapsed panel on narrow ──
+	//
+	// The inline row is wider than a phone viewport (godbound ships eight links),
+	// so laying it out unconditionally pushed documentElement.scrollWidth past
+	// clientWidth and the whole page scrolled sideways with the last links off
+	// screen. Below each app's nav breakpoint the row is hidden and `.nav-toggle`
+	// opens `.nav-menu` instead; above it the toggle is hidden and the row is
+	// back. Which width that happens at is a CSS decision, per app.
+	let navOpen = $state(false);
+	let navEl = $state<HTMLElement | null>(null);
+	let navToggle = $state<HTMLElement | null>(null);
+
+	$effect(() => {
+		if (!navOpen) return;
+
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key !== 'Escape') return;
+			navOpen = false;
+			navToggle?.focus();
+		};
+		const onPointerDown = (e: PointerEvent) => {
+			if (navEl && !navEl.contains(e.target as Node)) navOpen = false;
+		};
+		// Widening past the breakpoint restores the inline row and hides the
+		// toggle; the panel must not be left hanging under it. Asking the toggle
+		// whether it is still rendered beats duplicating the breakpoint here — the
+		// app's CSS stays the single source of truth for where it sits.
+		const onResize = () => {
+			if (navToggle && navToggle.offsetParent === null) navOpen = false;
+		};
+
+		document.addEventListener('keydown', onKey);
+		document.addEventListener('pointerdown', onPointerDown);
+		window.addEventListener('resize', onResize);
+		return () => {
+			document.removeEventListener('keydown', onKey);
+			document.removeEventListener('pointerdown', onPointerDown);
+			window.removeEventListener('resize', onResize);
+		};
+	});
 </script>
 
-<nav class="site-nav">
+<nav class="site-nav" bind:this={navEl}>
 	<div class="nav-inner">
 		<div class="nav-left">
+			<button
+				bind:this={navToggle}
+				onclick={() => (navOpen = !navOpen)}
+				class="nav-toggle"
+				aria-label="Menu"
+				aria-haspopup="true"
+				aria-expanded={navOpen}
+				aria-controls="site-nav-menu"
+			>
+				{navOpen ? '✕' : '☰'}
+			</button>
+
 			<!-- The product name leads; the game it serves is a descriptive subtitle only.
 			     The official game title may not be used as the app name. -->
 			<a href="/" class="nav-brand">
@@ -92,4 +145,12 @@
 			<a href="/auth/login" class="signin-btn">Sign In</a>
 		{/if}
 	</div>
+
+	{#if navOpen}
+		<div class="nav-menu" id="site-nav-menu">
+			{#each links as link (link.href)}
+				<a href={link.href} class="nav-menu-link" onclick={() => (navOpen = false)}>{link.label}</a>
+			{/each}
+		</div>
+	{/if}
 </nav>

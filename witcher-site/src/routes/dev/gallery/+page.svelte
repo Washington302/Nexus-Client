@@ -4,6 +4,7 @@
 	import EditModalSection from '@shared/dev/sections/EditModalSection.svelte';
 	import PanelSection from '@shared/dev/sections/PanelSection.svelte';
 	import PillSection from '@shared/dev/sections/PillSection.svelte';
+	import RulesReferenceSection from '@shared/dev/sections/RulesReferenceSection.svelte';
 </script>
 
 <GalleryShell>
@@ -12,5 +13,6 @@
 		<PanelSection colors={['primary', 'gold', 'teal', 'plain']} />
 		<SiteNavSection />
 		<PillSection colors={['primary', 'gold', 'error']} />
+		<RulesReferenceSection />
 	{/snippet}
 </GalleryShell>

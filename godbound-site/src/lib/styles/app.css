@@ -110,6 +110,9 @@ main {
 
 /* ── Nav ── */
 .site-nav {
+	/* Positioned so the collapsed .nav-menu can hang off the nav itself. */
+	position: relative;
+	z-index: 200;
 	width: 100%;
 	background: var(--surface);
 	border-bottom: 1px solid var(--border);
@@ -122,7 +125,7 @@ main {
 	align-items: center;
 	justify-content: space-between;
 }
-.nav-left { display: flex; align-items: center; gap: 20px; }
+.nav-left { display: flex; align-items: center; gap: 20px; min-width: 0; }
 .nav-brand {
 	font-family: var(--font-serif);
 	font-size: 20px;
@@ -143,6 +146,58 @@ main {
 	margin-top: 1px;
 }
 .nav-sep { width: 1px; height: 20px; background: var(--border); }
+
+/* The inline .nav-link row (eight links here) is far wider than a phone
+   viewport — laid out unconditionally it pushed documentElement.scrollWidth
+   past clientWidth, the page scrolled sideways and the last links sat off
+   screen. Below the nav breakpoint the row is hidden and .nav-toggle opens
+   .nav-menu in its place. */
+.nav-toggle {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	flex: none;
+	background: none;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	color: var(--foreground);
+	font-size: 15px;
+	line-height: 1;
+	cursor: pointer;
+}
+.nav-toggle:hover { background: var(--surface-elevated); color: var(--gold-bright); }
+.nav-menu {
+	display: none;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: 200;
+	background: var(--modal-bg);
+	border-bottom: 1px solid var(--border);
+	padding: 4px 20px 10px;
+	max-height: calc(100vh - 64px);
+	overflow-y: auto;
+}
+.nav-menu-link {
+	display: block;
+	color: var(--foreground);
+	text-decoration: none;
+	font-size: 14px;
+	letter-spacing: 0.03em;
+	padding: 10px 0;
+	border-top: 1px solid var(--border);
+}
+.nav-menu-link:first-child { border-top: none; }
+.nav-menu-link:hover { color: var(--gold-bright); }
+
+@media (max-width: 1024px) {
+	.nav-toggle { display: flex; }
+	.nav-menu { display: block; }
+	.nav-left .nav-link, .nav-sep { display: none; }
+}
 
 /* ── About / Legal ── */
 .legal-body {
@@ -1025,4 +1080,81 @@ div.fraydie-select { cursor: default; }
 	border-color: var(--destructive);
 	background: var(--surface-elevated);
 	color: var(--destructive);
+}
+
+/* ── Rules Reference (/rules) ──
+   Classes emitted by the shared RulesReference component. See
+   shared/ui/CONTRACT.md — all four apps must define every one of these. */
+.rules-doc { width: 100%; }
+.rules-download {
+	display: flex; align-items: center; justify-content: space-between;
+	gap: 14px; flex-wrap: wrap;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	padding: 18px var(--ui-density-padding, 20px);
+	margin-bottom: var(--ui-density-gap, 16px);
+}
+.rules-download-title { font-family: var(--font-serif); font-size: 18px; font-weight: 600; color: var(--foreground); }
+.rules-download-note { font-family: var(--font-sans); font-size: 13px; color: var(--muted-foreground); }
+.rules-download-btn {
+	font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+	text-decoration: none; color: var(--background); background: var(--gold);
+	border-radius: var(--radius); padding: 9px 16px; white-space: nowrap;
+}
+.rules-download-btn:hover { background: var(--gold-bright); }
+.rules-toc {
+	display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
+	background: var(--surface); border: 1px solid var(--border);
+	border-radius: var(--radius-lg); padding: var(--ui-density-padding, 20px);
+	margin-bottom: 24px;
+}
+.rules-toc-group { display: flex; flex-direction: column; gap: 4px; }
+.rules-toc-title {
+	font-family: var(--font-serif); font-size: 15px; font-weight: 600;
+	color: var(--gold); margin-bottom: 2px;
+}
+.rules-toc-link { font-family: var(--font-sans); font-size: 13px; color: var(--muted-foreground); text-decoration: none; }
+.rules-toc-link:hover { color: var(--gold-bright); }
+.rules-group {
+	display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+	gap: var(--ui-density-gap, 16px); align-items: start; margin-bottom: 28px; scroll-margin-top: 70px;
+}
+.rules-group-title {
+	grid-column: 1/-1; font-family: var(--font-serif); font-size: 24px; font-weight: 600;
+	color: var(--foreground); border-bottom: 1px solid var(--border); padding-bottom: 6px;
+}
+.rules-card {
+	background: var(--surface); border-radius: var(--radius-lg);
+	padding: var(--ui-density-padding, 20px); scroll-margin-top: 70px;
+}
+.rules-card-header {
+	font-family: var(--font-serif); font-size: 18px; font-weight: 600;
+	color: var(--gold); margin-bottom: 14px;
+}
+.rules-card-body { display: flex; flex-direction: column; gap: 10px; }
+.rules-formula {
+	font-family: var(--font-serif); font-size: 16px; font-weight: 600; text-align: center;
+	color: var(--gold-bright); background: var(--surface-elevated);
+	border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px;
+}
+.rules-prose { font-family: var(--font-sans); font-size: 14px; line-height: 21px; color: var(--foreground); }
+.rules-note { font-family: var(--font-sans); font-size: 12px; line-height: 18px; font-style: italic; color: var(--muted-foreground); }
+.rules-defs { display: grid; grid-template-columns: minmax(6rem, 11rem) 1fr; gap: 6px 12px; }
+.rules-def-term { font-family: var(--font-sans); font-size: 13px; font-weight: 600; color: var(--gold); }
+.rules-def-text { font-family: var(--font-sans); font-size: 13px; line-height: 19px; color: var(--foreground); }
+.rules-table-caption { font-family: var(--font-sans); font-size: 12px; font-style: italic; color: var(--muted-foreground); }
+/* Wide tables scroll here rather than pushing the page sideways. */
+.rules-table-wrap { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+	font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+	text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground);
+	text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.data-table td { font-family: var(--font-sans); font-size: 13px; color: var(--foreground); padding: 6px; border-bottom: 1px solid var(--border); }
+.data-table tbody tr:nth-child(even) td { background: var(--secondary); }
+@media (max-width: 560px) {
+	.rules-defs { grid-template-columns: 1fr; gap: 2px; }
+	.rules-def-text { margin-bottom: 6px; }
 }

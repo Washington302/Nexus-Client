@@ -7,6 +7,7 @@
 	const links = [
 		{ href: '/characters', label: 'Characters' },
 		{ href: '/log', label: 'Log' },
+		{ href: '/rules', label: 'Rules' },
 		{ href: '/dashboard', label: 'Dashboard' }
 	];
 
@@ -15,6 +16,7 @@
 		{ href: '/characters', label: 'My Characters' },
 		{ href: '/log', label: 'Log' },
 		{ href: '/profile', label: 'Profile' },
+		{ href: '/rules', label: 'Rules Reference' },
 		{ href: '/legal', label: 'About & Legal' }
 	];
 </script>

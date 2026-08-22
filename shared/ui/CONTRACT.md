@@ -83,10 +83,38 @@ check after any change to `shared/ui`.
 | `.stat-bubble` / `.stat-num` / `.stat-num-*` / `.stat-lbl` | StatBubble | value bubble; one `.stat-num-*` modifier per colour the app passes |
 | `.splash-header` / `.splash-title` / `.splash-sub` | SplashHeader | page banner. Needs `position: relative` if the app decorates it with a pseudo-element |
 | `.splash-eyebrow` | SplashHeader | only rendered when an `eyebrow` is passed |
+| `.rules-doc` | RulesReference | outer wrapper for the whole rules page |
+| `.rules-download` / `.rules-download-title` / `.rules-download-note` / `.rules-download-btn` | RulesReference | the "download the PDF" card and its button |
+| `.rules-toc` / `.rules-toc-group` / `.rules-toc-title` / `.rules-toc-link` | RulesReference | table of contents; one group per page of the printed sheet |
+| `.rules-group` / `.rules-group-title` | RulesReference | one page of the printed sheet. The group is the card grid, so it needs `display: grid` and the title needs `grid-column: 1/-1` |
+| `.rules-card` / `.rules-card-header` / `.rules-card-body` | RulesReference | one card. m&m/mythras/witcher make the header a bar and pad the body; godbound pads the card and leaves the header inline — the component is the same either way |
+| `.rules-formula` | RulesReference | the boxed headline rule of a card |
+| `.rules-prose` / `.rules-note` | RulesReference | body paragraph / small print |
+| `.rules-defs` / `.rules-def-term` / `.rules-def-text` | RulesReference | term/definition rows (a `<dl>`); should collapse to one column on narrow screens |
+| `.rules-table-caption` / `.rules-table-wrap` | RulesReference | table caption; **`.rules-table-wrap` must be `overflow-x: auto`** so wide tables scroll instead of widening the page |
+| `.data-table` | RulesReference | the table itself, plus its `th`/`td`. Pre-existed in mythras & witcher; added to m&m & godbound for this |
+| `.nav-toggle` | SiteNav | the ☰ button. **Must be `display: none` above the app's nav breakpoint and shown below it** — the component reads its visibility (`offsetParent`) to decide whether the collapsed menu still applies, so CSS stays the only place the breakpoint lives |
+| `.nav-menu` / `.nav-menu-link` | SiteNav | the collapsed link list `.nav-toggle` opens, and one link in it. Positioned against `.site-nav`, so that element **must establish a containing block** (`position: sticky` in m&m/mythras/witcher, `position: relative` in godbound) |
 
 Only the apps that **import** a component need its classes — `check-contract.mjs`
 follows each app's real `@ui/…` imports transitively, so godbound (which uses
 only PillBadge and SplashHeader) is never asked for `.panel-full`.
+
+### The nav breakpoint
+
+`SiteNav` renders its primary links twice: inline in `.nav-left`, and again in
+`.nav-menu` behind `.nav-toggle`. The inline row does not fit a phone — godbound
+ships eight links and measured 726px of `.nav-left` at a 375px viewport — so
+laying it out unconditionally pushed `documentElement.scrollWidth` past
+`clientWidth`, scrolled the whole page sideways and left the last links off
+screen. (mythras and witcher hid the overflow instead, which made those links
+unreachable rather than merely awkward.)
+
+Each app's stylesheet owns the switch, and all four currently put it at
+`max-width: 1024px`: below it `.nav-left .nav-link` and `.nav-sep` go to
+`display: none` and `.nav-toggle` / `.nav-menu` come back. Nothing in the
+component hardcodes that width — it asks whether `.nav-toggle` is still
+rendered — so an app may move its own breakpoint without touching shared code.
 
 ### The colour token
 

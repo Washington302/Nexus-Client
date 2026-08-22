@@ -280,7 +280,7 @@ main {
 	justify-content: space-between;
 	height: 48px;
 }
-.nav-left { display:flex; align-items:center; gap:20px; }
+.nav-left { display:flex; align-items:center; gap:20px; min-width:0; }
 .nav-brand {
 	font-family:'Bangers',cursive;
 	font-size:22px;
@@ -302,6 +302,49 @@ main {
 	margin-top:1px;
 }
 .nav-sep { width:1px; height:20px; background:var(--accent); }
+
+/* The inline .nav-link row is far wider than a phone viewport — laid out
+   unconditionally it pushed documentElement.scrollWidth past clientWidth, the
+   page scrolled sideways and the last links sat off screen. Below the nav
+   breakpoint the row is hidden and .nav-toggle opens .nav-menu in its place. */
+.nav-toggle {
+	display:none;
+	align-items:center; justify-content:center;
+	width:32px; height:32px; flex:none;
+	background:none; border:1.5px solid var(--accent);
+	font-family:'Oswald',sans-serif; font-size:16px; line-height:1;
+	color:var(--accent); cursor:pointer;
+	transition:border-color .15s;
+}
+.nav-toggle:hover { border-color:var(--highlight); }
+.nav-menu {
+	display:none;
+	position:absolute; top:100%; left:0; right:0; z-index:200;
+	background:var(--border);
+	border-bottom:3px solid var(--danger);
+	padding:4px 20px 10px;
+	max-height:calc(100vh - 48px); overflow-y:auto;
+}
+.nav-menu-link {
+	display:block;
+	font-family:'Oswald',sans-serif;
+	font-size:15px;
+	font-weight:600;
+	color:var(--accent);
+	text-decoration:none;
+	text-transform:uppercase;
+	letter-spacing:0.1em;
+	padding:10px 0;
+	border-top:1px solid var(--accent);
+}
+.nav-menu-link:first-child { border-top:none; }
+.nav-menu-link:hover { color:var(--highlight); }
+
+@media (max-width:1024px) {
+	.nav-toggle { display:flex; }
+	.nav-menu { display:block; }
+	.nav-left .nav-link, .nav-sep { display:none; }
+}
 
 /* ── About / Legal ── */
 .legal-body {
@@ -1377,4 +1420,81 @@ select.input-demo { appearance:none; cursor:pointer; }
 .share-btn:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
+}
+
+/* ── Rules Reference (/rules) ──
+   Classes emitted by the shared RulesReference component. See
+   shared/ui/CONTRACT.md — all four apps must define every one of these. */
+.rules-doc { width: 100%; }
+.rules-download {
+	display: flex; align-items: center; justify-content: space-between;
+	gap: 14px; flex-wrap: wrap;
+	background: var(--panel-bg);
+	border: 3px solid var(--border);
+	box-shadow: 4px 4px 0 var(--border);
+	padding: 14px;
+	margin-bottom: 16px;
+}
+.rules-download-title { font-family:'Bangers',cursive; font-size:20px; letter-spacing:0.05em; color:var(--ink); }
+.rules-download-note { font-family:'Nunito',sans-serif; font-size:13px; color:var(--ink); opacity:0.75; }
+.rules-download-btn {
+	font-family:'Bangers',cursive; font-size:16px; letter-spacing:0.06em;
+	text-decoration:none; color:#fff; background:var(--primary);
+	border:3px solid var(--border); box-shadow:3px 3px 0 var(--border);
+	padding:8px 16px; white-space:nowrap;
+}
+.rules-download-btn:hover { background:var(--danger); }
+.rules-toc {
+	display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px;
+	background:var(--panel-bg); border:3px solid var(--border);
+	box-shadow:4px 4px 0 var(--border); padding:14px; margin-bottom:22px;
+}
+.rules-toc-group { display:flex; flex-direction:column; gap:3px; }
+.rules-toc-title { font-family:'Bangers',cursive; font-size:15px; letter-spacing:0.05em; color:var(--accent); }
+.rules-toc-link { font-family:'Nunito',sans-serif; font-size:13px; color:var(--ink); text-decoration:none; }
+.rules-toc-link:hover { color:var(--primary); text-decoration:underline; }
+.rules-group {
+	display:grid; grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));
+	gap:14px; align-items:start; margin-bottom:24px; scroll-margin-top:70px;
+}
+.rules-group-title {
+	grid-column:1/-1; font-family:'Bangers',cursive; font-size:26px; font-weight:400;
+	letter-spacing:0.05em; color:var(--ink);
+	border-bottom:3px solid var(--border); padding-bottom:4px;
+}
+.rules-card {
+	background:var(--panel-bg); border:3px solid var(--border);
+	box-shadow:4px 4px 0 var(--border); overflow:hidden; scroll-margin-top:70px;
+}
+.rules-card-header {
+	font-family:'Bangers',cursive; font-size:17px; font-weight:400; letter-spacing:0.05em;
+	color:#fff; text-shadow:1px 1px 0 rgba(0,0,0,.5);
+	background:var(--primary); border-bottom:3px solid var(--border);
+	padding:8px 12px 7px;
+}
+.rules-card-body { padding:12px; display:flex; flex-direction:column; gap:10px; }
+.rules-formula {
+	font-family:'Bangers',cursive; font-size:16px; letter-spacing:0.04em; color:var(--ink);
+	background:var(--highlight); border:2px solid var(--border);
+	padding:8px 10px; text-align:center;
+}
+.rules-prose { font-family:'Nunito',sans-serif; font-size:14px; line-height:21px; color:var(--ink); }
+.rules-note { font-family:'Nunito',sans-serif; font-size:12px; line-height:18px; font-style:italic; color:var(--ink); opacity:0.75; }
+.rules-defs { display:grid; grid-template-columns:minmax(6rem,11rem) 1fr; gap:5px 10px; }
+.rules-def-term { font-family:'Nunito',sans-serif; font-size:13px; font-weight:700; color:var(--primary); }
+.rules-def-text { font-family:'Nunito',sans-serif; font-size:13px; line-height:19px; color:var(--ink); }
+.rules-table-caption { font-family:'Nunito',sans-serif; font-size:12px; font-style:italic; color:var(--ink); opacity:0.75; }
+/* Wide tables scroll here rather than pushing the page sideways. */
+.rules-table-wrap { overflow-x:auto; }
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th {
+	font-family:'Nunito',sans-serif; font-size:11px; font-weight:700;
+	text-transform:uppercase; letter-spacing:0.06em; color:var(--ink);
+	text-align:left; padding:4px 6px; border-bottom:2px solid var(--border); white-space:nowrap;
+}
+.data-table td { font-family:'Nunito',sans-serif; font-size:13px; color:var(--ink); padding:6px; border-bottom:1px solid var(--border); }
+.data-table tbody tr:nth-child(even) td { background:var(--newsprint); }
+@media (max-width: 560px) {
+	.rules-defs { grid-template-columns:1fr; gap:2px; }
+	.rules-def-text { margin-bottom:6px; }
 }
