@@ -773,4 +773,12 @@
 	.all-view :global(.panel-body::-webkit-scrollbar) {
 		display: none;
 	}
+	/* Stacked one panel per row, the 400px cap is a scroll trap rather than a
+	   way to keep the "all" view on one screen. See app.css's responsive block. */
+	@media (max-width: 768px) {
+		.all-view :global(.panel-body) {
+			max-height: none;
+			overflow-y: visible;
+		}
+	}
 </style>

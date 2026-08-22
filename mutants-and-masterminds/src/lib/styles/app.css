@@ -1001,7 +1001,7 @@ select.input-demo { appearance:none; cursor:pointer; }
 /* ── Characters List ── */
 .prompt-card { background:var(--panel-bg); border:3px solid var(--border); box-shadow:4px 4px 0 var(--border); padding:32px; margin-bottom:14px; font-size:16px; }
 .prompt-card a { color:var(--danger); font-weight:700; }
-.char-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; margin-bottom:14px; }
+.char-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr)); gap:14px; margin-bottom:14px; }
 .char-card { display:block; text-decoration:none; background:var(--panel-bg); border:3px solid var(--border); box-shadow:4px 4px 0 var(--border); overflow:hidden; transition:transform .1s; }
 .char-card:hover { transform:translate(-1px,-1px); box-shadow:5px 5px 0 var(--border); }
 .char-card-header { background:var(--primary); padding:10px 12px; display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--border); }
@@ -1023,8 +1023,8 @@ select.input-demo { appearance:none; cursor:pointer; }
 .comic-btn:disabled { opacity:0.5; cursor:not-allowed; }
 .comic-btn:hover:not(:disabled) { transform:translate(1px,1px); box-shadow:2px 2px 0 var(--border); }
 .comic-btn.secondary { background:transparent; color:var(--ink); }
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:500; display:flex; align-items:center; justify-content:center; }
-.modal-box { background:var(--panel-bg); border:3px solid var(--border); box-shadow:6px 6px 0 var(--border); padding:24px; width:400px; display:flex; flex-direction:column; gap:16px; }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:500; display:flex; align-items:center; justify-content:center; padding:16px; }
+.modal-box { background:var(--panel-bg); border:3px solid var(--border); box-shadow:6px 6px 0 var(--border); padding:24px; width:100%; max-width:400px; max-height:100%; overflow-y:auto; display:flex; flex-direction:column; gap:16px; }
 .modal-title { font-family:'Bangers',cursive; font-size:24px; color:var(--primary); margin:0; }
 .modal-error { padding:10px; background:#ffdad6; border:2px solid var(--danger); font-family:'Nunito',sans-serif; font-size:14px; color:var(--danger); }
 .field-label { font-family:'Oswald',sans-serif; font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:2px; }
@@ -1497,4 +1497,125 @@ select.input-demo { appearance:none; cursor:pointer; }
 @media (max-width: 560px) {
 	.rules-defs { grid-template-columns:1fr; gap:2px; }
 	.rules-def-text { margin-bottom:6px; }
+}
+
+
+/* ═══════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════
+
+   The sheet is a two- and three-column broadsheet by design, and it stays that
+   way on a desktop. Below these widths the fixed tracks stop fitting: at a
+   375px viewport `main` gave the sheet 260px of content, .panel-grid's two 1fr
+   columns could not shrink under their min-content width and resolved to
+   260px + 282px, and the whole page scrolled sideways with the right-hand
+   column off screen.
+
+   Three steps, widest first: give the page its full width back, collapse the
+   multi-column grids, then tighten the type and padding that only hurt on a
+   phone. ── */
+
+/* Reclaiming main's 20% side margin is worth ~75px on a 375px screen — more
+   than any of the collapses below buys on its own. */
+@media (max-width: 900px) {
+	main { width: 100%; }
+}
+
+@media (max-width: 768px) {
+	/* .dialog is width:90% capped at max-width:70vw — a desktop cap that leaves
+	   the edit modal 263px of a 375px phone while the backdrop takes the rest.
+	   The modal is where values actually get typed, so give it the screen. */
+	.dialog { width: calc(100% - 24px); max-width: none; max-height: 85vh; }
+
+	.panel-grid,
+	.panel-grid-3,
+	.all-view,
+	.card-grid { grid-template-columns: 1fr; }
+	.stat-row-8 { grid-template-columns: repeat(2, 1fr); }
+	.preview-grid { grid-template-columns: 1fr; }
+
+	/* Panels are capped and internally scrollable so the desktop "all" view
+	   stays one screen. Once they are stacked one per row that cap just creates
+	   scroll traps inside a page that already scrolls. */
+	.all-view .panel-body { max-height: none; overflow-y: visible; }
+	.attacks-list { max-height: none; }
+}
+
+@media (max-width: 560px) {
+	.comic-wrap,
+	.page,
+	.landing { padding: 12px; }
+
+	.splash-header { padding: 16px 14px 14px; }
+	.splash-title { font-size: 34px; }
+	.splash-eyebrow,
+	.splash-sub { font-size: 13px; letter-spacing: 0.08em; }
+
+	/* 4 × 56px of numeric columns plus 8px gaps left ~95px for a skill name. */
+	.skill-header-row,
+	.skill-row { grid-template-columns: 1fr 40px 40px 40px 40px; gap: 4px; }
+	.skill-row:nth-child(even) { margin: 0 -8px; padding: 4px 8px; }
+	.atk-card,
+	.atk-hdr-row { grid-template-columns: 1fr 40px 60px 40px; gap: 4px 6px; }
+
+	/* .advantage-name and .comp-badge are flex-shrink:0 at 140px and 150px, so
+	   the description beside them had almost nothing left. Stack instead. */
+	.advantage-row,
+	.complication-row { flex-direction: column; gap: 2px; }
+	.advantage-name,
+	.comp-badge { width: auto; align-self: flex-start; }
+	.advantage-desc { margin-left: 0; }
+
+	.stats-grid { gap: 6px; }
+	.stat-number { font-size: 26px; }
+	.stat-description { font-size: 10px; letter-spacing: 0.06em; }
+
+	.action-word { font-size: 30px; }
+
+	.auth-page { padding: 16px; }
+	.auth-form { padding: 20px; }
+	.prompt-card { padding: 20px; }
+	.prompt { padding: 16px; }
+	.modal-box { padding: 16px; }
+}
+
+
+/* ── Touch devices ──
+   Keyed on the pointer, not the viewport: a 1024px tablet is a touch device and
+   a 600px desktop window is not. Width-based rules would get both wrong. ── */
+@media (hover: none) {
+	/* .edit-btn sits at opacity:0 until .edit-wrap:hover. There is no hover on a
+	   touch screen, so every ✎ on the sheet was invisible and the sheet was
+	   effectively read-only on a phone — the one thing the app exists to do. */
+	.edit-btn { opacity: 1; }
+
+	/* Comfortable hit areas without changing the drawn size: the pseudo-element
+	   takes the taps, the button keeps its comic proportions. */
+	.edit-btn::after {
+		content: "";
+		position: absolute;
+		inset: -8px;
+	}
+	.pwr-check {
+		position: relative;
+		width: 28px;
+		height: 28px;
+	}
+	.pwr-check::after {
+		content: "";
+		position: absolute;
+		inset: -8px;
+	}
+	.reset-cond-btn { min-height: 32px; padding: 0 8px; }
+	.atk-select-item { padding: 8px 6px; }
+	.atk-select-item input[type="checkbox"] { width: 18px; height: 18px; }
+	/* The editors are dense checkbox grids (Abilities alone has eight at 16px). */
+	.dialog input[type="checkbox"] { width: 22px; height: 22px; }
+	.delete-btn, .tag-remove-btn { min-height: 32px; }
+
+	/* iOS Safari zooms the viewport in when a focused field's text is under
+	   16px, and never zooms back out. The sheet's inputs were all 15px. */
+	.input-demo,
+	.atk-bonus-input,
+	.maneuver-input { font-size: 16px; }
 }

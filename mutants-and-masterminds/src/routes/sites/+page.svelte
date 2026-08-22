@@ -5,10 +5,10 @@
 	// Every sheet ships under the same product name; the game each one serves is a
 	// descriptive line beneath it, never the card's title.
 	const sites: { key: string; label: string; game: string; desc: string; href: string }[] = [
-		{ key: 'godbound', label: 'Scribe Sheets', game: 'for Godbound', desc: 'Divine-powered heroes reshaping a broken world.', href: '' },
-		{ key: 'mythras', label: 'Scribe Sheets', game: 'for Mythras', desc: 'Gritty, skill-based fantasy roleplaying.', href: '' },
-		{ key: 'witcher', label: 'Scribe Sheets', game: 'for The Witcher TTRPG', desc: 'Monster hunting in a grim, morally gray world.', href: '' },
-		{ key: 'arsmagica', label: 'Scribe Sheets', game: 'for Ars Magica', desc: 'Wizards, covenants, and the fall of an age of magic.', href: '' },
+		{ key: 'godbound', label: 'Scribe Sheets', game: 'for Godbound', desc: 'Divine-powered heroes reshaping a broken world.', href: 'https://gb.scribe-sheets.com' },
+		{ key: 'mythras', label: 'Scribe Sheets', game: 'for Mythras', desc: 'Gritty, skill-based fantasy roleplaying.', href: 'https://mythic.scribe-sheets.com' },
+		{ key: 'witcher', label: 'Scribe Sheets', game: 'for The Witcher TTRPG', desc: 'Monster hunting in a grim, morally gray world.', href: 'https://kaer.scribe-sheets.com' },
+		{ key: 'arsmagica', label: 'Scribe Sheets', game: 'for Ars Magica', desc: 'Wizards, covenants, and the fall of an age of magic.', href: 'https://covenant.scribe-sheets.com' },
 	];
 </script>
 
@@ -68,15 +68,20 @@
 		font-weight: 700;
 		display: block;
 	}
-	/* The game name lives here, small, under the product name — never as the title. */
+	/* The game name lives here, small, under the product name — never as the title.
+	   It's a bordered chip so it stays legible against every theme's background,
+	   dark ones included; each theme sets its own border/text color below. */
 	.site-card-game {
-		display: block;
+		display: inline-block;
+		width: fit-content;
 		font-size: 10px;
-		font-weight: 600;
+		font-weight: 700;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		opacity: 0.75;
-		margin-top: 2px;
+		margin-top: 4px;
+		padding: 2px 8px;
+		border-radius: 999px;
+		border: 1px solid;
 	}
 	.site-card-desc {
 		font-size: 13px;
@@ -107,6 +112,11 @@
 		color: oklch(0.85 0.02 80);
 	}
 	.site-card.godbound .site-card-open { color: oklch(0.72 0.12 80); }
+	.site-card.godbound .site-card-game {
+		font-family: 'Inter', sans-serif;
+		color: oklch(0.82 0.14 80);
+		border-color: oklch(0.72 0.12 80 / 0.5);
+	}
 
 	/* Mythras — clean Material-derived light theme: maroon on parchment-pink */
 	.site-card.mythras {
@@ -122,6 +132,11 @@
 	.site-card.mythras .site-card-desc {
 		font-family: 'Roboto', sans-serif;
 		color: #390009;
+	}
+	.site-card.mythras .site-card-game {
+		font-family: 'Montserrat', sans-serif;
+		color: #390009;
+		border-color: #390009;
 	}
 	.site-card.mythras .site-card-open {
 		color: #390009;
@@ -145,6 +160,11 @@
 		font-family: 'Hanken Grotesk', sans-serif;
 		color: #b7ab9c;
 	}
+	.site-card.witcher .site-card-game {
+		font-family: 'JetBrains Mono', monospace;
+		color: #e57373;
+		border-color: #6b3a3a;
+	}
 	.site-card.witcher .site-card-open {
 		font-family: 'JetBrains Mono', monospace;
 		color: #e57373;
@@ -162,6 +182,11 @@
 	.site-card.arsmagica .site-card-desc {
 		font-family: 'Literata', serif;
 		color: #474741;
+	}
+	.site-card.arsmagica .site-card-game {
+		font-family: 'Epilogue', sans-serif;
+		color: #a9372a;
+		border-color: #a9372a;
 	}
 	.site-card.arsmagica .site-card-open { color: #a9372a; }
 </style>
