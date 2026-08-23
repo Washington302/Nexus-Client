@@ -272,7 +272,7 @@ main {
 	border-bottom: 3px solid var(--danger);
 }
 .nav-inner {
-	max-width: 1000px;
+	max-width: 1100px;
 	margin: 0 auto;
 	padding: 0 20px;
 	display: flex;
