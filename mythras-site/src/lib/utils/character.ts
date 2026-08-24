@@ -1,30 +1,32 @@
 import type {
 	Characteristics,
 	CombatStyle,
-	GameSession,
 	GiftEffect,
 	GiftEffectTag,
+	LogNpc,
 	MythrasCharacter,
 	Passion,
 	ResourcePool,
-	SessionNpc,
+	SessionEntry,
 	Skill
 } from '$lib/services/api';
 
-export function createDefaultSessionNpc(): SessionNpc {
+export function createDefaultNpc(): LogNpc {
 	return { id: crypto.randomUUID(), name: '', role: '', avatar: '' };
 }
 
-export function createDefaultSession(nextNumber: number): GameSession {
+export function createDefaultSessionEntry(nextNumber: number): SessionEntry {
 	return {
 		id: crypto.randomUUID(),
+		campaignSessionId: null,
 		number: nextNumber,
 		title: '',
 		realDate: '',
+		inWorldDate: '',
 		current: false,
 		location: '',
 		npcs: [],
-		loot: [],
+		rewards: [],
 		summary: '',
 		postscripts: [],
 	};
@@ -528,7 +530,7 @@ export function ensureDefaults(d: MythrasCharacter): void {
 	d.rangedWeapons ??= [];
 	d.equipment ??= [];
 	d.cults ??= [];
-	d.sessions ??= [];
+	d.sessionLog ??= [];
 	for (const cult of d.cults) {
 		cult.benefits ??= [];
 		cult.restrictions ??= [];

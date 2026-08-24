@@ -2,14 +2,14 @@
 	import type { WitcherCharacter, MagicalEffect, MagicType } from '$lib/services/api';
 	import {
 		label,
-		MAGIC_TYPE_OPTIONS,
 		MAGIC_TYPE_PLURAL,
 		MAGIC_ELEMENT_OPTIONS,
 		MASTERY_TIER_OPTIONS,
 		createDefaultMagicalEffect,
 		committedVigor,
 		staminaUpkeep,
-		effectiveDerived
+		effectiveDerived,
+		magicTypesFor
 	} from '$lib/utils/character';
 	import InlineNumber from '@ui/InlineNumber.svelte';
 	import Panel from '@ui/Panel.svelte';
@@ -50,9 +50,23 @@
 
 	const active = $derived(draft.magicalEffects.filter((e) => e.active));
 
-	// All five branches share one card with internal tabs — five stacked sections wasted
-	// a lot of vertical space when most characters only use one or two branches.
+	// Which branches this profession can actually cast — a Witcher only ever sees
+	// Signs, since Signs come from mutations rather than formal spellcasting. The
+	// Magic tab itself is hidden for professions with none of these (see CharacterSheet
+	// / hasMagic); by the time this component mounts there's always at least one.
+	const allowedTypes = $derived(magicTypesFor(draft.professionInfo.profession));
+
+	// All branches share one card with internal tabs — stacking one section per type
+	// wasted a lot of vertical space when most characters only use one or two.
 	let openBranch = $state<MagicType>('SPELL');
+	// Keeps the open tab valid as the profession changes (or on first mount, since the
+	// initial 'SPELL' above is meaningless for a Witcher) without fighting a manual
+	// tab click — only steps in when the current tab is no longer one of the options.
+	$effect(() => {
+		if (!allowedTypes.includes(openBranch) && allowedTypes.length > 0) {
+			openBranch = allowedTypes[0];
+		}
+	});
 	const branchEffects = $derived(draft.magicalEffects.filter((e) => e.type === openBranch));
 
 	function effectsOfType(type: MagicType) {
@@ -204,7 +218,7 @@
 		>
 			{#snippet view()}
 				<div class="inner-tabs">
-					{#each MAGIC_TYPE_OPTIONS as branch}
+					{#each allowedTypes as branch}
 						{@const n = effectsOfType(branch).length}
 						<button
 							type="button"

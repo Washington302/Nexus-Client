@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { WitcherCharacter } from '$lib/services/api';
+	import { hasMagic } from '$lib/utils/character';
 	import { goto } from '$app/navigation';
 	import IdentityHeader from '@ui/IdentityHeader.svelte';
 	import VitalsBar from '$lib/components/VitalsBar.svelte';
@@ -21,7 +22,7 @@
 	// Which tabs this sheet has is witcher's business, so the list lives here
 	// rather than inside the shared Tabs component.
 	type SheetTab = 'stats' | 'skills' | 'background' | 'gear' | 'alchemy' | 'magic';
-	const SHEET_TABS: { id: SheetTab; label: string }[] = [
+	const ALL_SHEET_TABS: { id: SheetTab; label: string }[] = [
 		{ id: 'stats', label: 'Stats' },
 		{ id: 'skills', label: 'Skills' },
 		{ id: 'background', label: 'Background' },
@@ -30,7 +31,19 @@
 		{ id: 'magic', label: 'Magic' }
 	];
 
+	// Most professions have no magical aptitude at all (see hasMagic) — the tab is
+	// hidden outright for them rather than shown disabled, since there is nothing
+	// half-finished to preview, just nothing to show.
+	const magic = $derived(hasMagic(draft.professionInfo.profession));
+	const SHEET_TABS = $derived(ALL_SHEET_TABS.filter((t) => t.id !== 'magic' || magic));
+
 	let activeTab = $state<SheetTab>('stats');
+
+	// A profession change (Race & Profession is editable mid-session) can pull the
+	// Magic tab out from under whoever is looking at it.
+	$effect(() => {
+		if (activeTab === 'magic' && !magic) activeTab = 'stats';
+	});
 
 	// Edit modals bind their inputs directly to `draft`, so changes apply as you type.
 	// Snapshot on open / restore on cancel is what makes the Cancel button actually

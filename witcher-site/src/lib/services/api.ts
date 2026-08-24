@@ -591,26 +591,6 @@ export interface ActiveAlchemyEffect {
 	effectText: string;
 }
 
-export interface SessionNpc {
-	id: string;
-	name: string;
-	role?: string;
-	avatar?: string;
-}
-
-export interface GameSession {
-	id: string;
-	number: number;
-	title: string;
-	realDate?: string;
-	current: boolean;
-	location?: string;
-	npcs: SessionNpc[];
-	loot: string[];
-	summary?: string;
-	postscripts: string[];
-}
-
 /** Crit severity bands. The backend enum also carries bonus damage (+5/+10/+15/+20),
  *  which is applied at the moment of injury and so never reaches the sheet. */
 export type WoundSeverity = 'SIMPLE' | 'COMPLEX' | 'DIFFICULT' | 'DEADLY';
@@ -696,6 +676,34 @@ export interface CriticalWound {
 	notes: string;
 }
 
+export interface LogNpc {
+	id: string;
+	name: string;
+	role?: string;
+	avatar?: string;
+}
+
+export interface Reward {
+	label?: string;
+	amount?: number;
+	notes?: string;
+}
+
+export interface SessionEntry {
+	id: string;
+	campaignSessionId?: string | null;
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+	location?: string;
+	current: boolean;
+	npcs: LogNpc[];
+	rewards: Reward[];
+	summary?: string;
+	postscripts: string[];
+}
+
 export interface WitcherCharacter {
 	id: string;
 	userId: string;
@@ -738,7 +746,7 @@ export interface WitcherCharacter {
 	activeAlchemyEffects: ActiveAlchemyEffect[];
 	magicalEffects: MagicalEffect[];
 	optionalRules: OptionalRules;
-	sessions: GameSession[];
+	sessionLog: SessionEntry[];
 	createdAt?: string;
 	updatedAt?: string;
 }
@@ -749,6 +757,73 @@ export interface CreateCharacterRequest {
 	profession?: Profession;
 	race?: Race;
 	gameType?: GameType;
+}
+
+export type CampaignRole = 'OWNER' | 'STORYTELLER' | 'PLAYER' | 'SPECTATOR';
+export type CampaignVisibility = 'INVITE_ONLY' | 'LINK_JOINABLE';
+
+export interface CampaignMember {
+	userId: string;
+	displayName: string;
+	role: CampaignRole;
+}
+
+export interface CampaignSession {
+	id: string;
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+}
+
+export interface Campaign {
+	id: string;
+	name: string;
+	gameSystem: string;
+	ownerUserId: string;
+	members: CampaignMember[];
+	sessions: CampaignSession[];
+	visibility: CampaignVisibility;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface CreateCampaignPayload {
+	name: string;
+	gameSystem: 'WITCHER';
+}
+
+export interface NewCampaignSession {
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+}
+
+export interface CampaignTimelineEntry {
+	characterId: string;
+	characterName: string;
+	playerName: string;
+	entry: SessionEntry;
+}
+
+export interface CampaignTimelineSessionBlock {
+	id: string;
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+	entries: CampaignTimelineEntry[];
+}
+
+export interface CampaignTimeline {
+	sessions: CampaignTimelineSessionBlock[];
+	unassigned: CampaignTimelineEntry[];
+}
+
+export interface UserLookupResult {
+	id: string;
+	username: string;
 }
 
 export const api = {
@@ -774,6 +849,13 @@ export const api = {
 		get: (id: string) => request<WitcherCharacter>(`/api/v1/witcher/characters/${id}`),
 		getPublic: (id: string) => request<WitcherCharacter>(`/api/v1/witcher/characters/${id}/share`),
 		myCharacters: () => request<WitcherCharacter[]>('/api/v1/witcher/characters'),
+		byCampaign: async (campaignId: string): Promise<WitcherCharacter[]> => {
+			try {
+				return await request<WitcherCharacter[]>(`/api/v1/witcher/characters?campaignId=${encodeURIComponent(campaignId)}`);
+			} catch {
+				return [];
+			}
+		},
 		update: (id: string, data: WitcherCharacter) =>
 			request<WitcherCharacter>(`/api/v1/witcher/characters/${id}`, {
 				method: 'PUT',
@@ -790,5 +872,46 @@ export const api = {
 				method: 'POST',
 				body: JSON.stringify(data)
 			})
+	},
+	campaign: {
+		create: (data: CreateCampaignPayload) =>
+			request<Campaign>('/api/v1/campaigns', {
+				method: 'POST',
+				body: JSON.stringify(data)
+			}),
+		myCampaigns: async (): Promise<Campaign[]> => {
+			const campaigns = await request<Campaign[]>('/api/v1/campaigns');
+			return campaigns.filter((c) => c.gameSystem === 'WITCHER');
+		},
+		get: (id: string) => request<Campaign>(`/api/v1/campaigns/${id}`),
+		delete: (id: string) => request<void>(`/api/v1/campaigns/${id}`, { method: 'DELETE' }),
+		join: (id: string) => request<Campaign>(`/api/v1/campaigns/${id}/join`, { method: 'POST' }),
+		addMember: (id: string, member: CampaignMember) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/members`, {
+				method: 'POST',
+				body: JSON.stringify(member)
+			}),
+		removeMember: (id: string, userId: string) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/members/${userId}`, { method: 'DELETE' }),
+		setVisibility: (campaign: Campaign, visibility: CampaignVisibility) =>
+			request<Campaign>(`/api/v1/campaigns/${campaign.id}`, {
+				method: 'PUT',
+				body: JSON.stringify({ ...campaign, visibility })
+			}),
+		timeline: (id: string) => request<CampaignTimeline>(`/api/v1/campaigns/${id}/timeline`),
+		createSession: (id: string, s: NewCampaignSession) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/sessions`, {
+				method: 'POST',
+				body: JSON.stringify(s)
+			})
+	},
+	users: {
+		lookupByEmail: async (email: string): Promise<UserLookupResult | null> => {
+			try {
+				return await request<UserLookupResult>(`/api/v1/users/lookup?email=${encodeURIComponent(email)}`);
+			} catch {
+				return null;
+			}
+		}
 	}
 };

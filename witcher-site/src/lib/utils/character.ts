@@ -40,8 +40,8 @@ import type {
 	MagicalEffect,
 	MagicType,
 	MagicElement,
-	GameSession,
-	SessionNpc
+	LogNpc,
+	SessionEntry
 } from '$lib/services/api';
 
 /** Comma-separated text <-> string[] for compact list fields (racial traits, etc.). */
@@ -55,20 +55,22 @@ export function textToList(text: string): string[] {
 		.filter(Boolean);
 }
 
-export function createDefaultSessionNpc(): SessionNpc {
+export function createDefaultNpc(): LogNpc {
 	return { id: crypto.randomUUID(), name: '', role: '', avatar: '' };
 }
 
-export function createDefaultSession(nextNumber: number): GameSession {
+export function createDefaultSessionEntry(nextNumber: number): SessionEntry {
 	return {
 		id: crypto.randomUUID(),
+		campaignSessionId: null,
 		number: nextNumber,
 		title: '',
 		realDate: '',
+		inWorldDate: '',
 		current: false,
 		location: '',
 		npcs: [],
-		loot: [],
+		rewards: [],
 		summary: '',
 		postscripts: []
 	};
@@ -893,6 +895,35 @@ export const MAGIC_TYPE_PLURAL: Record<MagicType, string> = {
 };
 export const MAGIC_ELEMENT_OPTIONS: MagicElement[] = ['EARTH', 'AIR', 'FIRE', 'WATER', 'MIXED'];
 
+/**
+ * Which MagicType branches a profession can actually cast, per WitcherProfessionData's
+ * `magicalPerksNotes` on the backend (pg.38-47: Mage "5 Novice Spells, 1 Ritual, 1
+ * Hex", Priest "2 Invocations, 2 Rituals, 2 Hexes", Witcher "All Basic Signs"). Mage
+ * and Priest each get their own signature type — Spells for the Mage, Invocations for
+ * the Priest — plus Signs, Rituals and Hexes in common. Witchers get Signs only, via
+ * their mutations rather than formal spellcasting. Every other profession has no
+ * magical aptitude at all — its `magicalPerksNotes` is "None" — and is absent from
+ * this map entirely, which is what hides the Magic tab.
+ */
+export const PROFESSION_MAGIC_TYPES: Partial<Record<Profession, MagicType[]>> = {
+	MAGE: ['SPELL', 'SIGN', 'RITUAL', 'HEX'],
+	PRIEST: ['INVOCATION', 'SIGN', 'RITUAL', 'HEX'],
+	WITCHER: ['SIGN']
+};
+
+/** The branches this profession can cast, in the sheet's own display order. */
+export function magicTypesFor(profession: Profession | null): MagicType[] {
+	if (!profession) return [];
+	const allowed = PROFESSION_MAGIC_TYPES[profession];
+	if (!allowed) return [];
+	return MAGIC_TYPE_OPTIONS.filter((t) => allowed.includes(t));
+}
+
+/** Whether this profession has any magical aptitude — gates the Magic tab itself. */
+export function hasMagic(profession: Profession | null): boolean {
+	return magicTypesFor(profession).length > 0;
+}
+
 export function createDefaultMagicalEffect(type: MagicType = 'SPELL'): MagicalEffect {
 	return {
 		id: crypto.randomUUID(),
@@ -1328,5 +1359,5 @@ export function ensureDefaults(c: WitcherCharacter): void {
 		wound.treatedModifiers ??= [];
 	}
 	c.optionalRules ??= { encumbranceEnabled: false };
-	c.sessions ??= [];
+	c.sessionLog ??= [];
 }

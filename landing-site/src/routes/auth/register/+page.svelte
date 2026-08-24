@@ -1,0 +1,290 @@
+<script lang="ts">
+  import { COLORS, S } from '$lib/constants';
+  import { api, setToken } from '$lib/services/api';
+  import SiteGrid from '$lib/components/SiteGrid.svelte';
+
+  const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,40}$/;
+
+  let username = $state('');
+  let email = $state('');
+  let password = $state('');
+  let confirmPassword = $state('');
+  let loading = $state(false);
+  let error = $state<string | null>(null);
+  let registered = $state(false);
+
+  async function handleSubmit(e: Event) {
+    e.preventDefault();
+    error = null;
+
+    if (username.length < 3 || username.length > 30) {
+      error = 'Username must be between 3 and 30 characters.';
+      return;
+    }
+
+    if (!PASSWORD_PATTERN.test(password)) {
+      error =
+        'Password must be 8-40 characters and include an uppercase letter, a lowercase letter, a number, and a special character (!@#$%^&*).';
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      error = 'Passwords do not match.';
+      return;
+    }
+
+    loading = true;
+    try {
+      const res = await api.auth.register(username, email, password);
+      if (!res.token) throw new Error(res.error ?? 'Registration failed');
+      setToken(res.token);
+      registered = true;
+    } catch (e) {
+      error = (e as Error).message;
+    } finally {
+      loading = false;
+    }
+  }
+</script>
+
+{#if registered}
+  <div style="max-width: 800px; margin: 0 auto; padding: 64px 32px; box-sizing: border-box; text-align: center;">
+    <h1 style="
+      font-family: {S.fontHeadline};
+      font-size: 28px;
+      font-weight: 800;
+      color: {COLORS.ink};
+      margin: 0 0 12px 0;
+    ">Account Created</h1>
+    <p style="
+      font-family: {S.fontBody};
+      font-size: 14px;
+      color: {COLORS.inkMuted};
+      max-width: 480px;
+      margin: 0 auto 40px auto;
+      line-height: 1.6;
+    ">Welcome, {username}. Your account works across every Scribe Sheets site —
+      pick a game below and sign in there to get started.</p>
+    <SiteGrid />
+  </div>
+{:else}
+  <div style="
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+    padding: 32px;
+    box-sizing: border-box;
+  ">
+    <form
+      onsubmit={handleSubmit}
+      style="
+        width: 100%;
+        max-width: 400px;
+        background-color: {COLORS.white};
+        border: 1px solid {COLORS.outlineVar};
+        border-radius: 8px;
+        padding: 32px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      "
+    >
+      <h1 style="
+        font-family: {S.fontHeadline};
+        font-size: 24px;
+        font-weight: 800;
+        color: {COLORS.ink};
+        letter-spacing: -0.01em;
+        margin: 0;
+      ">Create Account</h1>
+
+      <p style="
+        font-family: {S.fontBody};
+        font-size: 13px;
+        color: {COLORS.inkMuted};
+        margin: 0;
+      ">One account for every Scribe Sheets site.</p>
+
+      {#if error}
+        <div style="
+          padding: 10px 14px;
+          background-color: #ffdad6;
+          border: 1px solid {COLORS.red};
+          border-radius: 4px;
+          font-family: {S.fontBody};
+          font-size: 12px;
+          color: {COLORS.red};
+        ">{error}</div>
+      {/if}
+
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <label for="reg-username" style="
+          font-family: {S.fontBody};
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: {COLORS.inkMuted};
+        ">Username</label>
+        <input
+          id="reg-username"
+          type="text"
+          bind:value={username}
+          required
+          minlength={3}
+          maxlength={30}
+          style="
+            padding: 10px 12px;
+            border: 1px solid {COLORS.outlineVar};
+            border-radius: 4px;
+            font-family: {S.fontBody};
+            font-size: 14px;
+            color: {COLORS.ink};
+            background-color: {COLORS.bgLow};
+            outline: none;
+            box-sizing: border-box;
+            width: 100%;
+          "
+        />
+        <span style="font-family: {S.fontBody}; font-size: 11px; color: {COLORS.inkMuted};"
+          >3-30 characters.</span
+        >
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <label for="reg-email" style="
+          font-family: {S.fontBody};
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: {COLORS.inkMuted};
+        ">Email</label>
+        <input
+          id="reg-email"
+          type="email"
+          bind:value={email}
+          required
+          style="
+            padding: 10px 12px;
+            border: 1px solid {COLORS.outlineVar};
+            border-radius: 4px;
+            font-family: {S.fontBody};
+            font-size: 14px;
+            color: {COLORS.ink};
+            background-color: {COLORS.bgLow};
+            outline: none;
+            box-sizing: border-box;
+            width: 100%;
+          "
+        />
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <label for="reg-password" style="
+          font-family: {S.fontBody};
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: {COLORS.inkMuted};
+        ">Password</label>
+        <input
+          id="reg-password"
+          type="password"
+          bind:value={password}
+          required
+          minlength={8}
+          maxlength={40}
+          pattern={"(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,40}"}
+          style="
+            padding: 10px 12px;
+            border: 1px solid {COLORS.outlineVar};
+            border-radius: 4px;
+            font-family: {S.fontBody};
+            font-size: 14px;
+            color: {COLORS.ink};
+            background-color: {COLORS.bgLow};
+            outline: none;
+            box-sizing: border-box;
+            width: 100%;
+          "
+        />
+        <span style="font-family: {S.fontBody}; font-size: 11px; color: {COLORS.inkMuted};"
+          >8-40 characters, with at least one uppercase letter, one lowercase letter, one number, and
+          one special character (!@#$%^&*).</span
+        >
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <label for="reg-confirm" style="
+          font-family: {S.fontBody};
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: {COLORS.inkMuted};
+        ">Confirm Password</label>
+        <input
+          id="reg-confirm"
+          type="password"
+          bind:value={confirmPassword}
+          required
+          minlength={8}
+          maxlength={40}
+          style="
+            padding: 10px 12px;
+            border: 1px solid {COLORS.outlineVar};
+            border-radius: 4px;
+            font-family: {S.fontBody};
+            font-size: 14px;
+            color: {COLORS.ink};
+            background-color: {COLORS.bgLow};
+            outline: none;
+            box-sizing: border-box;
+            width: 100%;
+          "
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        style="
+          padding: 12px;
+          border: none;
+          border-radius: 4px;
+          background-color: {loading ? COLORS.inkMuted : COLORS.red};
+          color: {COLORS.white};
+          font-family: {S.fontBody};
+          font-size: 13px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          cursor: {loading ? 'not-allowed' : 'pointer'};
+          transition: background-color 0.15s ease;
+        "
+      >{loading ? 'Registering...' : 'Create Account'}</button>
+
+      <div style="
+        text-align: center;
+        font-family: {S.fontBody};
+        font-size: 12px;
+        color: {COLORS.inkMuted};
+      ">
+        Already have an account?
+        <a href="/auth/login" style="color: {COLORS.red}; text-decoration: underline;">Sign in</a>
+      </div>
+
+      <a href="/" style="
+        font-family: {S.fontBody};
+        font-size: 12px;
+        color: {COLORS.inkMuted};
+        text-align: center;
+        text-decoration: underline;
+      ">Back to home</a>
+    </form>
+  </div>
+{/if}

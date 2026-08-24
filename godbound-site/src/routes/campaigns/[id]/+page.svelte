@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { api } from '$lib/services/api';
-	import type { Campaign, CampaignRole, GodboundCharacter } from '$lib/services/api';
+	import type { Campaign, CampaignRole, GodboundCharacter, CampaignTimeline } from '$lib/services/api';
 	import { session } from '$lib/stores/session.svelte';
 	import SplashHeader from '@ui/SplashHeader.svelte';
 	import PillBadge from '@ui/PillBadge.svelte';
@@ -9,21 +9,30 @@
 	let campaign = $state<Campaign | null>(null);
 	let members = $state<Campaign['members']>([]);
 	let linkedCharacters = $state<GodboundCharacter[]>([]);
+	let timeline = $state<CampaignTimeline | null>(null);
 	let loading = $state(true);
 	let loadError = $state<string | null>(null);
 
 	const isOwner = $derived(!!campaign && campaign.ownerUserId === session.userId);
+	const isStoryteller = $derived(
+		isOwner || members.some((m) => m.userId === session.userId && m.role === 'STORYTELLER')
+	);
+
+	function reloadTimeline(id: string) {
+		api.campaign.timeline(id).then((t) => (timeline = t)).catch(() => {});
+	}
 
 	$effect(() => {
 		const id = page.params.id;
 		if (!id) return;
 		loading = true;
 		loadError = null;
-		Promise.all([api.campaign.get(id), api.character.byCampaign(id)])
-			.then(([camp, chars]) => {
+		Promise.all([api.campaign.get(id), api.character.byCampaign(id), api.campaign.timeline(id)])
+			.then(([camp, chars, tl]) => {
 				campaign = camp;
 				members = camp.members;
 				linkedCharacters = chars;
+				timeline = tl;
 			})
 			.catch((e) => {
 				loadError = (e as Error).message;
@@ -72,9 +81,37 @@
 		} catch {}
 	}
 
+	// ─── Join link ──────────────────────────────────────────────────────────
+	let copied = $state(false);
+	let togglingVisibility = $state(false);
+
+	const joinLink = $derived(
+		campaign ? `${typeof window !== 'undefined' ? window.location.origin : ''}/campaigns/join/${campaign.id}` : ''
+	);
+
+	async function copyJoinLink() {
+		if (!joinLink) return;
+		await navigator.clipboard.writeText(joinLink);
+		copied = true;
+		setTimeout(() => (copied = false), 2000);
+	}
+
+	async function toggleVisibility() {
+		if (!campaign) return;
+		togglingVisibility = true;
+		try {
+			const next = campaign.visibility === 'LINK_JOINABLE' ? 'INVITE_ONLY' : 'LINK_JOINABLE';
+			campaign = await api.campaign.setVisibility(campaign, next);
+		} catch {}
+		finally {
+			togglingVisibility = false;
+		}
+	}
+
 	// ─── Linked Characters ──────────────────────────────────────────────────
 	let linkCharacterId = $state('');
 	let linking = $state(false);
+	let expandedCharacterId = $state<string | null>(null);
 
 	const linkableCharacters = $derived(
 		session.characters.filter((c) => c.campaignId !== campaign?.id)
@@ -92,6 +129,57 @@
 		} catch {}
 		finally {
 			linking = false;
+		}
+	}
+
+	let unlinkingId = $state<string | null>(null);
+
+	async function handleUnlinkCharacter(charId: string) {
+		if (!campaign) return;
+		if (!confirm('Remove this character from the campaign? They can rejoin later.')) return;
+		unlinkingId = charId;
+		try {
+			const char = session.characters.find((c) => c.id === charId);
+			if (!char) return;
+			await api.character.update(char.id, { ...char, campaignId: undefined });
+			linkedCharacters = await api.character.byCampaign(campaign.id);
+		} catch {}
+		finally {
+			unlinkingId = null;
+		}
+	}
+
+	// ─── Timeline ───────────────────────────────────────────────────────────
+	let showNewSession = $state(false);
+	let newSessionTitle = $state('');
+	let newSessionNumber = $state(1);
+	let newSessionRealDate = $state('');
+	let newSessionInWorldDate = $state('');
+	let creatingSession = $state(false);
+
+	function isOwnCharacter(characterId: string): boolean {
+		return session.characters.some((c) => c.id === characterId);
+	}
+
+	async function handleCreateSession() {
+		if (!campaign || !newSessionTitle) return;
+		creatingSession = true;
+		try {
+			campaign = await api.campaign.createSession(campaign.id, {
+				number: newSessionNumber,
+				title: newSessionTitle,
+				realDate: newSessionRealDate || undefined,
+				inWorldDate: newSessionInWorldDate || undefined,
+			});
+			reloadTimeline(campaign.id);
+			showNewSession = false;
+			newSessionTitle = '';
+			newSessionRealDate = '';
+			newSessionInWorldDate = '';
+			newSessionNumber = (campaign.sessions.length ?? 0) + 1;
+		} catch {}
+		finally {
+			creatingSession = false;
 		}
 	}
 </script>
@@ -130,6 +218,16 @@
 					</select>
 					<button onclick={handleInvite} disabled={inviting || !inviteEmail} class="gb-btn">{inviting ? 'Inviting...' : 'Invite'}</button>
 				</div>
+
+				<hr class="divider" />
+				<div class="invite-row">
+					<button onclick={toggleVisibility} disabled={togglingVisibility} class="gb-btn secondary">
+						{campaign.visibility === 'LINK_JOINABLE' ? 'Link joinable: On' : 'Link joinable: Off'}
+					</button>
+					{#if campaign.visibility === 'LINK_JOINABLE'}
+						<button onclick={copyJoinLink} class="gb-btn secondary">{copied ? 'Copied!' : 'Copy join link'}</button>
+					{/if}
+				</div>
 			{/if}
 		</div>
 
@@ -140,8 +238,33 @@
 			{:else}
 				<div class="roster-list">
 					{#each linkedCharacters as char}
-						<div class="roster-row">
-							<a href={`/share/${char.id}`} class="roster-name">{char.name}</a>
+						<div class="roster-row" style="flex-direction:column; align-items:stretch;">
+							<div style="display:flex; justify-content:space-between; align-items:center;">
+								<button
+									class="roster-name"
+									style="background:none; border:none; text-align:left; cursor:pointer; padding:0;"
+									onclick={() => (expandedCharacterId = expandedCharacterId === char.id ? null : char.id)}
+								>
+									{char.name} {expandedCharacterId === char.id ? '▾' : '▸'}
+								</button>
+								{#if isOwnCharacter(char.id)}
+									<button
+										onclick={() => handleUnlinkCharacter(char.id)}
+										disabled={unlinkingId === char.id}
+										class="delete-btn"
+									>
+										{unlinkingId === char.id ? 'Removing...' : 'Unlink'}
+									</button>
+								{/if}
+							</div>
+							{#if expandedCharacterId === char.id}
+								<div style="font-size:13px; color:var(--muted-foreground); margin-top:6px; display:flex; gap:16px;">
+									<span>Player: {char.player || 'Unknown'}</span>
+									<span>Level {char.level}</span>
+									<span>Goal: {char.goal || '—'}</span>
+									<span>HP: {char.hp.current}/{char.hp.max}</span>
+								</div>
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -158,6 +281,86 @@
 					</select>
 					<button onclick={handleLinkCharacter} disabled={linking || !linkCharacterId} class="gb-btn">{linking ? 'Linking...' : 'Link Character'}</button>
 				</div>
+			{/if}
+		</div>
+
+		<div class="gb-panel">
+			<div style="display:flex; justify-content:space-between; align-items:center;">
+				<div class="gb-panel-header" style="margin-bottom:0;">Campaign Timeline</div>
+				{#if isStoryteller}
+					<button onclick={() => (showNewSession = !showNewSession)} class="gb-btn secondary">+ New Session</button>
+				{/if}
+			</div>
+
+			{#if isStoryteller && showNewSession}
+				<div style="margin-top:10px;">
+					<div style="display:flex; gap:8px;">
+						<input type="number" bind:value={newSessionNumber} class="gb-input" style="width:80px;" placeholder="#" />
+						<input type="text" bind:value={newSessionTitle} placeholder="Session title" class="gb-input" />
+					</div>
+					<div style="display:flex; gap:8px; margin-top:8px;">
+						<input type="text" bind:value={newSessionRealDate} placeholder="Real date" class="gb-input" />
+						<input type="text" bind:value={newSessionInWorldDate} placeholder="In-world date" class="gb-input" />
+					</div>
+					<div class="modal-actions">
+						<button onclick={handleCreateSession} disabled={creatingSession || !newSessionTitle} class="gb-btn">Create Session</button>
+						<button onclick={() => (showNewSession = false)} class="gb-btn secondary">Cancel</button>
+					</div>
+				</div>
+			{/if}
+
+			{#if !timeline || (timeline.sessions.length === 0 && timeline.unassigned.length === 0)}
+				<p style="color:var(--muted-foreground); margin-top:10px;">No chronicle entries yet.</p>
+			{:else}
+				{#each timeline.sessions as block}
+					<hr class="divider" />
+					<div style="display:flex; justify-content:space-between; margin-top:10px;">
+						<strong>Session {block.number}: {block.title}</strong>
+						<span style="color:var(--muted-foreground); font-size:13px;">{block.realDate}{block.inWorldDate ? ` · ${block.inWorldDate}` : ''}</span>
+					</div>
+					{#if block.entries.length === 0}
+						<p style="color:var(--muted-foreground); font-size:13px;">No entries logged for this session yet.</p>
+					{/if}
+					{#each block.entries as te}
+						<div class="gb-panel" style="margin-top:8px; margin-bottom:0;">
+							<div style="display:flex; justify-content:space-between; align-items:baseline;">
+								<strong>{te.characterName}</strong>
+								<span style="font-size:12px; color:var(--muted-foreground);">played by {te.playerName}</span>
+							</div>
+							{#if te.entry.summary}<p style="margin-top:6px;">{te.entry.summary}</p>{/if}
+							{#if te.entry.npcs.length}
+								<p style="font-size:13px; color:var(--muted-foreground);">NPCs: {te.entry.npcs.map((n) => n.name).join(', ')}</p>
+							{/if}
+							{#if te.entry.rewards.length}
+								<p style="font-size:13px; color:var(--muted-foreground);">Rewards: {te.entry.rewards.map((r) => r.amount != null ? `${r.label} ${r.amount}` : r.label).join(', ')}</p>
+							{/if}
+							{#each te.entry.postscripts as ps}
+								<p style="font-size:12px; color:var(--gold-dim);">{ps}</p>
+							{/each}
+							{#if isOwnCharacter(te.characterId)}
+								<a href="/log" class="roster-name" style="font-size:13px;">Edit in your log &#8594;</a>
+							{/if}
+						</div>
+					{/each}
+				{/each}
+
+				{#if timeline.unassigned.length > 0}
+					<hr class="divider" />
+					<strong>Unassigned Entries</strong>
+					{#each timeline.unassigned as te}
+						<div class="gb-panel" style="margin-top:8px; margin-bottom:0;">
+							<div style="display:flex; justify-content:space-between; align-items:baseline;">
+								<strong>{te.characterName}</strong>
+								<span style="font-size:12px; color:var(--muted-foreground);">played by {te.playerName}</span>
+							</div>
+							{#if te.entry.title}<p style="font-size:13px;">{te.entry.title}</p>{/if}
+							{#if te.entry.summary}<p style="margin-top:6px;">{te.entry.summary}</p>{/if}
+							{#if isOwnCharacter(te.characterId)}
+								<a href="/log" class="roster-name" style="font-size:13px;">Edit in your log &#8594;</a>
+							{/if}
+						</div>
+					{/each}
+				{/if}
 			{/if}
 		</div>
 	{/if}

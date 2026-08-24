@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { session } from '$lib/stores/session.svelte';
 	import { api } from '$lib/services/api';
-	import type { WitcherCharacter } from '$lib/services/api';
-	import { createDefaultSession, createDefaultSessionNpc } from '$lib/utils/character';
+	import type { WitcherCharacter, CampaignSession } from '$lib/services/api';
+	import { createDefaultSessionEntry, createDefaultNpc } from '$lib/utils/character';
 	import Panel from '@ui/Panel.svelte';
 
 	let draft = $state<WitcherCharacter | null>(null);
@@ -10,18 +10,22 @@
 	let saveError = $state<string | null>(null);
 	let saveSuccess = $state(false);
 	let selectedSessionId = $state<string | null>(null);
+	let campaignSessions = $state<CampaignSession[]>([]);
 
 	$effect(() => {
 		if (session.activeCharacter && !draft) {
 			const loaded: WitcherCharacter = JSON.parse(JSON.stringify(session.activeCharacter));
-			if (loaded.sessions == null) loaded.sessions = [];
+			if (loaded.sessionLog == null) loaded.sessionLog = [];
 			draft = loaded;
-			const current = loaded.sessions.find((s) => s.current) ?? loaded.sessions[0];
+			const current = loaded.sessionLog.find((s) => s.current) ?? loaded.sessionLog[0];
 			selectedSessionId = current?.id ?? null;
+			if (loaded.campaignId) {
+				api.campaign.get(loaded.campaignId).then((c) => (campaignSessions = c.sessions)).catch(() => {});
+			}
 		}
 	});
 
-	const selectedSession = $derived(draft?.sessions.find((s) => s.id === selectedSessionId) ?? null);
+	const selectedSession = $derived(draft?.sessionLog.find((s) => s.id === selectedSessionId) ?? null);
 
 	let showNewSession = $state(false);
 	let newSessionTitle = $state('');
@@ -29,12 +33,12 @@
 
 	function addSession() {
 		if (!draft) return;
-		const s = createDefaultSession(draft.sessions.length + 1);
+		const s = createDefaultSessionEntry(draft.sessionLog.length + 1);
 		s.title = newSessionTitle;
 		s.realDate = newSessionDate;
 		s.current = true;
-		draft.sessions.forEach((existing) => (existing.current = false));
-		draft.sessions = [...draft.sessions, s];
+		draft.sessionLog.forEach((existing) => (existing.current = false));
+		draft.sessionLog = [...draft.sessionLog, s];
 		selectedSessionId = s.id;
 		showNewSession = false;
 		newSessionTitle = '';
@@ -54,7 +58,7 @@
 
 	function addNpc() {
 		if (!selectedSession || !newNpcName) return;
-		const npc = createDefaultSessionNpc();
+		const npc = createDefaultNpc();
 		npc.name = newNpcName;
 		npc.role = newNpcRole;
 		selectedSession.npcs = [...selectedSession.npcs, npc];
@@ -71,12 +75,12 @@
 	let newLootItem = $state('');
 	function addLootItem() {
 		if (!selectedSession || !newLootItem) return;
-		selectedSession.loot = [...selectedSession.loot, newLootItem];
+		selectedSession.rewards = [...selectedSession.rewards, { label: newLootItem }];
 		newLootItem = '';
 	}
 	function removeLootItem(i: number) {
 		if (!selectedSession) return;
-		selectedSession.loot = selectedSession.loot.filter((_, idx) => idx !== i);
+		selectedSession.rewards = selectedSession.rewards.filter((_, idx) => idx !== i);
 	}
 
 	let newPostscript = $state('');
@@ -176,7 +180,7 @@
 
 		<div class="log-grid">
 			<Panel header="Session Logs" color="plain">
-				{#each draft.sessions as s}
+				{#each draft.sessionLog as s}
 					<div
 						class="session-list-item"
 						class:current={s.id === selectedSessionId}
@@ -192,7 +196,7 @@
 						<div class="session-title-sm">{s.title}</div>
 					</div>
 				{/each}
-				{#if draft.sessions.length === 0}
+				{#if draft.sessionLog.length === 0}
 					<p style="font-size:14px; color:var(--on-surface-variant);">No sessions logged yet.</p>
 				{/if}
 			</Panel>
@@ -215,6 +219,14 @@
 							class="input-demo"
 							style="width:200px;"
 						/>
+						{#if campaignSessions.length > 0}
+							<select bind:value={selectedSession.campaignSessionId} class="input-demo" style="width:200px;">
+								<option value={null}>Not linked to a campaign session</option>
+								{#each campaignSessions as cs}
+									<option value={cs.id}>Session {cs.number}: {cs.title}</option>
+								{/each}
+							</select>
+						{/if}
 						{#if selectedSession.current}
 							<button onclick={endSession} class="comic-btn secondary" style="margin-left:auto;"
 								>End Session</button
@@ -270,9 +282,9 @@
 
 						<div>
 							<div class="field-hdr">Loot &amp; Rewards</div>
-							{#each selectedSession.loot as item, i}
+							{#each selectedSession.rewards as reward, i}
 								<span class="tag"
-									>{item}
+									>{reward.label}
 									<button onclick={() => removeLootItem(i)} class="tag-remove-btn">✕</button></span
 								>
 							{/each}

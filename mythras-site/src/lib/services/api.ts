@@ -225,22 +225,30 @@ export interface HitLocation {
 	armorWorn: string;
 }
 
-export interface SessionNpc {
+export interface LogNpc {
 	id: string;
 	name: string;
 	role?: string;
 	avatar?: string;
 }
 
-export interface GameSession {
+export interface Reward {
+	label?: string;
+	amount?: number;
+	notes?: string;
+}
+
+export interface SessionEntry {
 	id: string;
+	campaignSessionId?: string | null;
 	number: number;
 	title: string;
 	realDate?: string;
-	current: boolean;
+	inWorldDate?: string;
 	location?: string;
-	npcs: SessionNpc[];
-	loot: string[];
+	current: boolean;
+	npcs: LogNpc[];
+	rewards: Reward[];
 	summary?: string;
 	postscripts: string[];
 }
@@ -284,7 +292,7 @@ export interface MythrasCharacter {
 	equipment: EquipmentItem[];
 	cults: Cult[];
 	hitLocations: HitLocation[];
-	sessions: GameSession[];
+	sessionLog: SessionEntry[];
 	createdAt?: string;
 	updatedAt?: string;
 }
@@ -293,6 +301,74 @@ export interface CreateCharacterRequest {
 	name: string;
 	raceCulture?: string;
 	career?: string;
+	campaignId?: string;
+}
+
+export type CampaignRole = 'OWNER' | 'STORYTELLER' | 'PLAYER' | 'SPECTATOR';
+export type CampaignVisibility = 'INVITE_ONLY' | 'LINK_JOINABLE';
+
+export interface CampaignMember {
+	userId: string;
+	displayName: string;
+	role: CampaignRole;
+}
+
+export interface CampaignSession {
+	id: string;
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+}
+
+export interface Campaign {
+	id: string;
+	name: string;
+	gameSystem: string;
+	ownerUserId: string;
+	members: CampaignMember[];
+	sessions: CampaignSession[];
+	visibility: CampaignVisibility;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface CreateCampaignPayload {
+	name: string;
+	gameSystem: 'MYTHRAS';
+}
+
+export interface NewCampaignSession {
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+}
+
+export interface CampaignTimelineEntry {
+	characterId: string;
+	characterName: string;
+	playerName: string;
+	entry: SessionEntry;
+}
+
+export interface CampaignTimelineSessionBlock {
+	id: string;
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+	entries: CampaignTimelineEntry[];
+}
+
+export interface CampaignTimeline {
+	sessions: CampaignTimelineSessionBlock[];
+	unassigned: CampaignTimelineEntry[];
+}
+
+export interface UserLookupResult {
+	id: string;
+	username: string;
 }
 
 export const api = {
@@ -323,6 +399,54 @@ export const api = {
 				method: 'PUT',
 				body: JSON.stringify(data)
 			}),
-		delete: (id: string) => request<void>(`/api/v1/mythras/characters/${id}`, { method: 'DELETE' })
+		delete: (id: string) => request<void>(`/api/v1/mythras/characters/${id}`, { method: 'DELETE' }),
+		byCampaign: async (campaignId: string): Promise<MythrasCharacter[]> => {
+			try {
+				return await request<MythrasCharacter[]>(`/api/v1/mythras/characters?campaignId=${encodeURIComponent(campaignId)}`);
+			} catch {
+				return [];
+			}
+		}
+	},
+	campaign: {
+		create: (data: CreateCampaignPayload) =>
+			request<Campaign>('/api/v1/campaigns', {
+				method: 'POST',
+				body: JSON.stringify(data)
+			}),
+		myCampaigns: async (): Promise<Campaign[]> => {
+			const campaigns = await request<Campaign[]>('/api/v1/campaigns');
+			return campaigns.filter((c) => c.gameSystem === 'MYTHRAS');
+		},
+		get: (id: string) => request<Campaign>(`/api/v1/campaigns/${id}`),
+		delete: (id: string) => request<void>(`/api/v1/campaigns/${id}`, { method: 'DELETE' }),
+		join: (id: string) => request<Campaign>(`/api/v1/campaigns/${id}/join`, { method: 'POST' }),
+		addMember: (id: string, member: CampaignMember) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/members`, {
+				method: 'POST',
+				body: JSON.stringify(member)
+			}),
+		removeMember: (id: string, userId: string) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/members/${userId}`, { method: 'DELETE' }),
+		setVisibility: (campaign: Campaign, visibility: CampaignVisibility) =>
+			request<Campaign>(`/api/v1/campaigns/${campaign.id}`, {
+				method: 'PUT',
+				body: JSON.stringify({ ...campaign, visibility })
+			}),
+		timeline: (id: string) => request<CampaignTimeline>(`/api/v1/campaigns/${id}/timeline`),
+		createSession: (id: string, s: NewCampaignSession) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/sessions`, {
+				method: 'POST',
+				body: JSON.stringify(s)
+			})
+	},
+	users: {
+		lookupByEmail: async (email: string): Promise<UserLookupResult | null> => {
+			try {
+				return await request<UserLookupResult>(`/api/v1/users/lookup?email=${encodeURIComponent(email)}`);
+			} catch {
+				return null;
+			}
+		}
 	}
 };

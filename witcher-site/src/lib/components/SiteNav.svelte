@@ -7,6 +7,7 @@
 	const links = [
 		{ href: '/characters', label: 'Characters' },
 		{ href: '/log', label: 'Log' },
+		{ href: '/campaigns', label: 'Campaigns' },
 		{ href: '/rules', label: 'Rules' },
 		{ href: '/dashboard', label: 'Dashboard' }
 	];
@@ -15,6 +16,7 @@
 		{ href: '/dashboard', label: 'Dashboard' },
 		{ href: '/characters', label: 'My Characters' },
 		{ href: '/log', label: 'Log' },
+		{ href: '/campaigns', label: 'My Campaigns' },
 		{ href: '/profile', label: 'Profile' },
 		{ href: '/rules', label: 'Rules Reference' },
 		{ href: '/legal', label: 'About & Legal' }
