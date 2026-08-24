@@ -1,19 +1,21 @@
-import type { AlternateEffect, PowerEffect, PowerModifier, ResistanceType, MinionStatBlock, SessionNpc, GameSession } from '$lib/services/api';
+import type { AlternateEffect, PowerEffect, PowerModifier, ResistanceType, MinionStatBlock, LogNpc, SessionEntry } from '$lib/services/api';
 
-export function createDefaultSessionNpc(): SessionNpc {
+export function createDefaultNpc(): LogNpc {
 	return { id: crypto.randomUUID(), name: '', role: '', avatar: '' };
 }
 
-export function createDefaultSession(nextNumber: number): GameSession {
+export function createDefaultSessionEntry(nextNumber: number): SessionEntry {
 	return {
 		id: crypto.randomUUID(),
+		campaignSessionId: null,
 		number: nextNumber,
 		title: '',
 		realDate: '',
+		inWorldDate: '',
 		current: false,
 		location: '',
 		npcs: [],
-		loot: [],
+		rewards: [],
 		summary: '',
 		postscripts: [],
 	};
@@ -332,7 +334,7 @@ export function ensureDefaults(d: any): void {
 	if (d.complications == null) d.complications = [];
 	if (d.equipmentPool == null) d.equipmentPool = { totalEpAllowed: 0, epSpent: 0, items: [] };
 	if (d.headquarters == null) d.headquarters = [];
-	if (d.sessions == null) d.sessions = [];
+	if (d.sessionLog == null) d.sessionLog = [];
 	for (const k of ABI_KEYS) if (d.abilities[k + 'FinalValue'] == null) d.abilities[k + 'FinalValue'] = 0;
 	for (const k of DEF_KEYS) if (d.defenses[k + 'FinalValue'] == null) d.defenses[k + 'FinalValue'] = 0;
 }

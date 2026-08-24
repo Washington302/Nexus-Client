@@ -1,4 +1,4 @@
-import type { Weapon, Gift, Word, InfluenceProject, RealmChange, Session, NPC, DivineGoal, Fact, GodboundCharacter } from '$lib/services/api';
+import type { Weapon, Gift, Word, InfluenceProject, RealmChange, SessionEntry, LogNpc, DivineGoal, Fact, GodboundCharacter } from '$lib/services/api';
 
 const ATTR_KEYS = ['strength', 'dexterity', 'constitution', 'wisdom', 'intelligence', 'charisma'] as const;
 const SAVE_KEYS = ['hardiness', 'evasion', 'spirit'] as const;
@@ -107,25 +107,24 @@ export function createDefaultRealmChange(): RealmChange {
 	};
 }
 
-export function createDefaultNpc(): NPC {
+export function createDefaultNpc(): LogNpc {
 	return { id: crypto.randomUUID(), name: '', role: '', avatar: '' };
 }
 
-export function createDefaultSession(nextNumber: number): Session {
+export function createDefaultSessionEntry(nextNumber: number): SessionEntry {
 	return {
 		id: crypto.randomUUID(),
+		campaignSessionId: null,
 		number: nextNumber,
 		title: '',
 		realDate: '',
-		timeAgo: '',
 		current: false,
-		era: '',
+		inWorldDate: '',
 		location: '',
 		npcs: [],
-		spoils: { wealth: 0, dominion: 0, items: [] },
+		rewards: [],
 		summary: '',
 		postscripts: [],
-		completedGoals: [],
 	};
 }
 

@@ -5,6 +5,8 @@
 	const cards = [
 		{ href: '/characters', label: 'My Characters', desc: 'View and manage all your characters' },
 		{ href: '/character', label: 'Character Sheet', desc: 'Open the active character sheet' },
+		{ href: '/log', label: 'Session Log', desc: 'Chronicle your contracts' },
+		{ href: '/campaigns', label: 'Campaigns', desc: 'Manage your campaigns, rosters, and linked characters' },
 		{ href: '/profile', label: 'Profile', desc: 'Manage your account settings' },
 		{ href: '/sites', label: 'Find My Other Sites', desc: 'Links to the other apps I’m building' }
 	];

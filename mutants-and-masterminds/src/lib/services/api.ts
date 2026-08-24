@@ -283,22 +283,30 @@ export interface Complication {
 	description: string;
 }
 
-export interface SessionNpc {
+export interface LogNpc {
 	id: string;
 	name: string;
 	role?: string;
 	avatar?: string;
 }
 
-export interface GameSession {
+export interface Reward {
+	label?: string;
+	amount?: number;
+	notes?: string;
+}
+
+export interface SessionEntry {
 	id: string;
+	campaignSessionId?: string | null;
 	number: number;
 	title: string;
 	realDate?: string;
-	current: boolean;
+	inWorldDate?: string;
 	location?: string;
-	npcs: SessionNpc[];
-	loot: string[];
+	current: boolean;
+	npcs: LogNpc[];
+	rewards: Reward[];
 	summary?: string;
 	postscripts: string[];
 }
@@ -337,7 +345,7 @@ export interface MnmCharacter {
 	devices: Device[];
 	complications: Complication[];
 	headquarters: Headquarters[];
-	sessions: GameSession[];
+	sessionLog: SessionEntry[];
 }
 
 export interface CreateCharacterRequest {
@@ -347,12 +355,22 @@ export interface CreateCharacterRequest {
 	campaignId?: string;
 }
 
-export type CampaignRole = 'OWNER' | 'GM' | 'PLAYER' | 'SPECTATOR';
+export type CampaignRole = 'OWNER' | 'STORYTELLER' | 'PLAYER' | 'SPECTATOR';
 
 export interface CampaignMember {
 	userId: string;
 	displayName: string;
 	role: CampaignRole;
+}
+
+export type CampaignVisibility = 'INVITE_ONLY' | 'LINK_JOINABLE';
+
+export interface CampaignSession {
+	id: string;
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
 }
 
 export interface Campaign {
@@ -361,6 +379,8 @@ export interface Campaign {
 	gameSystem: string;
 	ownerUserId: string;
 	members: CampaignMember[];
+	sessions: CampaignSession[];
+	visibility: CampaignVisibility;
 	createdAt: string;
 	updatedAt: string;
 	// MUTANTS_AND_MASTERMINDS-specific fields (present when gameSystem === 'MUTANTS_AND_MASTERMINDS')
@@ -373,6 +393,34 @@ export interface CreateCampaignPayload {
 	gameSystem: 'MUTANTS_AND_MASTERMINDS';
 	powerLevel: number;
 	setting?: string;
+}
+
+export interface NewCampaignSession {
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+}
+
+export interface CampaignTimelineEntry {
+	characterId: string;
+	characterName: string;
+	playerName: string;
+	entry: SessionEntry;
+}
+
+export interface CampaignTimelineSessionBlock {
+	id: string;
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+	entries: CampaignTimelineEntry[];
+}
+
+export interface CampaignTimeline {
+	sessions: CampaignTimelineSessionBlock[];
+	unassigned: CampaignTimelineEntry[];
 }
 
 export interface UserLookupResult {
@@ -442,6 +490,20 @@ export const api = {
 			}),
 		removeMember: (id: string, userId: string) =>
 			request<Campaign>(`/api/v1/campaigns/${id}/members/${userId}`, { method: 'DELETE' }),
+		join: (id: string) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/join`, { method: 'POST' }),
+		setVisibility: (campaign: Campaign, visibility: CampaignVisibility) =>
+			request<Campaign>(`/api/v1/campaigns/${campaign.id}`, {
+				method: 'PUT',
+				body: JSON.stringify({ ...campaign, visibility }),
+			}),
+		timeline: (id: string) =>
+			request<CampaignTimeline>(`/api/v1/campaigns/${id}/timeline`),
+		createSession: (id: string, s: NewCampaignSession) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/sessions`, {
+				method: 'POST',
+				body: JSON.stringify(s),
+			}),
 	},
 	users: {
 		lookupByEmail: (email: string) =>

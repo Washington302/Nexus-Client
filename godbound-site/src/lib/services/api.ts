@@ -179,34 +179,32 @@ export interface RealmChange {
 	spent?: number;
 }
 
-export interface NPC {
+export interface LogNpc {
 	id: string;
 	name: string;
 	role?: string;
-	sessionId?: string;
 	avatar?: string;
 }
 
-export interface Spoils {
-	wealth: number;
-	dominion: number;
-	items: string[];
+export interface Reward {
+	label?: string;
+	amount?: number;
+	notes?: string;
 }
 
-export interface Session {
+export interface SessionEntry {
 	id: string;
+	campaignSessionId?: string | null;
 	number: number;
 	title: string;
 	realDate?: string;
-	timeAgo?: string;
-	current: boolean;
-	era?: string;
+	inWorldDate?: string;
 	location?: string;
-	npcs: NPC[];
-	spoils: Spoils;
+	current: boolean;
+	npcs: LogNpc[];
+	rewards: Reward[];
 	summary?: string;
 	postscripts: string[];
-	completedGoals: string[];
 }
 
 export interface DivineGoal {
@@ -245,7 +243,7 @@ export interface GodboundCharacter {
 	words: Word[];
 	influenceProjects: InfluenceProject[];
 	realmChanges: RealmChange[];
-	sessions: Session[];
+	sessionLog: SessionEntry[];
 	divineGoals: DivineGoal[];
 }
 
@@ -262,12 +260,24 @@ export interface CampaignMember {
 	role: CampaignRole;
 }
 
+export type CampaignVisibility = 'INVITE_ONLY' | 'LINK_JOINABLE';
+
+export interface CampaignSession {
+	id: string;
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+}
+
 export interface Campaign {
 	id: string;
 	name: string;
 	gameSystem: string;
 	ownerUserId: string;
 	members: CampaignMember[];
+	sessions: CampaignSession[];
+	visibility: CampaignVisibility;
 	createdAt: string;
 	updatedAt: string;
 	// GodboundSaga-specific field
@@ -278,6 +288,34 @@ export interface CreateCampaignPayload {
 	name: string;
 	gameSystem: 'GODBOUND';
 	setting?: string;
+}
+
+export interface NewCampaignSession {
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+}
+
+export interface CampaignTimelineEntry {
+	characterId: string;
+	characterName: string;
+	playerName: string;
+	entry: SessionEntry;
+}
+
+export interface CampaignTimelineSessionBlock {
+	id: string;
+	number: number;
+	title: string;
+	realDate?: string;
+	inWorldDate?: string;
+	entries: CampaignTimelineEntry[];
+}
+
+export interface CampaignTimeline {
+	sessions: CampaignTimelineSessionBlock[];
+	unassigned: CampaignTimelineEntry[];
 }
 
 export interface UserLookupResult {
@@ -349,6 +387,18 @@ export const api = {
 			}),
 		removeMember: (id: string, userId: string) =>
 			request<Campaign>(`/api/v1/campaigns/${id}/members/${userId}`, { method: 'DELETE' }),
+		setVisibility: (campaign: Campaign, visibility: CampaignVisibility) =>
+			request<Campaign>(`/api/v1/campaigns/${campaign.id}`, {
+				method: 'PUT',
+				body: JSON.stringify({ ...campaign, visibility }),
+			}),
+		timeline: (id: string) =>
+			request<CampaignTimeline>(`/api/v1/campaigns/${id}/timeline`),
+		createSession: (id: string, s: NewCampaignSession) =>
+			request<Campaign>(`/api/v1/campaigns/${id}/sessions`, {
+				method: 'POST',
+				body: JSON.stringify(s),
+			}),
 	},
 	users: {
 		lookupByEmail: (email: string) =>

@@ -1612,6 +1612,26 @@ main {
 	cursor: pointer;
 	transition: all 0.15s;
 }
+/* Six tabs sharing one row with `flex: 1` is fine down to a point, but on a phone
+   width that division starts truncating/wrapping "BACKGROUND" and "ALCHEMY" into
+   something unreadable — the labels shrink instead of the strip adapting. Below
+   this width the strip becomes a horizontally-scrolling rail instead: every tab
+   keeps a fixed, tappable size and you swipe to reach the rest, rather than every
+   tab getting squeezed. The global scrollbar-hiding rule already keeps that rail
+   from showing a scrollbar. */
+@media (max-width: 640px) {
+	.sheet-tabs {
+		overflow-x: auto;
+		scroll-snap-type: x proximity;
+	}
+	.sheet-tab {
+		flex: 0 0 auto;
+		scroll-snap-align: start;
+		min-width: 92px;
+		font-size: 12px;
+		padding: 8px 10px;
+	}
+}
 .sheet-tab.active {
 	background: var(--primary);
 	color: var(--on-primary);
@@ -2572,10 +2592,15 @@ select.input-demo {
    Classes emitted by the shared RulesReference component. See
    shared/ui/CONTRACT.md — all four apps must define every one of these.
    `.data-table` is defined above and reused as-is. */
-.rules-doc { width: 100%; }
+.rules-doc {
+	width: 100%;
+}
 .rules-download {
-	display: flex; align-items: center; justify-content: space-between;
-	gap: 14px; flex-wrap: wrap;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 14px;
+	flex-wrap: wrap;
 	background: var(--surface-container-lowest);
 	border: 1px solid var(--outline-variant);
 	border-radius: var(--radius);
@@ -2583,68 +2608,173 @@ select.input-demo {
 	margin-bottom: var(--stack-md);
 }
 .rules-download-title {
-	font-family: var(--font-display); font-size: 14px; font-weight: 700;
-	letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-surface);
+	font-family: var(--font-display);
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--on-surface);
 }
-.rules-download-note { font-family: var(--font-body); font-size: 13px; color: var(--on-surface-variant); }
+.rules-download-note {
+	font-family: var(--font-body);
+	font-size: 13px;
+	color: var(--on-surface-variant);
+}
 .rules-download-btn {
-	font-family: var(--font-display); font-size: 13px; font-weight: 700;
-	letter-spacing: 0.06em; text-decoration: none;
-	color: var(--on-primary); background: var(--primary);
-	border: none; border-radius: var(--radius); padding: 10px 18px; white-space: nowrap;
+	font-family: var(--font-display);
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-decoration: none;
+	color: var(--on-primary);
+	background: var(--primary);
+	border: none;
+	border-radius: var(--radius);
+	padding: 10px 18px;
+	white-space: nowrap;
 }
-.rules-download-btn:hover { background: var(--primary-container); }
+.rules-download-btn:hover {
+	background: var(--primary-container);
+}
 .rules-toc {
-	display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--stack-md);
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: var(--stack-md);
 	background: var(--surface-container-low);
 	border: 1px solid var(--outline-variant);
-	border-radius: var(--radius); padding: var(--gutter);
+	border-radius: var(--radius);
+	padding: var(--gutter);
 	margin-bottom: 24px;
 }
-.rules-toc-group { display: flex; flex-direction: column; gap: 4px; }
-.rules-toc-title {
-	font-family: var(--font-display); font-size: 12px; font-weight: 700;
-	letter-spacing: 0.08em; text-transform: uppercase; color: var(--primary); margin-bottom: 2px;
+.rules-toc-group {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
 }
-.rules-toc-link { font-family: var(--font-body); font-size: 13px; color: var(--on-surface-variant); text-decoration: none; }
-.rules-toc-link:hover { color: var(--primary); text-decoration: underline; }
+.rules-toc-title {
+	font-family: var(--font-display);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--primary);
+	margin-bottom: 2px;
+}
+.rules-toc-link {
+	font-family: var(--font-body);
+	font-size: 13px;
+	color: var(--on-surface-variant);
+	text-decoration: none;
+}
+.rules-toc-link:hover {
+	color: var(--primary);
+	text-decoration: underline;
+}
 .rules-group {
-	display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
-	gap: var(--stack-md); align-items: start; margin-bottom: 28px; scroll-margin-top: 70px;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+	gap: var(--stack-md);
+	align-items: start;
+	margin-bottom: 28px;
+	scroll-margin-top: 70px;
 }
 .rules-group-title {
-	grid-column: 1/-1; font-family: var(--font-display); font-size: 22px; font-weight: 700;
-	color: var(--primary); border-bottom: 1px solid var(--outline-variant); padding-bottom: 6px;
+	grid-column: 1/-1;
+	font-family: var(--font-display);
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--primary);
+	border-bottom: 1px solid var(--outline-variant);
+	padding-bottom: 6px;
 }
 .rules-card {
 	background: var(--surface-container-lowest);
 	border: 1px solid var(--outline-variant);
-	border-radius: var(--radius); overflow: hidden; scroll-margin-top: 70px;
+	border-radius: var(--radius);
+	overflow: hidden;
+	scroll-margin-top: 70px;
 }
 .rules-card-header {
-	font-family: var(--font-display); font-size: 13px; font-weight: 700;
-	letter-spacing: 0.08em; text-transform: uppercase;
+	font-family: var(--font-display);
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
 	padding: 10px var(--gutter);
 	border-bottom: 1px solid var(--outline-variant);
 }
-.rules-card-body { padding: var(--gutter); display: flex; flex-direction: column; gap: 10px; }
+.rules-card-body {
+	padding: var(--gutter);
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
 .rules-formula {
-	font-family: var(--font-display); font-size: 15px; font-weight: 700; text-align: center;
-	color: var(--on-surface); background: var(--surface-container);
-	border-radius: var(--radius); padding: 10px 12px;
+	font-family: var(--font-display);
+	font-size: 15px;
+	font-weight: 700;
+	text-align: center;
+	color: var(--on-surface);
+	background: var(--surface-container);
+	border-radius: var(--radius);
+	padding: 10px 12px;
 }
-.rules-prose { font-family: var(--font-body); font-size: 14px; line-height: 21px; color: var(--on-surface); }
-.rules-note { font-family: var(--font-body); font-size: 12px; line-height: 18px; font-style: italic; color: var(--on-surface-variant); }
-.rules-defs { display: grid; grid-template-columns: minmax(6rem, 11rem) 1fr; gap: 6px 12px; }
-.rules-def-term { font-family: var(--font-body); font-size: 13px; font-weight: 700; color: var(--primary); }
-.rules-def-text { font-family: var(--font-body); font-size: 13px; line-height: 19px; color: var(--on-surface); }
-.rules-table-caption { font-family: var(--font-body); font-size: 12px; font-style: italic; color: var(--on-surface-variant); }
+.rules-prose {
+	font-family: var(--font-body);
+	font-size: 14px;
+	line-height: 21px;
+	color: var(--on-surface);
+}
+.rules-note {
+	font-family: var(--font-body);
+	font-size: 12px;
+	line-height: 18px;
+	font-style: italic;
+	color: var(--on-surface-variant);
+}
+.rules-defs {
+	display: grid;
+	grid-template-columns: minmax(6rem, 11rem) 1fr;
+	gap: 6px 12px;
+}
+.rules-def-term {
+	font-family: var(--font-body);
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--primary);
+}
+.rules-def-text {
+	font-family: var(--font-body);
+	font-size: 13px;
+	line-height: 19px;
+	color: var(--on-surface);
+}
+.rules-table-caption {
+	font-family: var(--font-body);
+	font-size: 12px;
+	font-style: italic;
+	color: var(--on-surface-variant);
+}
 /* Wide tables scroll here rather than pushing the page sideways. */
-.rules-table-wrap { overflow-x: auto; }
-@media (max-width: 560px) {
-	.rules-defs { grid-template-columns: 1fr; gap: 2px; }
-	.rules-def-text { margin-bottom: 6px; }
+.rules-table-wrap {
+	overflow-x: auto;
 }
-.rules-card-header { background: var(--surface-container); color: var(--primary); }
-.rules-card { box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.4); }
-.rules-download-btn { color: var(--surface-container-lowest); }
+@media (max-width: 560px) {
+	.rules-defs {
+		grid-template-columns: 1fr;
+		gap: 2px;
+	}
+	.rules-def-text {
+		margin-bottom: 6px;
+	}
+}
+.rules-card-header {
+	background: var(--surface-container);
+	color: var(--primary);
+}
+.rules-card {
+	box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.4);
+}
+.rules-download-btn {
+	color: var(--surface-container-lowest);
+}

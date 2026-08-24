@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { session } from '$lib/stores/session.svelte';
 	import { api } from '$lib/services/api';
-	import type { GodboundCharacter } from '$lib/services/api';
-	import { createDefaultSession, createDefaultNpc, createDefaultDivineGoal } from '$lib/utils/character';
+	import type { GodboundCharacter, CampaignSession } from '$lib/services/api';
+	import { createDefaultSessionEntry, createDefaultNpc, createDefaultDivineGoal } from '$lib/utils/character';
 	import { gameRules } from '$lib/stores/gameRules.svelte';
 	import SplashHeader from '@ui/SplashHeader.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
@@ -12,17 +12,21 @@
 	let saveError = $state<string | null>(null);
 	let saveSuccess = $state(false);
 	let selectedSessionId = $state<string | null>(null);
+	let campaignSessions = $state<CampaignSession[]>([]);
 
 	$effect(() => {
 		if (session.activeCharacter && !draft) {
 			const loaded: GodboundCharacter = JSON.parse(JSON.stringify(session.activeCharacter));
 			draft = loaded;
-			const current = loaded.sessions.find((s) => s.current) ?? loaded.sessions[0];
+			const current = loaded.sessionLog.find((s) => s.current) ?? loaded.sessionLog[0];
 			selectedSessionId = current?.id ?? null;
+			if (loaded.campaignId) {
+				api.campaign.get(loaded.campaignId).then((c) => (campaignSessions = c.sessions)).catch(() => {});
+			}
 		}
 	});
 
-	const selectedSession = $derived(draft?.sessions.find((s) => s.id === selectedSessionId) ?? null);
+	const selectedSession = $derived(draft?.sessionLog.find((s) => s.id === selectedSessionId) ?? null);
 
 	let showNewSession = $state(false);
 	let newSessionTitle = $state('');
@@ -30,21 +34,26 @@
 
 	function addSession() {
 		if (!draft) return;
-		const s = createDefaultSession(draft.sessions.length + 1);
+		const s = createDefaultSessionEntry(draft.sessionLog.length + 1);
 		s.title = newSessionTitle;
 		s.realDate = newSessionDate;
 		s.current = true;
-		draft.sessions.forEach((existing) => (existing.current = false));
-		draft.sessions = [...draft.sessions, s];
+		draft.sessionLog.forEach((existing) => (existing.current = false));
+		draft.sessionLog = [...draft.sessionLog, s];
 		selectedSessionId = s.id;
 		showNewSession = false;
 		newSessionTitle = '';
 		newSessionDate = '';
 	}
 
+	function dominionReward() {
+		if (!selectedSession) return null;
+		return selectedSession.rewards.find((r) => r.label === 'Dominion') ?? null;
+	}
+
 	function endSession() {
 		if (!draft || !selectedSession) return;
-		const earned = selectedSession.spoils.dominion || 0;
+		const earned = dominionReward()?.amount || 0;
 		const confirmed = confirm(`End "${selectedSession.title || 'this session'}" and add ${earned} Dominion to your pool?`);
 		if (!confirmed) return;
 		draft.resources.dominion.total += earned;
@@ -81,7 +90,6 @@
 		const npc = createDefaultNpc();
 		npc.name = newNpcName;
 		npc.role = newNpcRole;
-		npc.sessionId = selectedSession.id;
 		selectedSession.npcs = [...selectedSession.npcs, npc];
 		showNewNpc = false;
 		newNpcName = '';
@@ -93,15 +101,25 @@
 		selectedSession.npcs = selectedSession.npcs.filter((n) => n.id !== id);
 	}
 
-	let newSpoilItem = $state('');
-	function addSpoilItem() {
-		if (!selectedSession || !newSpoilItem) return;
-		selectedSession.spoils.items = [...selectedSession.spoils.items, newSpoilItem];
-		newSpoilItem = '';
+	function rewardAmount(label: string): number {
+		return selectedSession?.rewards.find((r) => r.label === label)?.amount ?? 0;
 	}
-	function removeSpoilItem(i: number) {
+	function setRewardAmount(label: string, amount: number) {
 		if (!selectedSession) return;
-		selectedSession.spoils.items = selectedSession.spoils.items.filter((_, idx) => idx !== i);
+		const existing = selectedSession.rewards.find((r) => r.label === label);
+		if (existing) existing.amount = amount;
+		else selectedSession.rewards = [...selectedSession.rewards, { label, amount }];
+	}
+
+	let newRewardItem = $state('');
+	function addRewardItem() {
+		if (!selectedSession || !newRewardItem) return;
+		selectedSession.rewards = [...selectedSession.rewards, { label: newRewardItem }];
+		newRewardItem = '';
+	}
+	function removeReward(i: number) {
+		if (!selectedSession) return;
+		selectedSession.rewards = selectedSession.rewards.filter((_, idx) => idx !== i);
 	}
 
 	let newPostscript = $state('');
@@ -164,7 +182,7 @@
 			<div class="sheet-col">
 				<div class="gb-panel">
 					<div class="gb-panel-header">Session Logs</div>
-					{#each draft.sessions as s}
+					{#each draft.sessionLog as s}
 						<div
 							class="session-list-item"
 							class:current={s.id === selectedSessionId}
@@ -178,9 +196,6 @@
 								<span class="session-number">{s.realDate}</span>
 							</div>
 							<div class="session-title-sm" class:current={s.id === selectedSessionId}>{s.title}</div>
-							{#if s.completedGoals.length}
-								<div style="font-size:12px; color:var(--gold-dim);">&#10022; {s.completedGoals.length} goal(s) completed</div>
-							{/if}
 						</div>
 					{/each}
 				</div>
@@ -220,8 +235,16 @@
 						<input type="text" bind:value={selectedSession.title} class="gb-input" style="font-family:var(--font-serif); font-size:22px; background:none; border:none; padding:0; margin-bottom:8px;" />
 						<div style="display:flex; gap:16px; align-items:center; font-size:13px; color:var(--muted-foreground); margin-bottom:14px;">
 							<span>{selectedSession.realDate}</span>
-							<input type="text" bind:value={selectedSession.era} placeholder="Era" class="gb-input" style="width:140px;" />
+							<input type="text" bind:value={selectedSession.inWorldDate} placeholder="In-world date" class="gb-input" style="width:140px;" />
 							<input type="text" bind:value={selectedSession.location} placeholder="Location" class="gb-input" style="width:160px;" />
+							{#if campaignSessions.length > 0}
+								<select bind:value={selectedSession.campaignSessionId} class="gb-input" style="width:180px;">
+									<option value={null}>Not linked to a campaign session</option>
+									{#each campaignSessions as cs}
+										<option value={cs.id}>Session {cs.number}: {cs.title}</option>
+									{/each}
+								</select>
+							{/if}
 							{#if gameRules.enableDominionReminders && selectedSession.current}
 								<button onclick={endSession} class="gb-btn secondary" style="margin-left:auto;">End Session</button>
 							{/if}
@@ -260,23 +283,25 @@
 								<div class="hp-grid" style="margin-bottom:12px;">
 									<div class="hp-box">
 										<div class="hp-box-label">Wealth</div>
-										<input type="number" class="hp-box-input" bind:value={selectedSession.spoils.wealth} />
+										<input type="number" class="hp-box-input" value={rewardAmount('Wealth')} oninput={(e) => setRewardAmount('Wealth', Number(e.currentTarget.value))} />
 									</div>
 									<div class="hp-box">
 										<div class="hp-box-label">Dominion</div>
-										<input type="number" class="hp-box-input" bind:value={selectedSession.spoils.dominion} />
+										<input type="number" class="hp-box-input" value={rewardAmount('Dominion')} oninput={(e) => setRewardAmount('Dominion', Number(e.currentTarget.value))} />
 									</div>
 								</div>
-								{#each selectedSession.spoils.items as item, i}
-									<span class="tag">{item} <button onclick={() => removeSpoilItem(i)} class="tag-remove-btn">✕</button></span>
+								{#each selectedSession.rewards as reward, i}
+									{#if reward.label !== 'Wealth' && reward.label !== 'Dominion'}
+										<span class="tag">{reward.label} <button onclick={() => removeReward(i)} class="tag-remove-btn">✕</button></span>
+									{/if}
 								{/each}
 								<input
 									type="text"
-									bind:value={newSpoilItem}
+									bind:value={newRewardItem}
 									placeholder="Add item and press Enter..."
 									class="gb-input"
 									style="margin-top:8px;"
-									onkeydown={(e) => e.key === 'Enter' && addSpoilItem()}
+									onkeydown={(e) => e.key === 'Enter' && addRewardItem()}
 								/>
 							</div>
 						</div>
