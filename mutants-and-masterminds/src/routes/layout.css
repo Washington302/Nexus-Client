@@ -3,8 +3,6 @@
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Oswald:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap');
-
 :root {
 	--ink: #111111;
 	--accent: #777777;
